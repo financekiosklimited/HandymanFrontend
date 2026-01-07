@@ -37,7 +37,7 @@ export function SearchBar({
         placeholder={placeholder}
         placeholderTextColor="$placeholderColor"
         value={value}
-        onChangeText={onChangeText}
+        onChange={(e: any) => onChangeText?.(e.target?.value ?? e.nativeEvent?.text ?? '')}
         onFocus={onFocus}
         onBlur={onBlur}
         size="$4"

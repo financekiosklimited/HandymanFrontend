@@ -49,11 +49,6 @@ export function GuestHomeScreen() {
           accuracy: Location.Accuracy.Balanced,
         })
         
-        console.log('Location obtained:', {
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-        })
-        
         setLocation({
           latitude: currentLocation.coords.latitude,
           longitude: currentLocation.coords.longitude,

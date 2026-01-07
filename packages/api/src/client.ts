@@ -1,7 +1,8 @@
 import ky, { type KyInstance } from 'ky'
 import { getAuthStore } from './store/auth'
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000'
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000'
 
 // Flag to prevent multiple refresh attempts
 let isRefreshing = false
