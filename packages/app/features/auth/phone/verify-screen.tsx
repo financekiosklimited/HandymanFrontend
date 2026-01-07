@@ -1,0 +1,386 @@
+'use client'
+
+import { useState, useRef, useEffect } from 'react'
+import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
+import { GradientBackground } from '@my/ui'
+import { useVerifyPhoneOtp, useSendPhoneOtp, useAuthStore, formatErrorMessage } from '@my/api'
+import { useRouter } from 'expo-router'
+import { ArrowLeft } from '@tamagui/lucide-icons'
+import { HTTPError, TimeoutError } from 'ky'
+import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import type { TextInput } from 'react-native'
+
+/**
+ * Transform API error into human-readable message
+ */
+async function getHumanReadableError(error: unknown): Promise<string> {
+  if (error instanceof TimeoutError) {
+    return 'Request timed out. Please try again.'
+  }
+
+  if (error instanceof HTTPError) {
+    try {
+      const errorData = (await error.response.json()) as { message?: string; detail?: string }
+      if (errorData?.message) return errorData.message
+      if (errorData?.detail) return errorData.detail
+    } catch {
+      // Continue to status code handling
+    }
+
+    switch (error.response.status) {
+      case 400:
+        return 'Invalid verification code. Please try again.'
+      case 401:
+        return 'Please login to verify your phone.'
+      case 429:
+        return 'Too many attempts. Please wait before trying again.'
+      default:
+        return 'Something went wrong. Please try again.'
+    }
+  }
+
+  return formatErrorMessage(error)
+}
+
+export function PhoneVerifyScreen() {
+  const router = useRouter()
+  const insets = useSafeArea()
+  const phoneNumber = useAuthStore((state) => state.phoneNumber)
+
+  const [otp, setOtp] = useState<string[]>(['', '', '', '', '', ''])
+  const [error, setError] = useState<string | null>(null)
+  const [countdown, setCountdown] = useState(60)
+  const [canResend, setCanResend] = useState(false)
+
+  const inputRefs = useRef<(TextInput | null)[]>([])
+
+  const verifyOtpMutation = useVerifyPhoneOtp()
+  const resendOtpMutation = useSendPhoneOtp()
+
+  // Countdown timer
+  useEffect(() => {
+    if (countdown <= 0) {
+      setCanResend(true)
+      return
+    }
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          setCanResend(true)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [countdown])
+
+  // Mask phone number for display
+  const getMaskedPhone = () => {
+    if (!phoneNumber) return 'your phone'
+    if (phoneNumber.length <= 4) return phoneNumber
+    const lastFour = phoneNumber.slice(-4)
+    const masked = phoneNumber.slice(0, -4).replace(/./g, '*')
+    return masked + lastFour
+  }
+
+  const handleOtpChange = (value: string, index: number) => {
+    // Filter only numeric characters
+    const numericValue = value.replace(/[^0-9]/g, '')
+
+    // Handle paste (multiple digits)
+    if (numericValue.length > 1) {
+      const pastedOtp = numericValue.slice(0, 6).split('')
+      const newOtp = [...otp]
+
+      pastedOtp.forEach((char, i) => {
+        if (i < 6) {
+          newOtp[i] = char
+        }
+      })
+
+      setOtp(newOtp)
+      if (error) setError(null)
+
+      // Focus on the last filled input or the next empty one
+      const filledCount = Math.min(pastedOtp.length, 6)
+      const focusIndex = filledCount >= 6 ? 5 : filledCount - 1
+      setTimeout(() => inputRefs.current[focusIndex]?.focus(), 0)
+      return
+    }
+
+    // Handle single digit
+    if (numericValue.length === 1) {
+      const newOtp = [...otp]
+      newOtp[index] = numericValue
+      setOtp(newOtp)
+      if (error) setError(null)
+
+      // Auto focus next
+      if (index < 5) {
+        setTimeout(() => inputRefs.current[index + 1]?.focus(), 0)
+      }
+    } else if (numericValue.length === 0) {
+      // Handle backspace
+      const newOtp = [...otp]
+      newOtp[index] = ''
+      setOtp(newOtp)
+    }
+  }
+
+  const handleKeyPress = (key: string, index: number) => {
+    // Move to previous on backspace if current is empty
+    if (key === 'Backspace' && !otp[index] && index > 0) {
+      setTimeout(() => inputRefs.current[index - 1]?.focus(), 0)
+    }
+  }
+
+  const handleVerify = async () => {
+    const otpCode = otp.join('')
+
+    if (otpCode.length !== 6) {
+      setError('Please enter the 6-digit code')
+      return
+    }
+
+    if (!phoneNumber) {
+      setError('Phone number not found. Please go back and try again.')
+      return
+    }
+
+    setError(null)
+
+    try {
+      await verifyOtpMutation.mutateAsync({
+        phone_number: phoneNumber,
+        otp: otpCode,
+      })
+      // Navigate to add job after successful verification
+      router.replace('/(homeowner)/jobs/add')
+    } catch (err) {
+      const errorMessage = await getHumanReadableError(err)
+      setError(errorMessage)
+    }
+  }
+
+  const handleResend = async () => {
+    if (!canResend || !phoneNumber) return
+
+    try {
+      await resendOtpMutation.mutateAsync({ phone_number: phoneNumber })
+      // Reset countdown
+      setCountdown(60)
+      setCanResend(false)
+      setError(null)
+    } catch (err) {
+      const errorMessage = await getHumanReadableError(err)
+      setError(errorMessage)
+    }
+  }
+
+  return (
+    <GradientBackground>
+      <YStack
+        flex={1}
+        pt={insets.top}
+      >
+        {/* Header with back button */}
+        <XStack
+          px="$4"
+          py="$3"
+          alignItems="center"
+        >
+          <Button
+            unstyled
+            onPress={() => router.back()}
+            p="$2"
+            hitSlop={12}
+            pressStyle={{ opacity: 0.7 }}
+          >
+            <ArrowLeft
+              size={24}
+              color="$color"
+            />
+          </Button>
+        </XStack>
+
+        {/* Main content */}
+        <YStack
+          flex={1}
+          px="$4"
+          gap="$6"
+        >
+          {/* Title */}
+          <YStack
+            pt="$4"
+            gap="$2"
+          >
+            <Text
+              fontSize={28}
+              fontWeight="bold"
+              color="$color"
+            >
+              Verify your phone number
+            </Text>
+            <XStack flexWrap="wrap">
+              <Text
+                fontSize="$4"
+                color="$colorSubtle"
+                lineHeight={24}
+              >
+                Please enter the 6-digit code sent to{' '}
+              </Text>
+              <Text
+                fontSize="$4"
+                color="$color"
+                fontWeight="600"
+                lineHeight={24}
+              >
+                {getMaskedPhone()}
+              </Text>
+            </XStack>
+          </YStack>
+
+          {/* OTP Input */}
+          <XStack
+            gap="$2"
+            justifyContent="center"
+            mt="$6"
+          >
+            {otp.map((digit, index) => (
+              <Input
+                key={index}
+                ref={(ref) => {
+                  inputRefs.current[index] = ref as TextInput | null
+                }}
+                value={digit}
+                onChangeText={(value) => handleOtpChange(value, index)}
+                onKeyPress={(e) => handleKeyPress(e.nativeEvent.key, index)}
+                keyboardType="number-pad"
+                textContentType={index === 0 ? 'oneTimeCode' : 'none'}
+                autoComplete={index === 0 ? 'sms-otp' : 'off'}
+                maxLength={index === 0 ? 6 : 1}
+                selectTextOnFocus
+                bg="white"
+                borderWidth={1}
+                borderColor={digit ? '$primary' : '$borderColorHover'}
+                borderRadius="$4"
+                width={48}
+                height={56}
+                textAlign="center"
+                color="$color"
+                focusStyle={{ borderColor: '$primary', borderWidth: 2 }}
+              />
+            ))}
+          </XStack>
+
+          {/* Error message */}
+          {error && (
+            <XStack
+              bg="$errorBackground"
+              p="$3"
+              borderRadius="$4"
+              gap="$2"
+              alignItems="center"
+              borderWidth={1}
+              borderColor="$errorBackground"
+              mt="$4"
+            >
+              <Text
+                color="$error"
+                fontSize="$3"
+                fontWeight="500"
+                flex={1}
+              >
+                {error}
+              </Text>
+            </XStack>
+          )}
+
+          {/* Resend section */}
+          <YStack
+            alignItems="center"
+            gap="$2"
+            mt="$8"
+          >
+            <Text
+              fontSize="$3"
+              color="$colorSubtle"
+            >
+              Didn't receive the code?
+            </Text>
+            <Button
+              unstyled
+              onPress={handleResend}
+              disabled={!canResend || resendOtpMutation.isPending}
+              pressStyle={{ opacity: 0.7 }}
+            >
+              {resendOtpMutation.isPending ? (
+                <Spinner
+                  size="small"
+                  color="$primary"
+                />
+              ) : (
+                <Text
+                  fontSize="$3"
+                  fontWeight="700"
+                  color={canResend ? '$color' : '$colorSubtle'}
+                >
+                  {canResend ? 'Resend code' : `Resend code (${countdown}s)`}
+                </Text>
+              )}
+            </Button>
+          </YStack>
+        </YStack>
+
+        {/* Bottom button */}
+        <YStack
+          px="$4"
+          pb="$3xl"
+          pt="$2xl"
+        >
+          <Button
+            bg="$primary"
+            borderRadius="$4"
+            py="$3"
+            px="$4"
+            minHeight={54}
+            onPress={handleVerify}
+            disabled={verifyOtpMutation.isPending || otp.join('').length !== 6}
+            pressStyle={{ opacity: 0.9 }}
+            opacity={otp.join('').length !== 6 ? 0.6 : 1}
+          >
+            {verifyOtpMutation.isPending ? (
+              <XStack
+                gap="$2"
+                alignItems="center"
+              >
+                <Spinner
+                  size="small"
+                  color="white"
+                />
+                <Text
+                  color="white"
+                  fontSize="$4"
+                  fontWeight="600"
+                >
+                  Verifying...
+                </Text>
+              </XStack>
+            ) : (
+              <Text
+                color="white"
+                fontSize="$4"
+                fontWeight="600"
+              >
+                Verify OTP
+              </Text>
+            )}
+          </Button>
+        </YStack>
+      </YStack>
+    </GradientBackground>
+  )
+}

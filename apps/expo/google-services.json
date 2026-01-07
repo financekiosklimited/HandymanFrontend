@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "928367356552",
+    "project_id": "solutionbank-5feb0",
+    "storage_bucket": "solutionbank-5feb0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928367356552:android:51c209fa83fe3027ef0d3d",
+        "android_client_info": {
+          "package_name": "com.rif42.solutionbank"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUQIFHUJdhmX3Qj5g7__icdTNJTnHiyRc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
