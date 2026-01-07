@@ -245,6 +245,8 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
               mb="$lg"
               alignItems="center"
               gap="$sm"
+              borderWidth={1}
+              borderColor="$borderColor"
             >
               <AlertCircle
                 size={20}
@@ -903,7 +905,7 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
           bg="$backgroundStrong"
           px="$lg"
           pt="$md"
-          pb={insets.bottom + 16}
+          pb={insets.bottom + 8}
           gap="$sm"
           borderTopWidth={1}
           borderTopColor="$borderColor"

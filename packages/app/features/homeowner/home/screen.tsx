@@ -358,6 +358,8 @@ export function HomeownerHomeScreen() {
                       bg="$backgroundMuted"
                       borderRadius="$md"
                       py="$sm"
+                      borderWidth={1}
+                      borderColor="$borderColor"
                     >
                       <Text
                         color="$primary"
@@ -510,6 +512,8 @@ export function HomeownerHomeScreen() {
                       borderRadius="$md"
                       py="$sm"
                       mt="$xs"
+                      borderWidth={1}
+                      borderColor="$borderColor"
                     >
                       {isFetchingMoreHandymen ? (
                         <XStack

@@ -8,6 +8,30 @@ export const NativeToast = () => {
     return null
   }
 
+  // Determine toast type based on title keywords
+  const title = currentToast.title?.toLowerCase() || ''
+  const isSuccess =
+    title.includes('success') ||
+    title.includes('submitted') ||
+    title.includes('updated') ||
+    title.includes('withdrawn') ||
+    title.includes('verified') ||
+    title.includes('sent')
+  const isError = title.includes('error') || title.includes('failed') || title.includes('failure')
+
+  // Get background color based on type
+  const getBackgroundColor = () => {
+    if (isSuccess) return '$successBackground'
+    if (isError) return '$errorBackground'
+    return '$backgroundStrong'
+  }
+
+  const getBorderColor = () => {
+    if (isSuccess) return '$success'
+    if (isError) return '$error'
+    return '$borderColor'
+  }
+
   return (
     <Toast
       key={currentToast.id}
@@ -19,6 +43,10 @@ export const NativeToast = () => {
       opacity={1}
       scale={1}
       animation="quick"
+      bg={getBackgroundColor()}
+      borderWidth={1}
+      borderColor={getBorderColor()}
+      borderRadius="$3"
     >
       <YStack
         py="$1.5"

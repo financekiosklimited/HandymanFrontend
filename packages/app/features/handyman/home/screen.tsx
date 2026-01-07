@@ -283,6 +283,8 @@ export function HandymanHomeScreen() {
                     borderRadius="$md"
                     py="$sm"
                     mt="$xs"
+                    borderWidth={1}
+                    borderColor="$borderColor"
                   >
                     {isFetchingMoreJobs ? (
                       <XStack

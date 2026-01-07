@@ -223,6 +223,8 @@ export function GuestHomeScreen() {
                     borderRadius="$md"
                     py="$sm"
                     mt="$xs"
+                    borderWidth={1}
+                    borderColor="$borderColor"
                   >
                     {isFetchingMoreJobs ? (
                       <XStack alignItems="center" gap="$sm">
@@ -309,6 +311,8 @@ export function GuestHomeScreen() {
                     borderRadius="$md"
                     py="$sm"
                     mt="$xs"
+                    borderWidth={1}
+                    borderColor="$borderColor"
                   >
                     {isFetchingMoreHandymen ? (
                       <XStack alignItems="center" gap="$sm">

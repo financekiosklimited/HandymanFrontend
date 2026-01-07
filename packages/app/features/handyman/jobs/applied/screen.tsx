@@ -372,6 +372,8 @@ export function MyJobsScreen() {
                     borderRadius="$md"
                     py="$sm"
                     mt="$sm"
+                    borderWidth={1}
+                    borderColor="$borderColor"
                   >
                     {isFetchingNextPage ? (
                       <XStack
