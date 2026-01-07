@@ -216,8 +216,8 @@ export function HandymanDetailScreen({ handymanId }: HandymanDetailScreenProps) 
                 >
                   <Star
                     size={18}
-                    fill="$accent"
-                    color="$accent"
+                    fill="#FFB800"
+                    color="#FFB800"
                   />
                   <Text
                     fontSize="$5"
@@ -473,10 +473,10 @@ export function HandymanDetailScreen({ handymanId }: HandymanDetailScreenProps) 
                           key={star}
                           size={18}
                           fill={
-                            star <= Math.round(handyman.rating) ? '$accent' : '$borderColorHover'
+                            star <= Math.round(handyman.rating) ? '#FFB800' : '#D1D1D6'
                           }
                           color={
-                            star <= Math.round(handyman.rating) ? '$accent' : '$borderColorHover'
+                            star <= Math.round(handyman.rating) ? '#FFB800' : '#D1D1D6'
                           }
                         />
                       ))}

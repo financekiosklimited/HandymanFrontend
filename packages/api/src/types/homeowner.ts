@@ -43,7 +43,7 @@ export interface HomeownerJob {
     description: string
     status: string
   }>
-  application_count?: number
+  applicant_count?: number
 }
 
 // Handyman visible to homeowner (nearby handymen)
@@ -78,5 +78,47 @@ export interface HomeownerProfileUpdateRequest {
   date_of_birth?: string | null
 }
 
+// Application status type
+export type HomeownerApplicationStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn'
+
+// Simplified job reference for applications
+export interface ApplicationJobReference {
+  public_id: string
+  title: string
+}
+
+// Handyman profile in application context
+export interface ApplicationHandymanProfile {
+  public_id: string
+  display_name: string
+  avatar_url: string | null
+  rating: number
+  hourly_rate: number | null
+  bio?: string | null
+  total_reviews?: number
+  job_title?: string | null
+  categories?: Array<{
+    public_id: string
+    name: string
+  }>
+}
+
+// Application in list view
+export interface HomeownerApplication {
+  public_id: string
+  job: ApplicationJobReference
+  handyman_profile: ApplicationHandymanProfile
+  status: HomeownerApplicationStatus
+  created_at: string
+}
+
+// Detailed application view
+export interface HomeownerApplicationDetail extends HomeownerApplication {
+  updated_at?: string
+  message?: string | null
+  proposed_rate?: number | null
+}
+
 // Re-export for convenience
 export type { PaginatedArrayResponse, ApiResponse, Notification } from './common'
+

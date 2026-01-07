@@ -133,6 +133,16 @@ export const config = createTamagui({
       '2xl': borderRadius['2xl'],
       full: borderRadius.full,
     },
+    // Add custom colors to tokens
+    color: {
+      ...colors,
+      // Add background-specific colors that are used as tokens
+      primaryBackground: 'rgba(12,154,92,0.1)',
+      successBackground: '#D1FAE5',
+      warningBackground: '#FEF3C7',
+      errorBackground: '#FEE2E2',
+      infoBackground: '#DBEAFE',
+    },
   },
   themes: {
     ...defaultConfig.themes,

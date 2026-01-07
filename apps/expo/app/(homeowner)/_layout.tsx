@@ -103,7 +103,11 @@ export default function HomeownerLayout() {
 
   // Check if we should show bottom nav (hide on certain screens)
   const shouldShowBottomNav = () => {
-    // Hide on detail/nested screens (but not jobs list or jobs/add)
+    // Hide on add job listing
+    if (pathname.startsWith('/jobs/add')) return false
+    // Hide on edit job listing
+    if (pathname.startsWith('/jobs/edit')) return false
+    // Hide on detail/nested screens (but not jobs list)
     if (pathname.match(/^\/jobs\/[^/]+$/) && pathname !== '/jobs/add') return false
     if (pathname.startsWith('/handymen/')) return false
     if (pathname.startsWith('/bookmarks')) return false

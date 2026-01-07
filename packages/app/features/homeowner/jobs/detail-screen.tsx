@@ -304,7 +304,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                       fontWeight="bold"
                       color="$primary"
                     >
-                      ${job.estimated_budget}
+                      {'$'}{job.estimated_budget}
                     </Text>
                   </XStack>
                 </XStack>
@@ -439,7 +439,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
             </YStack>
 
             {/* Applications Card (if any) */}
-            {job.application_count && job.application_count > 0 && (
+            {!!job.applicant_count && job.applicant_count > 0 && (
               <YStack
                 bg="$infoBackground"
                 borderRadius={20}
@@ -471,7 +471,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                       fontWeight="600"
                       color="$info"
                     >
-                      {job.application_count} Application{job.application_count > 1 ? 's' : ''}
+                      {job.applicant_count} Application{job.applicant_count > 1 ? 's' : ''}
                     </Text>
                     <Text
                       fontSize="$3"
@@ -580,7 +580,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                         >
                           {task.title}
                         </Text>
-                        {task.description && (
+                        {!!task.description && (
                           <Text
                             fontSize="$3"
                             color="$colorSubtle"
@@ -596,7 +596,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
             )}
 
             {/* Location & Address Card */}
-            {(job.city || job.address) && (
+            {!!(job.city || job.address) && (
               <YStack
                 bg="$backgroundMuted"
                 borderRadius={20}
@@ -623,7 +623,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                   </Text>
                 </XStack>
                 <YStack gap="$md">
-                  {job.city && (
+                  {!!job.city && (
                     <XStack
                       alignItems="center"
                       gap="$md"
@@ -652,7 +652,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                       </YStack>
                     </XStack>
                   )}
-                  {job.address && (
+                  {!!job.address && (
                     <YStack
                       bg="$borderColor"
                       borderRadius={12}
@@ -810,7 +810,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                       fontWeight="500"
                       color="$color"
                     >
-                      ${job.estimated_budget} estimated
+                      {'$'}{job.estimated_budget} estimated
                     </Text>
                   </YStack>
                 </XStack>
