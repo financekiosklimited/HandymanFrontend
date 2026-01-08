@@ -1,10 +1,12 @@
-import { YStack, XStack, Text, Image } from 'tamagui'
-import type { GuestJob, HomeownerJob } from '@my/api'
+import { YStack, XStack, Text, Image, View } from 'tamagui'
+import type { GuestJob, HomeownerJob, HandymanJobForYou } from '@my/api'
+import { User } from '@tamagui/lucide-icons'
 
 interface JobCardProps {
-  job: GuestJob | HomeownerJob
+  job: GuestJob | HomeownerJob | HandymanJobForYou
   onPress?: () => void
   showCategory?: boolean
+  showHomeowner?: boolean
   statusLabel?: string
   statusColor?: string
   statusTextColor?: string
@@ -14,12 +16,16 @@ export function JobCard({
   job,
   onPress,
   showCategory = false,
+  showHomeowner = true,
   statusLabel,
   statusColor = '$primary',
   statusTextColor = '$backgroundStrong',
 }: JobCardProps) {
   // Get first image if available
   const jobImage = job.images?.[0]?.image
+
+  // Get homeowner info if available
+  const homeowner = 'homeowner' in job ? job.homeowner : null
 
   return (
     <YStack
@@ -29,7 +35,7 @@ export function JobCard({
       onPress={onPress}
       pressStyle={{ opacity: 0.8 }}
       cursor="pointer"
-      height={200}
+      height={220}
     >
       {/* Job Image or Placeholder */}
       <YStack
@@ -125,6 +131,46 @@ export function JobCard({
         >
           {job.description || 'No description'}
         </Text>
+
+        {/* Homeowner Info */}
+        {showHomeowner && homeowner && (
+          <XStack
+            alignItems="center"
+            gap="$xs"
+            mb={2}
+          >
+            {homeowner.avatar_url ? (
+              <Image
+                source={{ uri: homeowner.avatar_url }}
+                width={16}
+                height={16}
+                borderRadius={8}
+              />
+            ) : (
+              <View
+                width={16}
+                height={16}
+                borderRadius={8}
+                bg="$backgroundMuted"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <User
+                  size={10}
+                  color="$colorMuted"
+                />
+              </View>
+            )}
+            <Text
+              fontSize={11}
+              color="$colorSubtle"
+              numberOfLines={1}
+              flex={1}
+            >
+              {homeowner.display_name}
+            </Text>
+          </XStack>
+        )}
 
         <XStack
           justifyContent="space-between"

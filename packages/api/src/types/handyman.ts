@@ -292,8 +292,12 @@ export interface DashboardJobInfo {
   } | null
   address: string | null
   postal_code: string | null
-  homeowner_display_name: string
-  homeowner_avatar_url: string | null
+  homeowner: {
+    public_id: string
+    display_name: string
+    avatar_url: string | null
+    rating: number | null
+  }
   created_at: string
 }
 

@@ -1869,21 +1869,41 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
                 borderTopWidth={1}
                 borderTopColor="rgba(0,0,0,0.05)"
               >
-                <XStack
-                  alignItems="center"
-                  gap="$xs"
-                >
-                  <User
-                    size={14}
-                    color="$colorSubtle"
-                  />
-                  <Text
-                    fontSize="$3"
-                    color="$colorSubtle"
+                {job.handyman && (
+                  <XStack
+                    alignItems="center"
+                    gap="$xs"
                   >
-                    {job.handyman_display_name}
-                  </Text>
-                </XStack>
+                    {job.handyman.avatar_url ? (
+                      <Image
+                        source={{ uri: job.handyman.avatar_url }}
+                        width={20}
+                        height={20}
+                        borderRadius={10}
+                      />
+                    ) : (
+                      <View
+                        width={20}
+                        height={20}
+                        borderRadius={10}
+                        bg="$backgroundMuted"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <User
+                          size={12}
+                          color="$colorMuted"
+                        />
+                      </View>
+                    )}
+                    <Text
+                      fontSize="$3"
+                      color="$colorSubtle"
+                    >
+                      {job.handyman.display_name}
+                    </Text>
+                  </XStack>
+                )}
                 <XStack
                   alignItems="center"
                   gap="$xs"

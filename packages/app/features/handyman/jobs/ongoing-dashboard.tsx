@@ -2304,12 +2304,39 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                   borderTopWidth={1}
                   borderTopColor="rgba(0,0,0,0.05)"
                 >
-                  <Text
-                    fontSize="$3"
-                    color="$colorSubtle"
+                  <XStack
+                    alignItems="center"
+                    gap="$xs"
                   >
-                    {job.homeowner_display_name}
-                  </Text>
+                    {job.homeowner.avatar_url ? (
+                      <Image
+                        source={{ uri: job.homeowner.avatar_url }}
+                        width={20}
+                        height={20}
+                        borderRadius={10}
+                      />
+                    ) : (
+                      <View
+                        width={20}
+                        height={20}
+                        borderRadius={10}
+                        bg="$backgroundMuted"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Briefcase
+                          size={12}
+                          color="$colorMuted"
+                        />
+                      </View>
+                    )}
+                    <Text
+                      fontSize="$3"
+                      color="$colorSubtle"
+                    >
+                      {job.homeowner.display_name}
+                    </Text>
+                  </XStack>
                   <XStack
                     alignItems="center"
                     gap="$xs"

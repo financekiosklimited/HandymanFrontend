@@ -199,8 +199,12 @@ export interface HomeownerDashboardJobInfo {
   } | null
   address: string | null
   postal_code: string | null
-  handyman_display_name: string
-  handyman_avatar_url: string | null
+  handyman: {
+    public_id: string
+    display_name: string
+    avatar_url: string | null
+    rating: number | null
+  } | null
   created_at: string
 }
 
