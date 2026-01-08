@@ -487,58 +487,171 @@ const reportStatusColors: Record<
   rejected: { bg: '$errorBackground', text: '$error', label: 'Revision', dot: '#EF4444' },
 }
 
-// Circular Progress
-function CircularProgress({
-  progress,
-  size = 100,
-  strokeWidth = 8,
-  color = '#0C9A5C',
-}: { progress: number; size?: number; strokeWidth?: number; color?: string }) {
-  const clampedProgress = Math.min(100, Math.max(0, progress))
+// Job Progress Bar - Premium horizontal stepper design
+function JobProgressBar({
+  completedTasks,
+  totalTasks,
+  completionPercentage,
+}: {
+  completedTasks: number
+  totalTasks: number
+  completionPercentage: number
+}) {
+  const clampedProgress = Math.min(100, Math.max(0, completionPercentage))
+  
+  // Define progress stages
+  const stages = [
+    { icon: Play, label: 'Started', threshold: 0 },
+    { icon: ListChecks, label: 'In Progress', threshold: 25 },
+    { icon: Clock, label: 'Halfway', threshold: 50 },
+    { icon: Award, label: 'Almost Done', threshold: 75 },
+    { icon: CheckCircle2, label: 'Complete', threshold: 100 },
+  ]
+
+  const getStageStatus = (threshold: number) => {
+    if (clampedProgress >= threshold) return 'completed'
+    if (clampedProgress >= threshold - 25 && threshold > 0) return 'current'
+    return 'pending'
+  }
+
   return (
-    <View
-      width={size}
-      height={size}
-      alignItems="center"
-      justifyContent="center"
+    <YStack
+      bg="rgba(255,255,255,0.98)"
+      borderRadius={24}
+      p="$lg"
+      gap="$lg"
+      borderWidth={1}
+      borderColor="rgba(0,0,0,0.06)"
+      shadowColor="black"
+      shadowOffset={{ width: 0, height: 8 }}
+      shadowOpacity={0.04}
+      shadowRadius={16}
     >
-      <View
-        position="absolute"
-        width={size}
-        height={size}
-        borderRadius={size / 2}
-        borderWidth={strokeWidth}
-        borderColor="rgba(0,0,0,0.08)"
-      />
-      <View
-        position="absolute"
-        width={size}
-        height={size}
-        borderRadius={size / 2}
-        borderWidth={strokeWidth}
-        borderColor={color as any}
-        borderTopColor={(clampedProgress < 25 ? 'transparent' : color) as any}
-        borderRightColor={(clampedProgress < 50 ? 'transparent' : color) as any}
-        borderBottomColor={(clampedProgress < 75 ? 'transparent' : color) as any}
-        borderLeftColor={(clampedProgress < 100 ? 'transparent' : color) as any}
-        transform={[{ rotate: '-90deg' }]}
-      />
-      <YStack alignItems="center">
-        <Text
-          fontSize="$6"
-          fontWeight="800"
-          color="$color"
+      {/* Header */}
+      <XStack
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <YStack gap={2}>
+          <Text
+            fontSize="$4"
+            fontWeight="700"
+            color="$color"
+          >
+            Job Progress
+          </Text>
+          <Text
+            fontSize="$2"
+            color="$colorSubtle"
+          >
+            {completedTasks} of {totalTasks} tasks completed
+          </Text>
+        </YStack>
+        <View
+          bg={clampedProgress >= 100 ? '$successBackground' : '$primaryBackground'}
+          px="$md"
+          py="$xs"
+          borderRadius="$full"
         >
-          {Math.round(clampedProgress)}%
-        </Text>
-        <Text
-          fontSize="$1"
-          color="$colorSubtle"
+          <Text
+            fontSize="$5"
+            fontWeight="800"
+            color={clampedProgress >= 100 ? '$success' : '$primary'}
+          >
+            {Math.round(clampedProgress)}%
+          </Text>
+        </View>
+      </XStack>
+
+      {/* Progress Bar */}
+      <YStack gap="$sm">
+        <View
+          height={8}
+          borderRadius={4}
+          bg="rgba(0,0,0,0.06)"
+          overflow="hidden"
         >
-          Complete
-        </Text>
+          <View
+            height={8}
+            borderRadius={4}
+            width={`${clampedProgress}%` as any}
+            bg={clampedProgress >= 100 ? '$success' : '$primary'}
+          />
+        </View>
+
+        {/* Stage Icons */}
+        <XStack
+          justifyContent="space-between"
+          alignItems="flex-start"
+          mt="$sm"
+        >
+          {stages.map((stage, index) => {
+            const status = getStageStatus(stage.threshold)
+            const IconComponent = stage.icon
+            const isCompleted = status === 'completed'
+            const isCurrent = status === 'current'
+            
+            return (
+              <YStack
+                key={index}
+                alignItems="center"
+                gap="$xs"
+                flex={1}
+              >
+                <View
+                  width={40}
+                  height={40}
+                  borderRadius={20}
+                  bg={
+                    isCompleted
+                      ? clampedProgress >= 100
+                        ? '$successBackground'
+                        : '$primaryBackground'
+                      : isCurrent
+                        ? 'rgba(12, 154, 92, 0.15)'
+                        : 'rgba(0,0,0,0.04)'
+                  }
+                  borderWidth={2}
+                  borderColor={
+                    isCompleted
+                      ? clampedProgress >= 100
+                        ? '$success'
+                        : '$primary'
+                      : isCurrent
+                        ? '$primary'
+                        : 'rgba(0,0,0,0.08)'
+                  }
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <IconComponent
+                    size={18}
+                    color={
+                      isCompleted
+                        ? clampedProgress >= 100
+                          ? '#22C55E'
+                          : '#0C9A5C'
+                        : isCurrent
+                          ? '#0C9A5C'
+                          : '#9CA3AF'
+                    }
+                  />
+                </View>
+                <Text
+                  fontSize={10}
+                  fontWeight={isCompleted || isCurrent ? '600' : '400'}
+                  color={isCompleted || isCurrent ? '$color' : '$colorMuted'}
+                  textAlign="center"
+                  numberOfLines={1}
+                >
+                  {stage.label}
+                </Text>
+              </YStack>
+            )
+          })}
+        </XStack>
       </YStack>
-    </View>
+    </YStack>
   )
 }
 
@@ -2051,6 +2164,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
               pb="$2xl"
               gap="$lg"
             >
+
               {/* Job Card */}
               <YStack
                 bg="rgba(255,255,255,0.98)"
@@ -2060,66 +2174,52 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                 borderWidth={1}
                 borderColor="rgba(0,0,0,0.06)"
               >
-                <XStack
-                  gap="$md"
-                  alignItems="flex-start"
-                >
-                  <CircularProgress
-                    progress={tasks_progress.completion_percentage}
-                    size={80}
-                    strokeWidth={6}
-                    color={tasks_progress.completion_percentage >= 100 ? '#22C55E' : '#0C9A5C'}
-                  />
-                  <YStack
-                    flex={1}
-                    gap="$xs"
+                <YStack gap="$xs">
+                  <Text
+                    fontSize="$5"
+                    fontWeight="700"
+                    color="$color"
+                    numberOfLines={2}
                   >
-                    <Text
-                      fontSize="$5"
-                      fontWeight="700"
-                      color="$color"
-                      numberOfLines={2}
+                    {job.title}
+                  </Text>
+                  {job.category && (
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
                     >
-                      {job.title}
-                    </Text>
-                    {job.category && (
-                      <XStack
-                        alignItems="center"
-                        gap="$xs"
+                      <Briefcase
+                        size={12}
+                        color="$primary"
+                      />
+                      <Text
+                        fontSize="$2"
+                        color="$primary"
+                        fontWeight="500"
                       >
-                        <Briefcase
-                          size={12}
-                          color="$primary"
-                        />
-                        <Text
-                          fontSize="$2"
-                          color="$primary"
-                          fontWeight="500"
-                        >
-                          {job.category.name}
-                        </Text>
-                      </XStack>
-                    )}
-                    {job.address && (
-                      <XStack
-                        alignItems="center"
-                        gap="$xs"
+                        {job.category.name}
+                      </Text>
+                    </XStack>
+                  )}
+                  {job.address && (
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                    >
+                      <MapPin
+                        size={12}
+                        color="$colorSubtle"
+                      />
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                        numberOfLines={1}
                       >
-                        <MapPin
-                          size={12}
-                          color="$colorSubtle"
-                        />
-                        <Text
-                          fontSize="$2"
-                          color="$colorSubtle"
-                          numberOfLines={1}
-                        >
-                          {job.address}
-                        </Text>
-                      </XStack>
-                    )}
-                  </YStack>
-                </XStack>
+                        {job.address}
+                      </Text>
+                    </XStack>
+                  )}
+                </YStack>
                 <XStack
                   justifyContent="space-between"
                   alignItems="center"
@@ -2181,6 +2281,13 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                   </Text>
                 </YStack>
               )}
+
+              {/* Job Progress Section */}
+              <JobProgressBar
+                completedTasks={tasks_progress.completed_tasks}
+                totalTasks={tasks_progress.total_tasks}
+                completionPercentage={tasks_progress.completion_percentage}
+              />
 
               <XStack gap="$sm">
                 <StatCard
@@ -2378,7 +2485,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                       </XStack>
                     </Button>
                   </YStack>
-                ) : (
+                ) : !isCompleted ? (
                   <Button
                     bg="$primary"
                     borderRadius="$lg"
@@ -2403,7 +2510,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                       </Text>
                     </XStack>
                   </Button>
-                )}
+                ) : null}
                 {isPending && (
                   <XStack
                     bg="$warningBackground"
@@ -2471,23 +2578,23 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                 </YStack>
               )}
 
-              {sessions && sessions.length > 0 && (
-                <YStack gap="$md">
-                  <XStack
-                    alignItems="center"
-                    gap="$sm"
+              <YStack gap="$md">
+                <XStack
+                  alignItems="center"
+                  gap="$sm"
+                >
+                  <History
+                    size={20}
+                    color="$primary"
+                  />
+                  <Text
+                    fontSize="$4"
+                    fontWeight="600"
+                    color="$color"
                   >
-                    <History
-                      size={20}
-                      color="$primary"
-                    />
-                    <Text
-                      fontSize="$4"
-                      fontWeight="600"
-                      color="$color"
-                    >
-                      Work Sessions
-                    </Text>
+                    Work Sessions
+                  </Text>
+                  {sessions && sessions.length > 0 && (
                     <View
                       bg="$primaryBackground"
                       px="$sm"
@@ -2502,7 +2609,9 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                         {sessions.length}
                       </Text>
                     </View>
-                  </XStack>
+                  )}
+                </XStack>
+                {sessions && sessions.length > 0 ? (
                   <YStack>
                     {sessions.slice(0, 5).map((session, i) => (
                       <ExpandableSessionCard
@@ -2513,8 +2622,40 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                       />
                     ))}
                   </YStack>
-                </YStack>
-              )}
+                ) : (
+                  <YStack
+                    bg="rgba(255,255,255,0.9)"
+                    borderRadius={16}
+                    p="$xl"
+                    alignItems="center"
+                    gap="$md"
+                    borderWidth={1}
+                    borderStyle="dashed"
+                    borderColor="$borderColor"
+                  >
+                    <View
+                      width={56}
+                      height={56}
+                      borderRadius={28}
+                      bg="$primaryBackground"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <History
+                        size={26}
+                        color="$primary"
+                      />
+                    </View>
+                    <Text
+                      color="$color"
+                      fontSize="$4"
+                      fontWeight="600"
+                    >
+                      No Sessions Yet
+                    </Text>
+                  </YStack>
+                )}
+              </YStack>
 
               <YStack gap="$md">
                 <XStack
