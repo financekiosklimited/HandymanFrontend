@@ -43,6 +43,7 @@ import {
   Flag,
   MapPin,
   User,
+  Hourglass,
 } from '@tamagui/lucide-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -1662,6 +1663,152 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
             gap="$lg"
           >
 
+            {/* Pending Completion Banner - Premium Design */}
+            {isPendingCompletion && (
+              <YStack
+                bg="rgba(251, 191, 36, 0.12)"
+                borderRadius={20}
+                p="$lg"
+                borderWidth={1.5}
+                borderColor="rgba(245, 158, 11, 0.3)"
+                shadowColor="rgba(245, 158, 11, 0.2)"
+                shadowOffset={{ width: 0, height: 8 }}
+                shadowOpacity={0.15}
+                shadowRadius={16}
+                position="relative"
+                overflow="hidden"
+                gap="$md"
+              >
+                {/* Decorative background elements */}
+                <View
+                  position="absolute"
+                  top={-20}
+                  right={-20}
+                  width={100}
+                  height={100}
+                  borderRadius={50}
+                  bg="rgba(245, 158, 11, 0.08)"
+                />
+                <View
+                  position="absolute"
+                  bottom={-30}
+                  left={-30}
+                  width={80}
+                  height={80}
+                  borderRadius={40}
+                  bg="rgba(245, 158, 11, 0.05)"
+                />
+
+                <XStack
+                  alignItems="center"
+                  gap="$md"
+                >
+                  <View
+                    width={52}
+                    height={52}
+                    borderRadius={16}
+                    bg="rgba(245, 158, 11, 0.2)"
+                    alignItems="center"
+                    justifyContent="center"
+                    borderWidth={1}
+                    borderColor="rgba(245, 158, 11, 0.3)"
+                  >
+                    <Hourglass
+                      size={26}
+                      color="#F59E0B"
+                    />
+                  </View>
+                  <YStack
+                    flex={1}
+                    gap={4}
+                  >
+                    <Text
+                      fontSize="$4"
+                      fontWeight="700"
+                      color="#B45309"
+                    >
+                      Completion Requested
+                    </Text>
+                    <Text
+                      fontSize="$2"
+                      color="#D97706"
+                      opacity={0.9}
+                    >
+                      Handyman has requested job completion approval
+                    </Text>
+                  </YStack>
+                </XStack>
+
+                <XStack gap="$sm">
+                  <Button
+                    flex={1}
+                    bg="$error"
+                    borderRadius="$lg"
+                    py="$md"
+                    onPress={handleRejectCompletion}
+                    disabled={isRejecting}
+                    pressStyle={{ opacity: 0.9, scale: 0.98 }}
+                  >
+                    {isRejecting ? (
+                      <Spinner
+                        size="small"
+                        color="white"
+                      />
+                    ) : (
+                      <XStack
+                        alignItems="center"
+                        gap="$xs"
+                      >
+                        <ThumbsDown
+                          size={18}
+                          color="white"
+                        />
+                        <Text
+                          color="white"
+                          fontWeight="600"
+                        >
+                          Reject
+                        </Text>
+                      </XStack>
+                    )}
+                  </Button>
+                  <Button
+                    flex={1}
+                    bg="$success"
+                    borderRadius="$lg"
+                    py="$md"
+                    onPress={handleApproveCompletion}
+                    disabled={isApproving}
+                    pressStyle={{ opacity: 0.9, scale: 0.98 }}
+                  >
+                    {isApproving ? (
+                      <Spinner
+                        size="small"
+                        color="white"
+                      />
+                    ) : (
+                      <XStack
+                        alignItems="center"
+                        gap="$xs"
+                      >
+                        <ThumbsUp
+                          size={18}
+                          color="white"
+                        />
+                        <Text
+                          color="white"
+                          fontWeight="600"
+                        >
+                          Approve
+                        </Text>
+                      </XStack>
+                    )}
+                  </Button>
+                </XStack>
+              </YStack>
+            )}
+
+
             {/* Job Card */}
             <YStack
               bg="rgba(255,255,255,0.98)"
@@ -1829,107 +1976,6 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
                 color="$warning"
               />
             </XStack>
-
-            {/* Pending Completion Banner */}
-            {isPendingCompletion && (
-              <YStack
-                bg="rgba(245, 158, 11, 0.1)"
-                borderRadius={20}
-                p="$lg"
-                gap="$md"
-                borderWidth={2}
-                borderColor="$warning"
-              >
-                <XStack
-                  alignItems="center"
-                  gap="$sm"
-                >
-                  <AlertCircle
-                    size={24}
-                    color="$warning"
-                  />
-                  <YStack flex={1}>
-                    <Text
-                      fontSize="$4"
-                      fontWeight="600"
-                      color="$color"
-                    >
-                      Completion Requested
-                    </Text>
-                    <Text
-                      fontSize="$2"
-                      color="$colorSubtle"
-                    >
-                      Handyman submitted for completion
-                    </Text>
-                  </YStack>
-                </XStack>
-                <XStack gap="$sm">
-                  <Button
-                    flex={1}
-                    bg="$error"
-                    borderRadius="$lg"
-                    py="$md"
-                    onPress={handleRejectCompletion}
-                    disabled={isRejecting}
-                  >
-                    {isRejecting ? (
-                      <Spinner
-                        size="small"
-                        color="white"
-                      />
-                    ) : (
-                      <XStack
-                        alignItems="center"
-                        gap="$xs"
-                      >
-                        <ThumbsDown
-                          size={18}
-                          color="white"
-                        />
-                        <Text
-                          color="white"
-                          fontWeight="600"
-                        >
-                          Reject
-                        </Text>
-                      </XStack>
-                    )}
-                  </Button>
-                  <Button
-                    flex={1}
-                    bg="$success"
-                    borderRadius="$lg"
-                    py="$md"
-                    onPress={handleApproveCompletion}
-                    disabled={isApproving}
-                  >
-                    {isApproving ? (
-                      <Spinner
-                        size="small"
-                        color="white"
-                      />
-                    ) : (
-                      <XStack
-                        alignItems="center"
-                        gap="$xs"
-                      >
-                        <ThumbsUp
-                          size={18}
-                          color="white"
-                        />
-                        <Text
-                          color="white"
-                          fontWeight="600"
-                        >
-                          Approve
-                        </Text>
-                      </XStack>
-                    )}
-                  </Button>
-                </XStack>
-              </YStack>
-            )}
 
             {/* Tasks */}
             {tasks_progress.tasks.length > 0 && (

@@ -57,6 +57,7 @@ import {
   ChevronUp,
   Eye,
   Star,
+  Hourglass,
 } from '@tamagui/lucide-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -2165,6 +2166,84 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
               gap="$lg"
             >
 
+              {/* Pending Approval Banner */}
+              {isPending && (
+                <YStack
+                  bg="rgba(251, 191, 36, 0.12)"
+                  borderRadius={20}
+                  p="$lg"
+                  borderWidth={1.5}
+                  borderColor="rgba(245, 158, 11, 0.3)"
+                  shadowColor="rgba(245, 158, 11, 0.2)"
+                  shadowOffset={{ width: 0, height: 8 }}
+                  shadowOpacity={0.15}
+                  shadowRadius={16}
+                  position="relative"
+                  overflow="hidden"
+                >
+                  {/* Decorative background element */}
+                  <View
+                    position="absolute"
+                    top={-20}
+                    right={-20}
+                    width={100}
+                    height={100}
+                    borderRadius={50}
+                    bg="rgba(245, 158, 11, 0.08)"
+                  />
+                  <View
+                    position="absolute"
+                    bottom={-30}
+                    left={-30}
+                    width={80}
+                    height={80}
+                    borderRadius={40}
+                    bg="rgba(245, 158, 11, 0.05)"
+                  />
+
+                  <XStack
+                    alignItems="center"
+                    gap="$md"
+                  >
+                    <View
+                      width={52}
+                      height={52}
+                      borderRadius={16}
+                      bg="rgba(245, 158, 11, 0.2)"
+                      alignItems="center"
+                      justifyContent="center"
+                      borderWidth={1}
+                      borderColor="rgba(245, 158, 11, 0.3)"
+                    >
+                      <Hourglass
+                        size={26}
+                        color="#F59E0B"
+                      />
+                    </View>
+                    <YStack
+                      flex={1}
+                      gap={4}
+                    >
+                      <Text
+                        fontSize="$4"
+                        fontWeight="700"
+                        color="#B45309"
+                      >
+                        Waiting for Approval
+                      </Text>
+                      <Text
+                        fontSize="$2"
+                        color="#D97706"
+                        opacity={0.9}
+                      >
+                        Your job completion request is pending homeowner review
+                      </Text>
+                    </YStack>
+                  </XStack>
+                </YStack>
+              )}
+
+
               {/* Job Card */}
               <YStack
                 bg="rgba(255,255,255,0.98)"
@@ -2511,27 +2590,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                     </XStack>
                   </Button>
                 ) : null}
-                {isPending && (
-                  <XStack
-                    bg="$warningBackground"
-                    p="$md"
-                    borderRadius={12}
-                    alignItems="center"
-                    gap="$sm"
-                  >
-                    <AlertCircle
-                      size={18}
-                      color="$warning"
-                    />
-                    <Text
-                      color="$warning"
-                      fontSize="$2"
-                      flex={1}
-                    >
-                      Waiting for approval
-                    </Text>
-                  </XStack>
-                )}
+
               </YStack>
 
               {tasks_progress.tasks.length > 0 && (
