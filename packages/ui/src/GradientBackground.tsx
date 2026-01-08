@@ -7,7 +7,10 @@ interface GradientBackgroundProps {
 
 export function GradientBackground({ children }: GradientBackgroundProps) {
   return (
-    <YStack flex={1} position="relative">
+    <YStack
+      flex={1}
+      position="relative"
+    >
       <LinearGradient
         colors={['#FBF6F2', '#F0F5F3', '#FBF6F2']}
         start={{ x: 0, y: 0 }}
@@ -22,7 +25,11 @@ export function GradientBackground({ children }: GradientBackgroundProps) {
           zIndex: 0,
         }}
       />
-      <YStack flex={1} position="relative" zIndex={1}>
+      <YStack
+        flex={1}
+        position="relative"
+        zIndex={1}
+      >
         {children}
       </YStack>
     </YStack>

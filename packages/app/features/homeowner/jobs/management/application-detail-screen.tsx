@@ -22,7 +22,8 @@ import { applicationStatusColors, type ApplicationStatus } from '@my/config'
 import { useToastController } from '@tamagui/toast'
 
 function getStatusConfig(status: HomeownerApplicationStatus) {
-  const config = applicationStatusColors[status as ApplicationStatus] || applicationStatusColors.pending
+  const config =
+    applicationStatusColors[status as ApplicationStatus] || applicationStatusColors.pending
   return {
     ...config,
     icon: status === 'pending' ? Clock : status === 'approved' ? CheckCircle : XCircle,
@@ -40,11 +41,7 @@ export function ApplicationDetailScreen() {
   const [isRejecting, setIsRejecting] = useState(false)
 
   // Fetch application detail
-  const {
-    data: application,
-    isLoading,
-    error,
-  } = useHomeownerApplicationDetail(applicationId)
+  const { data: application, isLoading, error } = useHomeownerApplicationDetail(applicationId)
 
   // Mutations
   const approveApplication = useApproveApplication()
@@ -127,9 +124,23 @@ export function ApplicationDetailScreen() {
   if (isLoading) {
     return (
       <GradientBackground>
-        <YStack flex={1} pt={insets.top} alignItems="center" justifyContent="center" gap="$md">
-          <Spinner size="large" color="$primary" />
-          <Text color="$colorSubtle" fontSize="$3">Loading application...</Text>
+        <YStack
+          flex={1}
+          pt={insets.top}
+          alignItems="center"
+          justifyContent="center"
+          gap="$md"
+        >
+          <Spinner
+            size="large"
+            color="$primary"
+          />
+          <Text
+            color="$colorSubtle"
+            fontSize="$3"
+          >
+            Loading application...
+          </Text>
         </YStack>
       </GradientBackground>
     )
@@ -138,8 +149,16 @@ export function ApplicationDetailScreen() {
   if (error || !application) {
     return (
       <GradientBackground>
-        <YStack flex={1} pt={insets.top}>
-          <XStack px="$lg" py="$md" alignItems="center" gap="$md">
+        <YStack
+          flex={1}
+          pt={insets.top}
+        >
+          <XStack
+            px="$lg"
+            py="$md"
+            alignItems="center"
+            gap="$md"
+          >
             <Button
               unstyled
               onPress={() => router.back()}
@@ -147,17 +166,45 @@ export function ApplicationDetailScreen() {
               hitSlop={12}
               pressStyle={{ opacity: 0.7 }}
             >
-              <ArrowLeft size={22} color="$color" />
+              <ArrowLeft
+                size={22}
+                color="$color"
+              />
             </Button>
-            <Text flex={1} fontSize={17} fontWeight="700" color="$color" textAlign="center">
+            <Text
+              flex={1}
+              fontSize={17}
+              fontWeight="700"
+              color="$color"
+              textAlign="center"
+            >
               Application
             </Text>
             <View width={38} />
           </XStack>
-          <YStack flex={1} alignItems="center" justifyContent="center" gap="$md" px="$lg">
-            <Briefcase size={48} color="$error" />
-            <Text color="$error" fontSize="$4" fontWeight="600">Application Not Found</Text>
-            <Text color="$colorSubtle" fontSize="$3" textAlign="center">
+          <YStack
+            flex={1}
+            alignItems="center"
+            justifyContent="center"
+            gap="$md"
+            px="$lg"
+          >
+            <Briefcase
+              size={48}
+              color="$error"
+            />
+            <Text
+              color="$error"
+              fontSize="$4"
+              fontWeight="600"
+            >
+              Application Not Found
+            </Text>
+            <Text
+              color="$colorSubtle"
+              fontSize="$3"
+              textAlign="center"
+            >
               This application may have been removed or is no longer available.
             </Text>
             <Button
@@ -167,7 +214,12 @@ export function ApplicationDetailScreen() {
               px="$xl"
               onPress={() => router.back()}
             >
-              <Text color="white" fontWeight="600">Go Back</Text>
+              <Text
+                color="white"
+                fontWeight="600"
+              >
+                Go Back
+              </Text>
             </Button>
           </YStack>
         </YStack>
@@ -183,9 +235,17 @@ export function ApplicationDetailScreen() {
 
   return (
     <GradientBackground>
-      <YStack flex={1} pt={insets.top}>
+      <YStack
+        flex={1}
+        pt={insets.top}
+      >
         {/* Header */}
-        <XStack px="$lg" py="$md" alignItems="center" gap="$md">
+        <XStack
+          px="$lg"
+          py="$md"
+          alignItems="center"
+          gap="$md"
+        >
           <Button
             unstyled
             onPress={() => router.back()}
@@ -193,16 +253,32 @@ export function ApplicationDetailScreen() {
             hitSlop={12}
             pressStyle={{ opacity: 0.7 }}
           >
-            <ArrowLeft size={22} color="$color" />
+            <ArrowLeft
+              size={22}
+              color="$color"
+            />
           </Button>
-          <Text flex={1} fontSize={17} fontWeight="700" color="$color" textAlign="center">
+          <Text
+            flex={1}
+            fontSize={17}
+            fontWeight="700"
+            color="$color"
+            textAlign="center"
+          >
             Applicant Details
           </Text>
           <View width={38} />
         </XStack>
 
-        <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-          <YStack px="$lg" pb="$2xl" gap="$lg">
+        <ScrollView
+          flex={1}
+          showsVerticalScrollIndicator={false}
+        >
+          <YStack
+            px="$lg"
+            pb="$2xl"
+            gap="$lg"
+          >
             {/* Status Banner */}
             <XStack
               bg={statusConfig.bg as any}
@@ -213,8 +289,15 @@ export function ApplicationDetailScreen() {
               borderWidth={1}
               borderColor="$borderColor"
             >
-              <StatusIcon size={20} color={statusConfig.text as any} />
-              <Text fontSize="$3" fontWeight="600" color={statusConfig.text as any}>
+              <StatusIcon
+                size={20}
+                color={statusConfig.text as any}
+              />
+              <Text
+                fontSize="$3"
+                fontWeight="600"
+                color={statusConfig.text as any}
+              >
                 {statusConfig.label}
               </Text>
             </XStack>
@@ -229,7 +312,10 @@ export function ApplicationDetailScreen() {
               borderColor="rgba(0,0,0,0.05)"
             >
               {/* Avatar & Name */}
-              <XStack gap="$md" alignItems="center">
+              <XStack
+                gap="$md"
+                alignItems="center"
+              >
                 <View
                   width={72}
                   height={72}
@@ -249,27 +335,58 @@ export function ApplicationDetailScreen() {
                       resizeMode="cover"
                     />
                   ) : (
-                    <User size={32} color="$colorMuted" />
+                    <User
+                      size={32}
+                      color="$colorMuted"
+                    />
                   )}
                 </View>
 
-                <YStack flex={1} gap={4}>
-                  <Text fontSize="$6" fontWeight="bold" color="$color">
+                <YStack
+                  flex={1}
+                  gap={4}
+                >
+                  <Text
+                    fontSize="$6"
+                    fontWeight="bold"
+                    color="$color"
+                  >
                     {handyman.display_name}
                   </Text>
                   {handyman.job_title && (
-                    <Text fontSize="$3" color="$colorSubtle">
+                    <Text
+                      fontSize="$3"
+                      color="$colorSubtle"
+                    >
                       {handyman.job_title}
                     </Text>
                   )}
-                  <XStack alignItems="center" gap="$sm" mt="$xs">
-                    <XStack alignItems="center" gap="$xs">
-                      <Star size={14} color="$warning" fill="$warning" />
-                      <Text fontSize="$3" fontWeight="600" color="$color">
+                  <XStack
+                    alignItems="center"
+                    gap="$sm"
+                    mt="$xs"
+                  >
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                    >
+                      <Star
+                        size={14}
+                        color="$warning"
+                        fill="$warning"
+                      />
+                      <Text
+                        fontSize="$3"
+                        fontWeight="600"
+                        color="$color"
+                      >
                         {handyman.rating?.toFixed(1) || 'N/A'}
                       </Text>
                       {handyman.total_reviews && (
-                        <Text fontSize="$2" color="$colorSubtle">
+                        <Text
+                          fontSize="$2"
+                          color="$colorSubtle"
+                        >
                           ({handyman.total_reviews} reviews)
                         </Text>
                       )}
@@ -286,8 +403,17 @@ export function ApplicationDetailScreen() {
                   p="$md"
                   alignItems="center"
                 >
-                  <Text fontSize="$2" color="$colorSubtle">Hourly Rate</Text>
-                  <Text fontSize="$7" fontWeight="bold" color="$primary">
+                  <Text
+                    fontSize="$2"
+                    color="$colorSubtle"
+                  >
+                    Hourly Rate
+                  </Text>
+                  <Text
+                    fontSize="$7"
+                    fontWeight="bold"
+                    color="$primary"
+                  >
                     ${handyman.hourly_rate}/hr
                   </Text>
                 </YStack>
@@ -296,10 +422,19 @@ export function ApplicationDetailScreen() {
               {/* Bio */}
               {handyman.bio && (
                 <YStack gap="$xs">
-                  <Text fontSize="$2" fontWeight="600" color="$colorSubtle" textTransform="uppercase">
+                  <Text
+                    fontSize="$2"
+                    fontWeight="600"
+                    color="$colorSubtle"
+                    textTransform="uppercase"
+                  >
                     About
                   </Text>
-                  <Text fontSize="$3" color="$color" lineHeight={22}>
+                  <Text
+                    fontSize="$3"
+                    color="$color"
+                    lineHeight={22}
+                  >
                     {handyman.bio}
                   </Text>
                 </YStack>
@@ -308,10 +443,18 @@ export function ApplicationDetailScreen() {
               {/* Categories */}
               {handyman.categories && handyman.categories.length > 0 && (
                 <YStack gap="$xs">
-                  <Text fontSize="$2" fontWeight="600" color="$colorSubtle" textTransform="uppercase">
+                  <Text
+                    fontSize="$2"
+                    fontWeight="600"
+                    color="$colorSubtle"
+                    textTransform="uppercase"
+                  >
                     Expertise
                   </Text>
-                  <XStack flexWrap="wrap" gap="$xs">
+                  <XStack
+                    flexWrap="wrap"
+                    gap="$xs"
+                  >
                     {handyman.categories.map((cat) => (
                       <XStack
                         key={cat.public_id}
@@ -320,7 +463,11 @@ export function ApplicationDetailScreen() {
                         py="$xs"
                         borderRadius="$full"
                       >
-                        <Text fontSize="$2" color="$color" fontWeight="500">
+                        <Text
+                          fontSize="$2"
+                          color="$color"
+                          fontWeight="500"
+                        >
                           {cat.name}
                         </Text>
                       </XStack>
@@ -339,10 +486,19 @@ export function ApplicationDetailScreen() {
               borderWidth={1}
               borderColor="rgba(0,0,0,0.05)"
             >
-              <Text fontSize="$2" fontWeight="600" color="$colorSubtle" textTransform="uppercase">
+              <Text
+                fontSize="$2"
+                fontWeight="600"
+                color="$colorSubtle"
+                textTransform="uppercase"
+              >
                 Applied For
               </Text>
-              <Text fontSize="$4" fontWeight="600" color="$color">
+              <Text
+                fontSize="$4"
+                fontWeight="600"
+                color="$color"
+              >
                 {job.title}
               </Text>
             </YStack>
@@ -357,10 +513,19 @@ export function ApplicationDetailScreen() {
                 borderWidth={1}
                 borderColor="rgba(0,0,0,0.05)"
               >
-                <Text fontSize="$2" fontWeight="600" color="$colorSubtle" textTransform="uppercase">
+                <Text
+                  fontSize="$2"
+                  fontWeight="600"
+                  color="$colorSubtle"
+                  textTransform="uppercase"
+                >
                   Message from Applicant
                 </Text>
-                <Text fontSize="$3" color="$color" lineHeight={22}>
+                <Text
+                  fontSize="$3"
+                  color="$color"
+                  lineHeight={22}
+                >
                   {application.message}
                 </Text>
               </YStack>
@@ -376,17 +541,30 @@ export function ApplicationDetailScreen() {
                 borderWidth={1}
                 borderColor="rgba(0,0,0,0.05)"
               >
-                <Text fontSize="$2" fontWeight="600" color="$colorSubtle" textTransform="uppercase">
+                <Text
+                  fontSize="$2"
+                  fontWeight="600"
+                  color="$colorSubtle"
+                  textTransform="uppercase"
+                >
                   Proposed Rate
                 </Text>
-                <Text fontSize="$5" fontWeight="bold" color="$primary">
+                <Text
+                  fontSize="$5"
+                  fontWeight="bold"
+                  color="$primary"
+                >
                   ${application.proposed_rate}/hr
                 </Text>
               </YStack>
             )}
 
             {/* Applied Date */}
-            <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+            <Text
+              fontSize="$2"
+              color="$colorSubtle"
+              textAlign="center"
+            >
               Applied on{' '}
               {new Date(application.created_at).toLocaleString('en-US', {
                 month: 'long',
@@ -423,11 +601,24 @@ export function ApplicationDetailScreen() {
               pressStyle={{ opacity: 0.8, bg: 'rgba(255,59,48,0.05)' }}
             >
               {isRejecting ? (
-                <Spinner size="small" color="$error" />
+                <Spinner
+                  size="small"
+                  color="$error"
+                />
               ) : (
-                <XStack alignItems="center" gap="$xs">
-                  <XCircle size={18} color="$error" />
-                  <Text color="$error" fontWeight="600" fontSize="$4">
+                <XStack
+                  alignItems="center"
+                  gap="$xs"
+                >
+                  <XCircle
+                    size={18}
+                    color="$error"
+                  />
+                  <Text
+                    color="$error"
+                    fontWeight="600"
+                    fontSize="$4"
+                  >
                     Reject
                   </Text>
                 </XStack>
@@ -444,11 +635,24 @@ export function ApplicationDetailScreen() {
               pressStyle={{ opacity: 0.8 }}
             >
               {isApproving ? (
-                <Spinner size="small" color="white" />
+                <Spinner
+                  size="small"
+                  color="white"
+                />
               ) : (
-                <XStack alignItems="center" gap="$xs">
-                  <CheckCircle size={18} color="white" />
-                  <Text color="white" fontWeight="600" fontSize="$4">
+                <XStack
+                  alignItems="center"
+                  gap="$xs"
+                >
+                  <CheckCircle
+                    size={18}
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontWeight="600"
+                    fontSize="$4"
+                  >
                     Approve
                   </Text>
                 </XStack>

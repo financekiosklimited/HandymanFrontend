@@ -1,14 +1,14 @@
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../client'
-import type { 
-  PaginatedArrayResponse, 
-  ApiResponse, 
-  HomeownerJob, 
-  HomeownerHandyman, 
-  HomeownerProfile, 
-  HomeownerProfileUpdateRequest, 
-  Notification, 
-  HomeownerApplication, 
+import type {
+  PaginatedArrayResponse,
+  ApiResponse,
+  HomeownerJob,
+  HomeownerHandyman,
+  HomeownerProfile,
+  HomeownerProfileUpdateRequest,
+  Notification,
+  HomeownerApplication,
   HomeownerApplicationDetail,
   WorkSession,
   DailyReport,
@@ -17,8 +17,6 @@ import type {
   RejectCompletionRequest,
   CreateDisputeRequest,
 } from '../../types/homeowner'
-
-
 
 interface HomeownerJobsParams {
   status?: string
@@ -41,9 +39,7 @@ export function useHomeownerJobs(params?: HomeownerJobsParams) {
         searchParams.set('page', pageParam.toString())
 
         const url = `homeowner/jobs/?${searchParams.toString()}`
-        const response = await apiClient
-          .get(url)
-          .json<PaginatedArrayResponse<HomeownerJob>>()
+        const response = await apiClient.get(url).json<PaginatedArrayResponse<HomeownerJob>>()
 
         return {
           results: response.data || [],
@@ -115,9 +111,7 @@ export function useNearbyHandymen(params?: NearbyHandymenParams) {
         searchParams.set('page', pageParam.toString())
 
         const url = `homeowner/handymen/nearby/?${searchParams.toString()}`
-        const response = await apiClient
-          .get(url)
-          .json<PaginatedArrayResponse<HomeownerHandyman>>()
+        const response = await apiClient.get(url).json<PaginatedArrayResponse<HomeownerHandyman>>()
 
         return {
           results: response.data || [],
@@ -180,7 +174,7 @@ export function useHomeownerProfile() {
  */
 export function useUpdateHomeownerProfile() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (data: HomeownerProfileUpdateRequest) => {
       const response = await apiClient
@@ -207,9 +201,7 @@ export function useHomeownerNotifications() {
         searchParams.set('page', pageParam.toString())
 
         const url = `homeowner/notifications/?${searchParams.toString()}`
-        const response = await apiClient
-          .get(url)
-          .json<PaginatedArrayResponse<Notification>>()
+        const response = await apiClient.get(url).json<PaginatedArrayResponse<Notification>>()
 
         return {
           results: response.data || [],
@@ -238,7 +230,7 @@ export function useHomeownerNotifications() {
  */
 export function useMarkHomeownerNotificationRead() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (publicId: string) => {
       const response = await apiClient
@@ -266,7 +258,7 @@ export function useHomeownerUnreadCount(enabled = true) {
         const response = await apiClient
           .get('homeowner/notifications/unread-count/')
           .json<ApiResponse<{ unread_count: number }>>()
-        
+
         return response.data?.unread_count || 0
       } catch (error) {
         console.error('Error fetching unread count:', error)
@@ -350,7 +342,7 @@ export function useHomeownerApplicationDetail(publicId: string) {
  */
 export function useApproveApplication() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (publicId: string) => {
       const response = await apiClient
@@ -372,7 +364,7 @@ export function useApproveApplication() {
  */
 export function useRejectApplication() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (publicId: string) => {
       const response = await apiClient
@@ -448,9 +440,13 @@ export function useHomeownerDailyReport(jobId: string, reportId: string) {
  */
 export function useReviewDailyReport() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
-    mutationFn: async ({ jobId, reportId, data }: { jobId: string; reportId: string; data: ReviewDailyReportRequest }) => {
+    mutationFn: async ({
+      jobId,
+      reportId,
+      data,
+    }: { jobId: string; reportId: string; data: ReviewDailyReportRequest }) => {
       const response = await apiClient
         .post(`homeowner/jobs/${jobId}/reports/${reportId}/review/`, { json: data })
         .json<ApiResponse<DailyReport>>()
@@ -468,7 +464,7 @@ export function useReviewDailyReport() {
  */
 export function useApproveJobCompletion() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (jobId: string) => {
       const response = await apiClient
@@ -487,7 +483,7 @@ export function useApproveJobCompletion() {
  */
 export function useRejectJobCompletion() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async ({ jobId, data }: { jobId: string; data?: RejectCompletionRequest }) => {
       const response = await apiClient
@@ -522,7 +518,7 @@ export function useHomeownerDisputes(jobId: string) {
  */
 export function useCreateDispute() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async ({ jobId, data }: { jobId: string; data: CreateDisputeRequest }) => {
       const response = await apiClient
@@ -540,7 +536,11 @@ export function useCreateDispute() {
 
 // ========== Dashboard Hooks ==========
 
-import type { HomeownerJobDashboardData, CreateHandymanReviewRequest, HandymanReview } from '../../types/homeowner'
+import type {
+  HomeownerJobDashboardData,
+  CreateHandymanReviewRequest,
+  HandymanReview,
+} from '../../types/homeowner'
 
 /**
  * Hook to fetch comprehensive job dashboard data for homeowner.
@@ -549,12 +549,10 @@ export function useHomeownerJobDashboard(jobId: string) {
   return useQuery({
     queryKey: ['homeowner', 'job-dashboard', jobId],
     queryFn: async () => {
-      console.log(`DEBUG: Fetching homeowner job dashboard for jobId: ${jobId}`)
       try {
         const response = await apiClient
           .get(`homeowner/jobs/${jobId}/dashboard/`)
           .json<ApiResponse<HomeownerJobDashboardData>>()
-        console.log('DEBUG: Homeowner job dashboard response:', response.data)
         return response.data
       } catch (error: any) {
         console.error('DEBUG: ERROR fetching homeowner job dashboard:', error)
@@ -574,11 +572,9 @@ export function useCreateHandymanReview() {
 
   return useMutation({
     mutationFn: async ({ jobId, data }: { jobId: string; data: CreateHandymanReviewRequest }) => {
-      console.log('DEBUG: Creating handyman review:', { jobId, data })
       const response = await apiClient
         .post(`homeowner/jobs/${jobId}/review/`, { json: data })
         .json<ApiResponse<HandymanReview>>()
-      console.log('DEBUG: Handyman review created:', response.data)
       return response.data
     },
     onSuccess: (_, { jobId }) => {

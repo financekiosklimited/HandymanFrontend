@@ -26,7 +26,7 @@ export function useRegisterDevice() {
     mutationFn: async ({ deviceToken, role }: RegisterDeviceParams) => {
       const deviceType = Platform.OS === 'ios' ? 'ios' : 'android'
       const endpoint = role === 'handyman' ? 'handyman/devices/' : 'homeowner/devices/'
-      
+
       const response = await apiClient
         .post(endpoint, {
           json: {
@@ -52,10 +52,9 @@ interface UnregisterDeviceParams {
 export function useUnregisterDevice() {
   return useMutation({
     mutationFn: async ({ publicId, role }: UnregisterDeviceParams) => {
-      const endpoint = role === 'handyman' 
-        ? `handyman/devices/${publicId}/` 
-        : `homeowner/devices/${publicId}/`
-      
+      const endpoint =
+        role === 'handyman' ? `handyman/devices/${publicId}/` : `homeowner/devices/${publicId}/`
+
       await apiClient.delete(endpoint)
     },
   })

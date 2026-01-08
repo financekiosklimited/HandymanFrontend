@@ -84,8 +84,8 @@ export function HomeownerProfileEditScreen() {
         const [y, m, d] = profile.date_of_birth.split('-')
         setTempDate({
           year: y || '',
-          month: m ? (parseInt(m) - 1).toString() : '',
-          day: d ? parseInt(d).toString() : '',
+          month: m ? (Number.parseInt(m) - 1).toString() : '',
+          day: d ? Number.parseInt(d).toString() : '',
         })
       }
     }
@@ -114,7 +114,7 @@ export function HomeownerProfileEditScreen() {
   }
 
   const handleDateConfirm = () => {
-    const month = (parseInt(tempDate.month) + 1).toString().padStart(2, '0')
+    const month = (Number.parseInt(tempDate.month) + 1).toString().padStart(2, '0')
     const day = tempDate.day.padStart(2, '0')
     const dateStr = `${tempDate.year}-${month}-${day}`
     updateField('date_of_birth', dateStr)

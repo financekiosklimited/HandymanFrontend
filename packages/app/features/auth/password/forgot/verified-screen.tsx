@@ -14,15 +14,22 @@ export function ForgotPasswordVerifiedScreen() {
   const handleContinue = () => {
     router.push({
       pathname: '/auth/forgot-password/reset',
-      params: { resetToken }
+      params: { resetToken },
     })
   }
 
   return (
     <GradientBackground>
-      <YStack flex={1} pt={insets.top}>
+      <YStack
+        flex={1}
+        pt={insets.top}
+      >
         {/* Header with back button */}
-        <XStack px="$4" py="$3" alignItems="center">
+        <XStack
+          px="$4"
+          py="$3"
+          alignItems="center"
+        >
           <Button
             unstyled
             onPress={() => router.back()}
@@ -30,25 +37,47 @@ export function ForgotPasswordVerifiedScreen() {
             hitSlop={12}
             pressStyle={{ opacity: 0.7 }}
           >
-            <ArrowLeft size={24} color="$color" />
+            <ArrowLeft
+              size={24}
+              color="$color"
+            />
           </Button>
         </XStack>
 
         {/* Main content */}
-        <YStack flex={1} px="$4" gap="$6">
+        <YStack
+          flex={1}
+          px="$4"
+          gap="$6"
+        >
           {/* Title */}
-          <YStack pt="$4" gap="$2">
-            <Text fontSize={28} fontWeight="bold" color="$color">
+          <YStack
+            pt="$4"
+            gap="$2"
+          >
+            <Text
+              fontSize={28}
+              fontWeight="bold"
+              color="$color"
+            >
               Password reset
             </Text>
-            <Text fontSize="$4" color="$colorSubtle" lineHeight={24}>
+            <Text
+              fontSize="$4"
+              color="$colorSubtle"
+              lineHeight={24}
+            >
               Your password has been successfully reset. Continue to set a new password.
             </Text>
           </YStack>
         </YStack>
 
         {/* Bottom button */}
-        <YStack px="$4" pb="$3xl" pt="$2xl">
+        <YStack
+          px="$4"
+          pb="$3xl"
+          pt="$2xl"
+        >
           <Button
             bg="$primary"
             borderRadius="$4"
@@ -58,7 +87,11 @@ export function ForgotPasswordVerifiedScreen() {
             onPress={handleContinue}
             pressStyle={{ opacity: 0.9 }}
           >
-            <Text color="white" fontSize="$4" fontWeight="600">
+            <Text
+              color="white"
+              fontSize="$4"
+              fontWeight="600"
+            >
               Confirm
             </Text>
           </Button>

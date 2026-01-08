@@ -178,7 +178,11 @@ export function HomeownerUpdatesScreen() {
               </Text>
             </YStack>
           ) : notifications.length === 0 ? (
-            <YStack flex={1} minHeight={400} justifyContent="center">
+            <YStack
+              flex={1}
+              minHeight={400}
+              justifyContent="center"
+            >
               <NotificationEmptyState />
             </YStack>
           ) : (

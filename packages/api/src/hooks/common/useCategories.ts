@@ -6,9 +6,7 @@ export function useCategories() {
   return useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      const response = await apiClient
-        .get('job-categories/')
-        .json<ApiResponse<Category[]>>()
+      const response = await apiClient.get('job-categories/').json<ApiResponse<Category[]>>()
 
       return response.data
     },

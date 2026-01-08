@@ -18,7 +18,12 @@ import {
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import { jobStatusColors, type JobStatus, applicationStatusColors, type ApplicationStatus } from '@my/config'
+import {
+  jobStatusColors,
+  type JobStatus,
+  applicationStatusColors,
+  type ApplicationStatus,
+} from '@my/config'
 
 const statusLabels: Record<HomeownerJobStatus, string> = {
   draft: 'Draft',
@@ -45,7 +50,9 @@ interface ApplicantCardProps {
 
 function ApplicantCard({ application, onPress }: ApplicantCardProps) {
   const handyman = application.handyman_profile
-  const statusStyle = applicationStatusColors[application.status as ApplicationStatus] || applicationStatusColors.pending
+  const statusStyle =
+    applicationStatusColors[application.status as ApplicationStatus] ||
+    applicationStatusColors.pending
 
   return (
     <Button
@@ -59,7 +66,10 @@ function ApplicantCard({ application, onPress }: ApplicantCardProps) {
       pressStyle={{ opacity: 0.8, scale: 0.98 }}
       animation="quick"
     >
-      <XStack gap="$sm" alignItems="center">
+      <XStack
+        gap="$sm"
+        alignItems="center"
+      >
         {/* Avatar */}
         <View
           width={44}
@@ -78,31 +88,66 @@ function ApplicantCard({ application, onPress }: ApplicantCardProps) {
               resizeMode="cover"
             />
           ) : (
-            <Text fontSize="$4" fontWeight="600" color="$colorMuted">
+            <Text
+              fontSize="$4"
+              fontWeight="600"
+              color="$colorMuted"
+            >
               {handyman.display_name.charAt(0).toUpperCase()}
             </Text>
           )}
         </View>
 
         {/* Info */}
-        <YStack flex={1} gap={2}>
-          <Text fontSize="$3" fontWeight="600" color="$color" numberOfLines={1}>
+        <YStack
+          flex={1}
+          gap={2}
+        >
+          <Text
+            fontSize="$3"
+            fontWeight="600"
+            color="$color"
+            numberOfLines={1}
+          >
             {handyman.display_name}
           </Text>
           {handyman.job_title && (
-            <Text fontSize="$2" color="$colorSubtle" numberOfLines={1}>
+            <Text
+              fontSize="$2"
+              color="$colorSubtle"
+              numberOfLines={1}
+            >
               {handyman.job_title}
             </Text>
           )}
-          <XStack alignItems="center" gap="$xs">
-            <Star size={12} color="$warning" fill="$warning" />
-            <Text fontSize="$2" color="$colorSubtle">
+          <XStack
+            alignItems="center"
+            gap="$xs"
+          >
+            <Star
+              size={12}
+              color="$warning"
+              fill="$warning"
+            />
+            <Text
+              fontSize="$2"
+              color="$colorSubtle"
+            >
               {handyman.rating?.toFixed(1) || 'N/A'}
             </Text>
             {handyman.hourly_rate && (
               <>
-                <Text fontSize="$2" color="$colorMuted">•</Text>
-                <Text fontSize="$2" color="$primary" fontWeight="500">
+                <Text
+                  fontSize="$2"
+                  color="$colorMuted"
+                >
+                  •
+                </Text>
+                <Text
+                  fontSize="$2"
+                  color="$primary"
+                  fontWeight="500"
+                >
                   ${handyman.hourly_rate}/hr
                 </Text>
               </>
@@ -138,7 +183,12 @@ interface ExpandableJobCardProps {
   onApplicationPress: (applicationId: string) => void
 }
 
-function ExpandableJobCard({ job, isExpanded, onToggle, onApplicationPress }: ExpandableJobCardProps) {
+function ExpandableJobCard({
+  job,
+  isExpanded,
+  onToggle,
+  onApplicationPress,
+}: ExpandableJobCardProps) {
   const router = useRouter()
   const statusStyle = jobStatusColors[job.status as JobStatus] || jobStatusColors.draft
   const jobImage = job.images?.[0]?.image
@@ -173,7 +223,10 @@ function ExpandableJobCard({ job, isExpanded, onToggle, onApplicationPress }: Ex
         p="$md"
         pressStyle={{ opacity: 0.9 }}
       >
-        <XStack gap="$md" alignItems="flex-start">
+        <XStack
+          gap="$md"
+          alignItems="flex-start"
+        >
           {/* Job Image */}
           <View
             width={80}
@@ -190,32 +243,68 @@ function ExpandableJobCard({ job, isExpanded, onToggle, onApplicationPress }: Ex
                 resizeMode="cover"
               />
             ) : (
-              <YStack flex={1} alignItems="center" justifyContent="center">
-                <Briefcase size={24} color="$colorMuted" />
+              <YStack
+                flex={1}
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Briefcase
+                  size={24}
+                  color="$colorMuted"
+                />
               </YStack>
             )}
           </View>
 
           {/* Job Info */}
-          <YStack flex={1} gap="$xs">
-            <Text fontSize="$4" fontWeight="600" color="$color" numberOfLines={2}>
+          <YStack
+            flex={1}
+            gap="$xs"
+          >
+            <Text
+              fontSize="$4"
+              fontWeight="600"
+              color="$color"
+              numberOfLines={2}
+            >
               {job.title}
             </Text>
-            
+
             {job.city && (
-              <XStack alignItems="center" gap="$xs">
-                <MapPin size={12} color="$colorSubtle" />
-                <Text fontSize="$2" color="$colorSubtle">
+              <XStack
+                alignItems="center"
+                gap="$xs"
+              >
+                <MapPin
+                  size={12}
+                  color="$colorSubtle"
+                />
+                <Text
+                  fontSize="$2"
+                  color="$colorSubtle"
+                >
                   {job.city.name}
                 </Text>
               </XStack>
             )}
 
-            <XStack justifyContent="space-between" alignItems="center" mt="$xs">
-              <Text fontSize="$3" fontWeight="bold" color="$primary">
-                {'$'}{job.estimated_budget}
+            <XStack
+              justifyContent="space-between"
+              alignItems="center"
+              mt="$xs"
+            >
+              <Text
+                fontSize="$3"
+                fontWeight="bold"
+                color="$primary"
+              >
+                {'$'}
+                {job.estimated_budget}
               </Text>
-              <XStack gap="$xs" alignItems="center">
+              <XStack
+                gap="$xs"
+                alignItems="center"
+              >
                 <XStack
                   bg={statusStyle.bg as any}
                   px="$sm"
@@ -248,8 +337,15 @@ function ExpandableJobCard({ job, isExpanded, onToggle, onApplicationPress }: Ex
                     py={4}
                     pressStyle={{ opacity: 0.8 }}
                   >
-                    <XStack gap="$xs" alignItems="center">
-                      <Text fontSize={11} fontWeight="600" color="white">
+                    <XStack
+                      gap="$xs"
+                      alignItems="center"
+                    >
+                      <Text
+                        fontSize={11}
+                        fontWeight="600"
+                        color="white"
+                      >
                         REPORT
                       </Text>
                     </XStack>
@@ -267,9 +363,19 @@ function ExpandableJobCard({ job, isExpanded, onToggle, onApplicationPress }: Ex
                   py={4}
                   pressStyle={{ opacity: 0.7 }}
                 >
-                  <XStack gap="$xs" alignItems="center">
-                    <Eye size={12} color="$colorSubtle" />
-                    <Text fontSize={11} fontWeight="600" color="$colorSubtle">
+                  <XStack
+                    gap="$xs"
+                    alignItems="center"
+                  >
+                    <Eye
+                      size={12}
+                      color="$colorSubtle"
+                    />
+                    <Text
+                      fontSize={11}
+                      fontWeight="600"
+                      color="$colorSubtle"
+                    >
                       DETAILS
                     </Text>
                   </XStack>
@@ -289,14 +395,27 @@ function ExpandableJobCard({ job, isExpanded, onToggle, onApplicationPress }: Ex
           justifyContent="center"
           gap="$xs"
         >
-          <Users size={14} color="$primary" />
-          <Text fontSize="$2" color="$primary" fontWeight="500">
+          <Users
+            size={14}
+            color="$primary"
+          />
+          <Text
+            fontSize="$2"
+            color="$primary"
+            fontWeight="500"
+          >
             {job.applicant_count || 0} {job.applicant_count === 1 ? 'Applicant' : 'Applicants'}
           </Text>
           {isExpanded ? (
-            <ChevronUp size={16} color="$primary" />
+            <ChevronUp
+              size={16}
+              color="$primary"
+            />
           ) : (
-            <ChevronDown size={16} color="$primary" />
+            <ChevronDown
+              size={16}
+              color="$primary"
+            />
           )}
         </XStack>
       </Button>
@@ -312,16 +431,36 @@ function ExpandableJobCard({ job, isExpanded, onToggle, onApplicationPress }: Ex
           borderTopColor="rgba(12,154,92,0.1)"
         >
           {applicationsLoading ? (
-            <YStack py="$md" alignItems="center">
-              <Spinner size="small" color="$primary" />
-              <Text fontSize="$2" color="$colorSubtle" mt="$xs">
+            <YStack
+              py="$md"
+              alignItems="center"
+            >
+              <Spinner
+                size="small"
+                color="$primary"
+              />
+              <Text
+                fontSize="$2"
+                color="$colorSubtle"
+                mt="$xs"
+              >
                 Loading applicants...
               </Text>
             </YStack>
           ) : applications.length === 0 ? (
-            <YStack py="$md" alignItems="center">
-              <Users size={24} color="$colorMuted" />
-              <Text fontSize="$3" color="$colorSubtle" mt="$xs">
+            <YStack
+              py="$md"
+              alignItems="center"
+            >
+              <Users
+                size={24}
+                color="$colorMuted"
+              />
+              <Text
+                fontSize="$3"
+                color="$colorSubtle"
+                mt="$xs"
+              >
                 No applications yet
               </Text>
             </YStack>
@@ -347,12 +486,27 @@ function ExpandableJobCard({ job, isExpanded, onToggle, onApplicationPress }: Ex
                   borderColor="$borderColor"
                 >
                   {isFetchingNextPage ? (
-                    <XStack alignItems="center" gap="$xs">
-                      <Spinner size="small" color="$primary" />
-                      <Text fontSize="$2" color="$colorSubtle">Loading...</Text>
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                    >
+                      <Spinner
+                        size="small"
+                        color="$primary"
+                      />
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                      >
+                        Loading...
+                      </Text>
                     </XStack>
                   ) : (
-                    <Text fontSize="$2" color="$primary" fontWeight="500">
+                    <Text
+                      fontSize="$2"
+                      color="$primary"
+                      fontWeight="500"
+                    >
                       Load more applicants
                     </Text>
                   )}
@@ -369,7 +523,7 @@ function ExpandableJobCard({ job, isExpanded, onToggle, onApplicationPress }: Ex
 export function JobManagementScreen() {
   const router = useRouter()
   const insets = useSafeArea()
-  
+
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [showStatusDropdown, setShowStatusDropdown] = useState(false)
@@ -397,18 +551,25 @@ export function JobManagementScreen() {
     setExpandedJobId((prev) => (prev === jobId ? null : jobId))
   }, [])
 
-  const handleApplicationPress = useCallback((applicationId: string) => {
-    router.push({
-      pathname: '/(homeowner)/jobs/applications/[id]',
-      params: { id: applicationId },
-    } as any)
-  }, [router])
+  const handleApplicationPress = useCallback(
+    (applicationId: string) => {
+      router.push({
+        pathname: '/(homeowner)/jobs/applications/[id]',
+        params: { id: applicationId },
+      } as any)
+    },
+    [router]
+  )
 
-  const selectedStatusLabel = statusOptions.find((s) => s.value === statusFilter)?.label || 'All Status'
+  const selectedStatusLabel =
+    statusOptions.find((s) => s.value === statusFilter)?.label || 'All Status'
 
   return (
     <GradientBackground>
-      <YStack flex={1} pt={insets.top}>
+      <YStack
+        flex={1}
+        pt={insets.top}
+      >
         {/* Header */}
         <XStack
           px="$lg"
@@ -423,16 +584,30 @@ export function JobManagementScreen() {
             hitSlop={12}
             pressStyle={{ opacity: 0.7 }}
           >
-            <ArrowLeft size={22} color="$color" />
+            <ArrowLeft
+              size={22}
+              color="$color"
+            />
           </Button>
-          <Text flex={1} fontSize={17} fontWeight="700" color="$color" textAlign="center">
+          <Text
+            flex={1}
+            fontSize={17}
+            fontWeight="700"
+            color="$color"
+            textAlign="center"
+          >
             Job Management
           </Text>
           <View width={38} />
         </XStack>
 
         {/* Search and Filter */}
-        <XStack px="$lg" pb="$md" gap="$sm" alignItems="center">
+        <XStack
+          px="$lg"
+          pb="$md"
+          gap="$sm"
+          alignItems="center"
+        >
           <View flex={1}>
             <SearchBar
               placeholder="Search jobs..."
@@ -440,7 +615,7 @@ export function JobManagementScreen() {
               onChangeText={setSearchQuery}
             />
           </View>
-          
+
           {/* Status Filter Dropdown */}
           <Button
             onPress={() => setShowStatusDropdown(!showStatusDropdown)}
@@ -452,9 +627,18 @@ export function JobManagementScreen() {
             borderColor="rgba(0,0,0,0.1)"
             pressStyle={{ opacity: 0.8 }}
           >
-            <XStack alignItems="center" gap="$xs">
-              <Filter size={16} color="$colorSubtle" />
-              <ChevronDown size={14} color="$colorSubtle" />
+            <XStack
+              alignItems="center"
+              gap="$xs"
+            >
+              <Filter
+                size={16}
+                color="$colorSubtle"
+              />
+              <ChevronDown
+                size={14}
+                color="$colorSubtle"
+              />
             </XStack>
           </Button>
         </XStack>
@@ -507,21 +691,44 @@ export function JobManagementScreen() {
           flex={1}
           showsVerticalScrollIndicator={false}
         >
-          <YStack px="$lg" pb="$xl" gap="$md">
+          <YStack
+            px="$lg"
+            pb="$xl"
+            gap="$md"
+          >
             {/* Section Header */}
-            <YStack gap="$xs" mb="$xs" py="$xl">
-              <Text fontSize="$6" fontWeight="bold" color="$color">
+            <YStack
+              gap="$xs"
+              mb="$xs"
+              py="$xl"
+            >
+              <Text
+                fontSize="$6"
+                fontWeight="bold"
+                color="$color"
+              >
                 Your Jobs
               </Text>
-              <Text fontSize="$3" color="$colorSubtle">
+              <Text
+                fontSize="$3"
+                color="$colorSubtle"
+              >
                 Manage your job listings and review applicants
               </Text>
             </YStack>
 
             {/* Filter indicator */}
             {statusFilter && (
-              <XStack alignItems="center" gap="$xs">
-                <Text fontSize="$2" color="$colorSubtle">Filtering by:</Text>
+              <XStack
+                alignItems="center"
+                gap="$xs"
+              >
+                <Text
+                  fontSize="$2"
+                  color="$colorSubtle"
+                >
+                  Filtering by:
+                </Text>
                 <Button
                   unstyled
                   onPress={() => setStatusFilter('')}
@@ -531,11 +738,23 @@ export function JobManagementScreen() {
                   borderRadius="$full"
                   pressStyle={{ opacity: 0.8 }}
                 >
-                  <XStack alignItems="center" gap="$xs">
-                    <Text fontSize="$2" color="white" fontWeight="500">
+                  <XStack
+                    alignItems="center"
+                    gap="$xs"
+                  >
+                    <Text
+                      fontSize="$2"
+                      color="white"
+                      fontWeight="500"
+                    >
                       {selectedStatusLabel}
                     </Text>
-                    <Text fontSize="$2" color="white">×</Text>
+                    <Text
+                      fontSize="$2"
+                      color="white"
+                    >
+                      ×
+                    </Text>
                   </XStack>
                 </Button>
               </XStack>
@@ -543,9 +762,19 @@ export function JobManagementScreen() {
 
             {/* Loading State */}
             {isLoading ? (
-              <YStack py="$xl" alignItems="center" gap="$md">
-                <Spinner size="large" color="$primary" />
-                <Text color="$colorSubtle" fontSize="$3">
+              <YStack
+                py="$xl"
+                alignItems="center"
+                gap="$md"
+              >
+                <Spinner
+                  size="large"
+                  color="$primary"
+                />
+                <Text
+                  color="$colorSubtle"
+                  fontSize="$3"
+                >
                   Loading your jobs...
                 </Text>
               </YStack>
@@ -557,11 +786,22 @@ export function JobManagementScreen() {
                 borderRadius={20}
                 gap="$sm"
               >
-                <Briefcase size={40} color="$error" />
-                <Text color="$error" fontSize="$4" fontWeight="500">
+                <Briefcase
+                  size={40}
+                  color="$error"
+                />
+                <Text
+                  color="$error"
+                  fontSize="$4"
+                  fontWeight="500"
+                >
                   Failed to load jobs
                 </Text>
-                <Text color="$colorSubtle" fontSize="$2" textAlign="center">
+                <Text
+                  color="$colorSubtle"
+                  fontSize="$2"
+                  textAlign="center"
+                >
                   Please try again later
                 </Text>
               </YStack>
@@ -582,12 +822,23 @@ export function JobManagementScreen() {
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Briefcase size={36} color="$primary" />
+                  <Briefcase
+                    size={36}
+                    color="$primary"
+                  />
                 </YStack>
-                <Text color="$color" fontSize="$5" fontWeight="600">
+                <Text
+                  color="$color"
+                  fontSize="$5"
+                  fontWeight="600"
+                >
                   {statusFilter || searchQuery ? 'No Jobs Found' : 'No Jobs Yet'}
                 </Text>
-                <Text color="$colorSubtle" fontSize="$3" textAlign="center">
+                <Text
+                  color="$colorSubtle"
+                  fontSize="$3"
+                  textAlign="center"
+                >
                   {statusFilter || searchQuery
                     ? 'Try adjusting your filters or search query.'
                     : 'Post your first job to start receiving applications from skilled handymen.'}
@@ -601,7 +852,10 @@ export function JobManagementScreen() {
                     px="$xl"
                     onPress={() => router.push('/(homeowner)/jobs/add')}
                   >
-                    <Text color="white" fontWeight="600">
+                    <Text
+                      color="white"
+                      fontWeight="600"
+                    >
                       Post a Job
                     </Text>
                   </Button>
@@ -632,12 +886,27 @@ export function JobManagementScreen() {
                     borderColor="$borderColor"
                   >
                     {isFetchingNextPage ? (
-                      <XStack alignItems="center" gap="$sm">
-                        <Spinner size="small" color="$primary" />
-                        <Text color="$colorSubtle" fontSize="$3">Loading...</Text>
+                      <XStack
+                        alignItems="center"
+                        gap="$sm"
+                      >
+                        <Spinner
+                          size="small"
+                          color="$primary"
+                        />
+                        <Text
+                          color="$colorSubtle"
+                          fontSize="$3"
+                        >
+                          Loading...
+                        </Text>
                       </XStack>
                     ) : (
-                      <Text color="$primary" fontSize="$3" fontWeight="500">
+                      <Text
+                        color="$primary"
+                        fontSize="$3"
+                        fontWeight="500"
+                      >
                         Load more jobs
                       </Text>
                     )}

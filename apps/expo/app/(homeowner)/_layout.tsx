@@ -116,7 +116,10 @@ export default function HomeownerLayout() {
   }
 
   return (
-    <YStack flex={1} backgroundColor="$background">
+    <YStack
+      flex={1}
+      backgroundColor="$background"
+    >
       <View flex={1}>
         <Stack
           screenOptions={{
@@ -125,8 +128,8 @@ export default function HomeownerLayout() {
         />
       </View>
       {shouldShowBottomNav() && (
-        <BottomNav 
-          activeRoute={getActiveRoute()} 
+        <BottomNav
+          activeRoute={getActiveRoute()}
           variant="homeowner"
           notificationCount={unreadCount}
           onAddPress={handleAddJobPress}

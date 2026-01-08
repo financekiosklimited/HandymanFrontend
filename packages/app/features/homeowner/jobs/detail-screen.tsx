@@ -304,7 +304,8 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                       fontWeight="bold"
                       color="$primary"
                     >
-                      {'$'}{job.estimated_budget}
+                      {'$'}
+                      {job.estimated_budget}
                     </Text>
                   </XStack>
                 </XStack>
@@ -810,7 +811,8 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                       fontWeight="500"
                       color="$color"
                     >
-                      {'$'}{job.estimated_budget} estimated
+                      {'$'}
+                      {job.estimated_budget} estimated
                     </Text>
                   </YStack>
                 </XStack>

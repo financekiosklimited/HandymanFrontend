@@ -153,7 +153,6 @@ export interface SuccessMessageResponseEnvelope {
   meta: Record<string, unknown> | null
 }
 
-
 // Registration types
 export interface RegisterRequest {
   email: string

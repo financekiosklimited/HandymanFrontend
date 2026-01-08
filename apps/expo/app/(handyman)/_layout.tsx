@@ -53,7 +53,10 @@ export default function HandymanLayout() {
   }
 
   return (
-    <YStack flex={1} backgroundColor="$background">
+    <YStack
+      flex={1}
+      backgroundColor="$background"
+    >
       <View flex={1}>
         <Stack
           screenOptions={{
@@ -62,8 +65,8 @@ export default function HandymanLayout() {
         />
       </View>
       {shouldShowBottomNav() && (
-        <BottomNav 
-          activeRoute={getActiveRoute()} 
+        <BottomNav
+          activeRoute={getActiveRoute()}
           variant="handyman"
           notificationCount={unreadCount}
           onNavigate={(route) => router.push(route as any)}

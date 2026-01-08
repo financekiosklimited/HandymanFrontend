@@ -1,7 +1,14 @@
 import type { PaginatedArrayResponse, ApiResponse } from './common'
 
 // Job status for homeowner view
-export type HomeownerJobStatus = 'draft' | 'open' | 'assigned' | 'in_progress' | 'pending_completion' | 'completed' | 'cancelled'
+export type HomeownerJobStatus =
+  | 'draft'
+  | 'open'
+  | 'assigned'
+  | 'in_progress'
+  | 'pending_completion'
+  | 'completed'
+  | 'cancelled'
 
 // Homeowner's own job listing
 export interface HomeownerJob {
@@ -122,12 +129,12 @@ export interface HomeownerApplicationDetail extends HomeownerApplication {
 // ========== Ongoing Job Types ==========
 
 // Import shared types from handyman
-export type { 
-  WorkSession, 
-  WorkSessionMedia, 
-  DailyReport, 
+export type {
+  WorkSession,
+  WorkSessionMedia,
+  DailyReport,
   DailyReportTask,
-  DailyReportStatus 
+  DailyReportStatus,
 } from './handyman'
 
 // Dispute types
@@ -162,7 +169,7 @@ export interface CreateDisputeRequest {
 export type { PaginatedArrayResponse, ApiResponse, Notification } from './common'
 
 // Import more shared types from handyman for dashboard
-export type { 
+export type {
   DashboardTask,
   DashboardTasksProgress,
   DashboardTimeStats,
@@ -171,8 +178,6 @@ export type {
   DashboardActiveSession,
   SessionMediaItem,
 } from './handyman'
-
-
 
 // Homeowner Dashboard Job Info (different from handyman - has handyman info instead of homeowner)
 export interface HomeownerDashboardJobInfo {
@@ -223,6 +228,3 @@ export interface HomeownerJobDashboardData {
   report_stats: import('./handyman').DashboardReportStats
   my_review: HandymanReview | null
 }
-
-
-

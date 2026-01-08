@@ -3,10 +3,10 @@ import { HomeownerJobDashboard } from 'app/features/homeowner/jobs/ongoing-dashb
 
 export default function OngoingJobPage() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  
+
   if (!id) {
     return null
   }
-  
+
   return <HomeownerJobDashboard jobId={id} />
 }

@@ -22,21 +22,19 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
 
   // Check if running on a physical device (required for push notifications)
   if (!Device.isDevice) {
-    console.log('Push notifications require a physical device')
     return null
   }
 
   // Check and request notification permissions
   const { status: existingStatus } = await Notifications.getPermissionsAsync()
   let finalStatus = existingStatus
-  
+
   if (existingStatus !== 'granted') {
     const { status } = await Notifications.requestPermissionsAsync()
     finalStatus = status
   }
-  
+
   if (finalStatus !== 'granted') {
-    console.log('Failed to get push notification permissions')
     return null
   }
 

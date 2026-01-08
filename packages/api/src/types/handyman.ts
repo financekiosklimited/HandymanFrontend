@@ -1,7 +1,13 @@
 import type { PaginatedArrayResponse, ApiResponse } from './common'
 
 // Job status for handyman view
-export type HandymanJobStatus = 'open' | 'assigned' | 'in_progress' | 'pending_completion' | 'completed' | 'cancelled'
+export type HandymanJobStatus =
+  | 'open'
+  | 'assigned'
+  | 'in_progress'
+  | 'pending_completion'
+  | 'completed'
+  | 'cancelled'
 
 // Job from "for-you" endpoint for handyman to browse
 export interface HandymanJobForYou {
@@ -379,8 +385,5 @@ export interface JobDashboardData {
   my_review: HomeownerReview | null
 }
 
-
 // Re-export for convenience
 export type { PaginatedArrayResponse, ApiResponse, Notification } from './common'
-
-

@@ -18,9 +18,7 @@ export function useCountryCodes() {
   return useQuery({
     queryKey: ['country-codes'],
     queryFn: async (): Promise<CountryPhoneCode[]> => {
-      const response = await apiClient
-        .get('country-codes/')
-        .json<CountryPhoneCodeListResponse>()
+      const response = await apiClient.get('country-codes/').json<CountryPhoneCodeListResponse>()
 
       return response.data || []
     },
@@ -91,10 +89,7 @@ export function useVerifyPhoneOtp() {
             }>()
 
           if (refreshResponse.data) {
-            setTokens(
-              refreshResponse.data.access_token,
-              refreshResponse.data.refresh_token
-            )
+            setTokens(refreshResponse.data.access_token, refreshResponse.data.refresh_token)
           }
         } catch (error) {
           console.error('Failed to refresh tokens after phone verification:', error)

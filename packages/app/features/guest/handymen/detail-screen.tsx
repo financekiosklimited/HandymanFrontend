@@ -472,12 +472,8 @@ export function HandymanDetailScreen({ handymanId }: HandymanDetailScreenProps) 
                         <Star
                           key={star}
                           size={18}
-                          fill={
-                            star <= Math.round(handyman.rating) ? '#FFB800' : '#D1D1D6'
-                          }
-                          color={
-                            star <= Math.round(handyman.rating) ? '#FFB800' : '#D1D1D6'
-                          }
+                          fill={star <= Math.round(handyman.rating) ? '#FFB800' : '#D1D1D6'}
+                          color={star <= Math.round(handyman.rating) ? '#FFB800' : '#D1D1D6'}
                         />
                       ))}
                     </XStack>

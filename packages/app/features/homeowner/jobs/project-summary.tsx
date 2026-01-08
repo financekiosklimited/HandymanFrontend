@@ -70,8 +70,14 @@ function ReportTimelineCard({
       gap="$sm"
     >
       {/* Header */}
-      <XStack justifyContent="space-between" alignItems="center">
-        <XStack alignItems="center" gap="$sm">
+      <XStack
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <XStack
+          alignItems="center"
+          gap="$sm"
+        >
           <YStack
             width={40}
             height={40}
@@ -80,24 +86,45 @@ function ReportTimelineCard({
             alignItems="center"
             justifyContent="center"
           >
-            <Text fontSize={10} color="$colorSubtle" fontWeight="500">
+            <Text
+              fontSize={10}
+              color="$colorSubtle"
+              fontWeight="500"
+            >
               DAY
             </Text>
-            <Text fontSize="$4" fontWeight="700" color="$primary">
+            <Text
+              fontSize="$4"
+              fontWeight="700"
+              color="$primary"
+            >
               {dayNumber}
             </Text>
           </YStack>
           <YStack>
-            <Text fontSize="$3" fontWeight="600" color="$color">
+            <Text
+              fontSize="$3"
+              fontWeight="600"
+              color="$color"
+            >
               {new Date(report.report_date).toLocaleDateString('en-US', {
                 weekday: 'short',
                 month: 'short',
                 day: 'numeric',
               })}
             </Text>
-            <XStack alignItems="center" gap="$xs">
-              <Clock size={12} color="$colorSubtle" />
-              <Text fontSize="$2" color="$colorSubtle">
+            <XStack
+              alignItems="center"
+              gap="$xs"
+            >
+              <Clock
+                size={12}
+                color="$colorSubtle"
+              />
+              <Text
+                fontSize="$2"
+                color="$colorSubtle"
+              >
                 {hours}h {minutes}m worked
               </Text>
             </XStack>
@@ -121,22 +148,40 @@ function ReportTimelineCard({
       </XStack>
 
       {/* Summary */}
-      <Text fontSize="$3" color="$color" numberOfLines={3}>
+      <Text
+        fontSize="$3"
+        color="$color"
+        numberOfLines={3}
+      >
         {report.summary}
       </Text>
 
       {/* Tasks */}
       {report.tasks_worked && report.tasks_worked.length > 0 && (
         <YStack gap="$xs">
-          <Text fontSize="$2" color="$colorSubtle" fontWeight="500">
+          <Text
+            fontSize="$2"
+            color="$colorSubtle"
+            fontWeight="500"
+          >
             Tasks Worked:
           </Text>
           {report.tasks_worked.slice(0, 3).map((taskItem) => (
-            <XStack key={taskItem.public_id} alignItems="center" gap="$xs">
+            <XStack
+              key={taskItem.public_id}
+              alignItems="center"
+              gap="$xs"
+            >
               {taskItem.marked_complete ? (
-                <CheckCircle2 size={14} color="$success" />
+                <CheckCircle2
+                  size={14}
+                  color="$success"
+                />
               ) : (
-                <AlertCircle size={14} color="$colorSubtle" />
+                <AlertCircle
+                  size={14}
+                  color="$colorSubtle"
+                />
               )}
               <Text
                 fontSize="$2"
@@ -148,7 +193,10 @@ function ReportTimelineCard({
             </XStack>
           ))}
           {report.tasks_worked.length > 3 && (
-            <Text fontSize="$2" color="$colorSubtle">
+            <Text
+              fontSize="$2"
+              color="$colorSubtle"
+            >
               +{report.tasks_worked.length - 3} more tasks
             </Text>
           )}
@@ -173,7 +221,10 @@ function ReportTimelineCard({
 
       {/* Action Buttons - Only for pending reports */}
       {report.status === 'pending' && (
-        <XStack gap="$sm" mt="$xs">
+        <XStack
+          gap="$sm"
+          mt="$xs"
+        >
           <Button
             flex={1}
             bg="$successBackground"
@@ -183,9 +234,19 @@ function ReportTimelineCard({
             disabled={isReviewing}
             pressStyle={{ opacity: 0.8 }}
           >
-            <XStack alignItems="center" gap="$xs">
-              <ThumbsUp size={16} color="$success" />
-              <Text color="$success" fontWeight="600" fontSize="$2">
+            <XStack
+              alignItems="center"
+              gap="$xs"
+            >
+              <ThumbsUp
+                size={16}
+                color="$success"
+              />
+              <Text
+                color="$success"
+                fontWeight="600"
+                fontSize="$2"
+              >
                 Approve
               </Text>
             </XStack>
@@ -199,9 +260,19 @@ function ReportTimelineCard({
             disabled={isReviewing}
             pressStyle={{ opacity: 0.8 }}
           >
-            <XStack alignItems="center" gap="$xs">
-              <ThumbsDown size={16} color="$error" />
-              <Text color="$error" fontWeight="600" fontSize="$2">
+            <XStack
+              alignItems="center"
+              gap="$xs"
+            >
+              <ThumbsDown
+                size={16}
+                color="$error"
+              />
+              <Text
+                color="$error"
+                fontWeight="600"
+                fontSize="$2"
+              >
                 Reject
               </Text>
             </XStack>
@@ -221,7 +292,11 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
   const { data: job, isLoading: jobLoading, refetch: refetchJob } = useHomeownerJob(jobId)
 
   // Fetch daily reports
-  const { data: reports, isLoading: reportsLoading, refetch: refetchReports } = useHomeownerDailyReports(jobId)
+  const {
+    data: reports,
+    isLoading: reportsLoading,
+    refetch: refetchReports,
+  } = useHomeownerDailyReports(jobId)
 
   // Fetch work sessions
   const { data: sessions } = useHomeownerWorkSessions(jobId)
@@ -337,8 +412,16 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
   if (jobLoading) {
     return (
       <GradientBackground>
-        <YStack flex={1} justifyContent="center" alignItems="center" gap="$md">
-          <Spinner size="large" color="$primary" />
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          gap="$md"
+        >
+          <Spinner
+            size="large"
+            color="$primary"
+          />
           <Text color="$colorSubtle">Loading project...</Text>
         </YStack>
       </GradientBackground>
@@ -348,9 +431,22 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
   if (!job) {
     return (
       <GradientBackground>
-        <YStack flex={1} justifyContent="center" alignItems="center" gap="$md" px="$xl">
-          <AlertCircle size={48} color="$error" />
-          <Text color="$color" fontSize="$5" fontWeight="600">
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          gap="$md"
+          px="$xl"
+        >
+          <AlertCircle
+            size={48}
+            color="$error"
+          />
+          <Text
+            color="$color"
+            fontSize="$5"
+            fontWeight="600"
+          >
             Job Not Found
           </Text>
           <Button
@@ -372,9 +468,17 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
 
   return (
     <GradientBackground>
-      <YStack flex={1} pt={insets.top}>
+      <YStack
+        flex={1}
+        pt={insets.top}
+      >
         {/* Header */}
-        <XStack px="$5" py="$4" alignItems="center" gap="$3">
+        <XStack
+          px="$5"
+          py="$4"
+          alignItems="center"
+          gap="$3"
+        >
           <Button
             unstyled
             onPress={() => router.back()}
@@ -382,7 +486,10 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
             hitSlop={12}
             pressStyle={{ opacity: 0.7 }}
           >
-            <ArrowLeft size={22} color="$color" />
+            <ArrowLeft
+              size={22}
+              color="$color"
+            />
           </Button>
           <Text
             flex={1}
@@ -397,8 +504,15 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
           <View width={38} />
         </XStack>
 
-        <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-          <YStack px="$lg" pb="$2xl" gap="$lg">
+        <ScrollView
+          flex={1}
+          showsVerticalScrollIndicator={false}
+        >
+          <YStack
+            px="$lg"
+            pb="$2xl"
+            gap="$lg"
+          >
             {/* Job Info Card */}
             <YStack
               bg="rgba(255,255,255,0.95)"
@@ -415,12 +529,22 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                   resizeMode="cover"
                 />
               )}
-              <YStack p="$md" gap="$sm">
-                <Text fontSize="$5" fontWeight="700" color="$color">
+              <YStack
+                p="$md"
+                gap="$sm"
+              >
+                <Text
+                  fontSize="$5"
+                  fontWeight="700"
+                  color="$color"
+                >
                   {job.title}
                 </Text>
                 {job.assigned_handyman && (
-                  <XStack alignItems="center" gap="$sm">
+                  <XStack
+                    alignItems="center"
+                    gap="$sm"
+                  >
                     <View
                       width={32}
                       height={32}
@@ -437,12 +561,24 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                           height={32}
                         />
                       ) : (
-                        <User size={16} color="$primary" />
+                        <User
+                          size={16}
+                          color="$primary"
+                        />
                       )}
                     </View>
                     <YStack>
-                      <Text fontSize="$2" color="$colorSubtle">Handyman</Text>
-                      <Text fontSize="$3" fontWeight="500" color="$color">
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                      >
+                        Handyman
+                      </Text>
+                      <Text
+                        fontSize="$3"
+                        fontWeight="500"
+                        color="$color"
+                      >
                         {job.assigned_handyman.display_name}
                       </Text>
                     </YStack>
@@ -460,11 +596,23 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                 p="$md"
                 alignItems="center"
               >
-                <Calendar size={20} color="$primary" />
-                <Text fontSize="$6" fontWeight="700" color="$color">
+                <Calendar
+                  size={20}
+                  color="$primary"
+                />
+                <Text
+                  fontSize="$6"
+                  fontWeight="700"
+                  color="$color"
+                >
                   {stats.totalDays}
                 </Text>
-                <Text fontSize="$2" color="$colorSubtle">Days</Text>
+                <Text
+                  fontSize="$2"
+                  color="$colorSubtle"
+                >
+                  Days
+                </Text>
               </YStack>
               <YStack
                 flex={1}
@@ -473,11 +621,23 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                 p="$md"
                 alignItems="center"
               >
-                <Clock size={20} color="$primary" />
-                <Text fontSize="$6" fontWeight="700" color="$color">
+                <Clock
+                  size={20}
+                  color="$primary"
+                />
+                <Text
+                  fontSize="$6"
+                  fontWeight="700"
+                  color="$color"
+                >
                   {stats.totalHours}
                 </Text>
-                <Text fontSize="$2" color="$colorSubtle">Hours</Text>
+                <Text
+                  fontSize="$2"
+                  color="$colorSubtle"
+                >
+                  Hours
+                </Text>
               </YStack>
               <YStack
                 flex={1}
@@ -486,11 +646,23 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                 p="$md"
                 alignItems="center"
               >
-                <CheckCircle2 size={20} color="$success" />
-                <Text fontSize="$6" fontWeight="700" color="$color">
+                <CheckCircle2
+                  size={20}
+                  color="$success"
+                />
+                <Text
+                  fontSize="$6"
+                  fontWeight="700"
+                  color="$color"
+                >
                   {stats.approvedReports}
                 </Text>
-                <Text fontSize="$2" color="$colorSubtle">Approved</Text>
+                <Text
+                  fontSize="$2"
+                  color="$colorSubtle"
+                >
+                  Approved
+                </Text>
               </YStack>
             </XStack>
 
@@ -504,14 +676,28 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                 borderColor="rgba(255,193,7,0.3)"
                 gap="$md"
               >
-                <XStack alignItems="center" gap="$sm">
-                  <AlertCircle size={20} color="$warning" />
-                  <Text fontSize="$4" fontWeight="600" color="$warning">
+                <XStack
+                  alignItems="center"
+                  gap="$sm"
+                >
+                  <AlertCircle
+                    size={20}
+                    color="$warning"
+                  />
+                  <Text
+                    fontSize="$4"
+                    fontWeight="600"
+                    color="$warning"
+                  >
                     Completion Requested
                   </Text>
                 </XStack>
-                <Text fontSize="$3" color="$color">
-                  The handyman has requested job completion. Review the work and approve to release payment.
+                <Text
+                  fontSize="$3"
+                  color="$color"
+                >
+                  The handyman has requested job completion. Review the work and approve to release
+                  payment.
                 </Text>
                 <XStack gap="$sm">
                   <Button
@@ -522,9 +708,18 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                     onPress={handleApproveCompletion}
                     pressStyle={{ opacity: 0.9 }}
                   >
-                    <XStack alignItems="center" gap="$xs">
-                      <DollarSign size={18} color="white" />
-                      <Text color="white" fontWeight="600">
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                    >
+                      <DollarSign
+                        size={18}
+                        color="white"
+                      />
+                      <Text
+                        color="white"
+                        fontWeight="600"
+                      >
                         Approve & Pay
                       </Text>
                     </XStack>
@@ -537,9 +732,18 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                     onPress={handleRejectCompletion}
                     pressStyle={{ opacity: 0.9 }}
                   >
-                    <XStack alignItems="center" gap="$xs">
-                      <XCircle size={18} color="white" />
-                      <Text color="white" fontWeight="600">
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                    >
+                      <XCircle
+                        size={18}
+                        color="white"
+                      />
+                      <Text
+                        color="white"
+                        fontWeight="600"
+                      >
                         Reject
                       </Text>
                     </XStack>
@@ -557,13 +761,26 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                 borderWidth={1}
                 borderColor="rgba(34,197,94,0.3)"
               >
-                <XStack alignItems="center" gap="$sm">
-                  <CheckCircle2 size={24} color="$success" />
+                <XStack
+                  alignItems="center"
+                  gap="$sm"
+                >
+                  <CheckCircle2
+                    size={24}
+                    color="$success"
+                  />
                   <YStack>
-                    <Text fontSize="$4" fontWeight="600" color="$success">
+                    <Text
+                      fontSize="$4"
+                      fontWeight="600"
+                      color="$success"
+                    >
                       Job Completed
                     </Text>
-                    <Text fontSize="$2" color="$success">
+                    <Text
+                      fontSize="$2"
+                      color="$success"
+                    >
                       Payment has been released to the handyman
                     </Text>
                   </YStack>
@@ -573,9 +790,19 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
 
             {/* Daily Reports Timeline */}
             <YStack gap="$md">
-              <XStack alignItems="center" gap="$sm">
-                <FileText size={20} color="$primary" />
-                <Text fontSize="$4" fontWeight="600" color="$color">
+              <XStack
+                alignItems="center"
+                gap="$sm"
+              >
+                <FileText
+                  size={20}
+                  color="$primary"
+                />
+                <Text
+                  fontSize="$4"
+                  fontWeight="600"
+                  color="$color"
+                >
                   Daily Reports
                 </Text>
                 {stats.pendingReports > 0 && (
@@ -585,7 +812,11 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                     py={2}
                     borderRadius="$full"
                   >
-                    <Text fontSize={10} fontWeight="600" color="white">
+                    <Text
+                      fontSize={10}
+                      fontWeight="600"
+                      color="white"
+                    >
                       {stats.pendingReports} PENDING
                     </Text>
                   </View>
@@ -593,8 +824,14 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
               </XStack>
 
               {reportsLoading ? (
-                <YStack py="$lg" alignItems="center">
-                  <Spinner size="small" color="$primary" />
+                <YStack
+                  py="$lg"
+                  alignItems="center"
+                >
+                  <Spinner
+                    size="small"
+                    color="$primary"
+                  />
                 </YStack>
               ) : reports && reports.length > 0 ? (
                 <YStack gap="$sm">
@@ -617,8 +854,15 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                   alignItems="center"
                   gap="$sm"
                 >
-                  <FileText size={32} color="$colorSubtle" />
-                  <Text color="$colorSubtle" fontSize="$3" textAlign="center">
+                  <FileText
+                    size={32}
+                    color="$colorSubtle"
+                  />
+                  <Text
+                    color="$colorSubtle"
+                    fontSize="$3"
+                    textAlign="center"
+                  >
                     No reports submitted yet
                   </Text>
                 </YStack>

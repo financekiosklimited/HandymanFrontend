@@ -3,11 +3,7 @@
 import { useState, useMemo } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, TextArea } from '@my/ui'
 import { GradientBackground } from '@my/ui'
-import {
-  useHandymanJobDetail,
-  useHandymanWorkSessions,
-  useCreateDailyReport,
-} from '@my/api'
+import { useHandymanJobDetail, useHandymanWorkSessions, useCreateDailyReport } from '@my/api'
 import {
   ArrowLeft,
   Clock,
@@ -70,13 +66,8 @@ export function CreateReportScreen() {
   useMemo(() => {
     if (sessions) {
       const today = new Date().toDateString()
-      const todaySessions = sessions.filter(
-        (s) => new Date(s.started_at).toDateString() === today
-      )
-      const totalSeconds = todaySessions.reduce(
-        (acc, s) => acc + (s.duration_seconds || 0),
-        0
-      )
+      const todaySessions = sessions.filter((s) => new Date(s.started_at).toDateString() === today)
+      const totalSeconds = todaySessions.reduce((acc, s) => acc + (s.duration_seconds || 0), 0)
       if (totalSeconds > 0) {
         setWorkHours(Math.floor(totalSeconds / 3600))
         setWorkMinutes(Math.floor((totalSeconds % 3600) / 60))
@@ -89,9 +80,7 @@ export function CreateReportScreen() {
   const handleToggleTask = (taskId: string) => {
     setTasks((prev) =>
       prev.map((task) =>
-        task.public_id === taskId
-          ? { ...task, marked_complete: !task.marked_complete }
-          : task
+        task.public_id === taskId ? { ...task, marked_complete: !task.marked_complete } : task
       )
     )
   }
@@ -160,7 +149,11 @@ export function CreateReportScreen() {
   if (!jobId) {
     return (
       <GradientBackground>
-        <YStack flex={1} justifyContent="center" alignItems="center">
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+        >
           <Text color="$error">Invalid job ID</Text>
         </YStack>
       </GradientBackground>
@@ -170,8 +163,16 @@ export function CreateReportScreen() {
   if (jobLoading) {
     return (
       <GradientBackground>
-        <YStack flex={1} justifyContent="center" alignItems="center" gap="$md">
-          <Spinner size="large" color="$primary" />
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          gap="$md"
+        >
+          <Spinner
+            size="large"
+            color="$primary"
+          />
           <Text color="$colorSubtle">Loading...</Text>
         </YStack>
       </GradientBackground>
@@ -180,9 +181,17 @@ export function CreateReportScreen() {
 
   return (
     <GradientBackground>
-      <YStack flex={1} pt={insets.top}>
+      <YStack
+        flex={1}
+        pt={insets.top}
+      >
         {/* Header */}
-        <XStack px="$5" py="$4" alignItems="center" gap="$3">
+        <XStack
+          px="$5"
+          py="$4"
+          alignItems="center"
+          gap="$3"
+        >
           <Button
             unstyled
             onPress={() => router.back()}
@@ -190,7 +199,10 @@ export function CreateReportScreen() {
             hitSlop={12}
             pressStyle={{ opacity: 0.7 }}
           >
-            <ArrowLeft size={22} color="$color" />
+            <ArrowLeft
+              size={22}
+              color="$color"
+            />
           </Button>
           <Text
             flex={1}
@@ -204,8 +216,15 @@ export function CreateReportScreen() {
           <View width={38} />
         </XStack>
 
-        <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-          <YStack px="$lg" pb="$2xl" gap="$lg">
+        <ScrollView
+          flex={1}
+          showsVerticalScrollIndicator={false}
+        >
+          <YStack
+            px="$lg"
+            pb="$2xl"
+            gap="$lg"
+          >
             {/* Date Display */}
             <YStack
               bg="rgba(255,255,255,0.95)"
@@ -214,10 +233,18 @@ export function CreateReportScreen() {
               borderWidth={1}
               borderColor="rgba(0,0,0,0.08)"
             >
-              <Text fontSize="$2" color="$colorSubtle" mb="$xs">
+              <Text
+                fontSize="$2"
+                color="$colorSubtle"
+                mb="$xs"
+              >
                 Report Date
               </Text>
-              <Text fontSize="$4" fontWeight="600" color="$color">
+              <Text
+                fontSize="$4"
+                fontWeight="600"
+                color="$color"
+              >
                 {new Date().toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
@@ -236,16 +263,33 @@ export function CreateReportScreen() {
               borderColor="rgba(0,0,0,0.08)"
               gap="$md"
             >
-              <XStack alignItems="center" gap="$sm">
-                <Clock size={18} color="$primary" />
-                <Text fontSize="$4" fontWeight="600" color="$color">
+              <XStack
+                alignItems="center"
+                gap="$sm"
+              >
+                <Clock
+                  size={18}
+                  color="$primary"
+                />
+                <Text
+                  fontSize="$4"
+                  fontWeight="600"
+                  color="$color"
+                >
                   Work Duration
                 </Text>
               </XStack>
 
-              <XStack justifyContent="center" alignItems="center" gap="$lg">
+              <XStack
+                justifyContent="center"
+                alignItems="center"
+                gap="$lg"
+              >
                 {/* Hours */}
-                <YStack alignItems="center" gap="$sm">
+                <YStack
+                  alignItems="center"
+                  gap="$sm"
+                >
                   <Button
                     unstyled
                     onPress={() => setWorkHours((h) => Math.min(24, h + 1))}
@@ -257,13 +301,23 @@ export function CreateReportScreen() {
                     justifyContent="center"
                     pressStyle={{ opacity: 0.8 }}
                   >
-                    <Plus size={20} color="$primary" />
+                    <Plus
+                      size={20}
+                      color="$primary"
+                    />
                   </Button>
                   <YStack alignItems="center">
-                    <Text fontSize="$8" fontWeight="700" color="$color">
+                    <Text
+                      fontSize="$8"
+                      fontWeight="700"
+                      color="$color"
+                    >
                       {workHours.toString().padStart(2, '0')}
                     </Text>
-                    <Text fontSize="$2" color="$colorSubtle">
+                    <Text
+                      fontSize="$2"
+                      color="$colorSubtle"
+                    >
                       hours
                     </Text>
                   </YStack>
@@ -278,16 +332,26 @@ export function CreateReportScreen() {
                     justifyContent="center"
                     pressStyle={{ opacity: 0.8 }}
                   >
-                    <Minus size={20} color="$colorSubtle" />
+                    <Minus
+                      size={20}
+                      color="$colorSubtle"
+                    />
                   </Button>
                 </YStack>
 
-                <Text fontSize="$6" fontWeight="700" color="$colorSubtle">
+                <Text
+                  fontSize="$6"
+                  fontWeight="700"
+                  color="$colorSubtle"
+                >
                   :
                 </Text>
 
                 {/* Minutes */}
-                <YStack alignItems="center" gap="$sm">
+                <YStack
+                  alignItems="center"
+                  gap="$sm"
+                >
                   <Button
                     unstyled
                     onPress={() => setWorkMinutes((m) => (m + 15) % 60)}
@@ -299,13 +363,23 @@ export function CreateReportScreen() {
                     justifyContent="center"
                     pressStyle={{ opacity: 0.8 }}
                   >
-                    <Plus size={20} color="$primary" />
+                    <Plus
+                      size={20}
+                      color="$primary"
+                    />
                   </Button>
                   <YStack alignItems="center">
-                    <Text fontSize="$8" fontWeight="700" color="$color">
+                    <Text
+                      fontSize="$8"
+                      fontWeight="700"
+                      color="$color"
+                    >
                       {workMinutes.toString().padStart(2, '0')}
                     </Text>
-                    <Text fontSize="$2" color="$colorSubtle">
+                    <Text
+                      fontSize="$2"
+                      color="$colorSubtle"
+                    >
                       minutes
                     </Text>
                   </YStack>
@@ -320,7 +394,10 @@ export function CreateReportScreen() {
                     justifyContent="center"
                     pressStyle={{ opacity: 0.8 }}
                   >
-                    <Minus size={20} color="$colorSubtle" />
+                    <Minus
+                      size={20}
+                      color="$colorSubtle"
+                    />
                   </Button>
                 </YStack>
               </XStack>
@@ -335,7 +412,11 @@ export function CreateReportScreen() {
               borderColor="rgba(0,0,0,0.08)"
               gap="$sm"
             >
-              <Text fontSize="$4" fontWeight="600" color="$color">
+              <Text
+                fontSize="$4"
+                fontWeight="600"
+                color="$color"
+              >
                 Work Summary
               </Text>
               <TextArea
@@ -361,7 +442,11 @@ export function CreateReportScreen() {
                 borderColor="rgba(0,0,0,0.08)"
                 gap="$md"
               >
-                <Text fontSize="$4" fontWeight="600" color="$color">
+                <Text
+                  fontSize="$4"
+                  fontWeight="600"
+                  color="$color"
+                >
                   Tasks Completed
                 </Text>
                 <YStack gap="$sm">
@@ -375,11 +460,20 @@ export function CreateReportScreen() {
                       p="$md"
                       pressStyle={{ opacity: 0.8 }}
                     >
-                      <XStack alignItems="center" gap="$md">
+                      <XStack
+                        alignItems="center"
+                        gap="$md"
+                      >
                         {task.marked_complete ? (
-                          <CheckCircle2 size={22} color="$success" />
+                          <CheckCircle2
+                            size={22}
+                            color="$success"
+                          />
                         ) : (
-                          <Circle size={22} color="$colorSubtle" />
+                          <Circle
+                            size={22}
+                            color="$colorSubtle"
+                          />
                         )}
                         <YStack flex={1}>
                           <Text
@@ -390,7 +484,11 @@ export function CreateReportScreen() {
                             {task.title}
                           </Text>
                           {task.description && (
-                            <Text fontSize="$2" color="$colorSubtle" numberOfLines={1}>
+                            <Text
+                              fontSize="$2"
+                              color="$colorSubtle"
+                              numberOfLines={1}
+                            >
                               {task.description}
                             </Text>
                           )}
@@ -411,16 +509,29 @@ export function CreateReportScreen() {
               borderColor="rgba(0,0,0,0.08)"
               gap="$md"
             >
-              <XStack justifyContent="space-between" alignItems="center">
-                <Text fontSize="$4" fontWeight="600" color="$color">
+              <XStack
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Text
+                  fontSize="$4"
+                  fontWeight="600"
+                  color="$color"
+                >
                   Evidence Photos
                 </Text>
-                <Text fontSize="$2" color="$colorSubtle">
+                <Text
+                  fontSize="$2"
+                  color="$colorSubtle"
+                >
                   {photos.length}/5
                 </Text>
               </XStack>
 
-              <XStack flexWrap="wrap" gap="$sm">
+              <XStack
+                flexWrap="wrap"
+                gap="$sm"
+              >
                 {photos.map((uri, index) => (
                   <Button
                     key={index}
@@ -431,7 +542,12 @@ export function CreateReportScreen() {
                     borderRadius={12}
                     overflow="hidden"
                   >
-                    <Image source={{ uri }} width={80} height={80} resizeMode="cover" />
+                    <Image
+                      source={{ uri }}
+                      width={80}
+                      height={80}
+                      resizeMode="cover"
+                    />
                     <View
                       position="absolute"
                       top={4}
@@ -443,7 +559,10 @@ export function CreateReportScreen() {
                       alignItems="center"
                       justifyContent="center"
                     >
-                      <Text color="white" fontSize={12}>
+                      <Text
+                        color="white"
+                        fontSize={12}
+                      >
                         ✕
                       </Text>
                     </View>
@@ -465,7 +584,10 @@ export function CreateReportScreen() {
                     justifyContent="center"
                     pressStyle={{ opacity: 0.8 }}
                   >
-                    <Camera size={24} color="$colorSubtle" />
+                    <Camera
+                      size={24}
+                      color="$colorSubtle"
+                    />
                   </Button>
                 )}
               </XStack>
@@ -491,16 +613,34 @@ export function CreateReportScreen() {
             pressStyle={{ opacity: 0.9 }}
           >
             {isSubmitting ? (
-              <XStack alignItems="center" gap="$sm">
-                <Spinner size="small" color="white" />
-                <Text color="white" fontWeight="600">
+              <XStack
+                alignItems="center"
+                gap="$sm"
+              >
+                <Spinner
+                  size="small"
+                  color="white"
+                />
+                <Text
+                  color="white"
+                  fontWeight="600"
+                >
                   Submitting...
                 </Text>
               </XStack>
             ) : (
-              <XStack alignItems="center" gap="$sm">
-                <Save size={18} color="white" />
-                <Text color="white" fontWeight="600">
+              <XStack
+                alignItems="center"
+                gap="$sm"
+              >
+                <Save
+                  size={18}
+                  color="white"
+                />
+                <Text
+                  color="white"
+                  fontWeight="600"
+                >
                   Submit Report
                 </Text>
               </XStack>

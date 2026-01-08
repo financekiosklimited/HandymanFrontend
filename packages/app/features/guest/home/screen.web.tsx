@@ -2,14 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Button,
-  ScrollView,
-  Spinner,
-  Text,
-  XStack,
-  YStack,
-} from '@my/ui'
+import { Button, ScrollView, Spinner, Text, XStack, YStack } from '@my/ui'
 import { BottomNav, GradientBackground, HandymanCard, JobCard, SearchBar } from '@my/ui'
 import { useGuestHandymen, useGuestJobs } from '@my/api'
 import { Bookmark, Briefcase, Menu, MessageCircle, Plus, Users } from '@tamagui/lucide-icons'
@@ -52,7 +45,7 @@ export function GuestHomeScreen() {
         enableHighAccuracy: false,
         timeout: 10_000,
         maximumAge: 60_000,
-      },
+      }
     )
   }, [])
 
@@ -98,7 +91,10 @@ export function GuestHomeScreen() {
 
   return (
     <GradientBackground>
-      <YStack flex={1} pt={insets.top}>
+      <YStack
+        flex={1}
+        pt={insets.top}
+      >
         {/* Header */}
         <XStack
           px="$md"
@@ -254,7 +250,9 @@ export function GuestHomeScreen() {
                           job={job}
                           showCategory
                           onPress={() => {
-                            router.push(normalizeExpoRouteToNextPath(`/(guest)/jobs/${job.public_id}`))
+                            router.push(
+                              normalizeExpoRouteToNextPath(`/(guest)/jobs/${job.public_id}`)
+                            )
                           }}
                         />
                       </YStack>
@@ -326,7 +324,9 @@ export function GuestHomeScreen() {
                     textAlign="center"
                     px="$md"
                   >
-                    {locationError ? 'Enable location to see jobs near you' : 'Check back later for new opportunities'}
+                    {locationError
+                      ? 'Enable location to see jobs near you'
+                      : 'Check back later for new opportunities'}
                   </Text>
                 </YStack>
               )}
@@ -404,7 +404,11 @@ export function GuestHomeScreen() {
                         <HandymanCard
                           handyman={handyman}
                           onPress={() => {
-                            router.push(normalizeExpoRouteToNextPath(`/(guest)/handymen/${handyman.public_id}`))
+                            router.push(
+                              normalizeExpoRouteToNextPath(
+                                `/(guest)/handymen/${handyman.public_id}`
+                              )
+                            )
                           }}
                         />
                       </YStack>
@@ -476,7 +480,9 @@ export function GuestHomeScreen() {
                     textAlign="center"
                     px="$md"
                   >
-                    {locationError ? 'Enable location to find handymen near you' : 'No handymen available in your area yet'}
+                    {locationError
+                      ? 'Enable location to find handymen near you'
+                      : 'No handymen available in your area yet'}
                   </Text>
                 </YStack>
               )}
@@ -494,4 +500,3 @@ export function GuestHomeScreen() {
     </GradientBackground>
   )
 }
-

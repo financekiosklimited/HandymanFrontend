@@ -5,13 +5,7 @@ import * as Location from 'expo-location'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
 import { useHomeownerJobs, useNearbyHandymen, useAuthStore, useHomeownerProfile } from '@my/api'
 import type { HomeownerJobStatus } from '@my/api'
-import {
-  SearchBar,
-  JobCard,
-  HandymanCard,
-  GradientBackground,
-  WelcomeHeader,
-} from '@my/ui'
+import { SearchBar, JobCard, HandymanCard, GradientBackground, WelcomeHeader } from '@my/ui'
 import { Menu, Bookmark, MessageCircle, Plus, Briefcase, Users } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'

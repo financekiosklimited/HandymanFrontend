@@ -4,14 +4,7 @@ import { useState, useMemo } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useHandymanApplications } from '@my/api'
-import {
-  ArrowLeft,
-  Briefcase,
-  MapPin,
-  ChevronRight,
-  Clock,
-  Play,
-} from '@tamagui/lucide-icons'
+import { ArrowLeft, Briefcase, MapPin, ChevronRight, Clock, Play } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import type { ApplicationStatus, JobApplication } from '@my/api'
@@ -209,12 +202,18 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
             alignItems="center"
             justifyContent="center"
           >
-            <Briefcase size={40} color="$primary" />
+            <Briefcase
+              size={40}
+              color="$primary"
+            />
           </YStack>
         )}
 
         {/* Content */}
-        <YStack p="$md" gap="$sm">
+        <YStack
+          p="$md"
+          gap="$sm"
+        >
           <Text
             fontSize="$4"
             fontWeight="700"
@@ -225,14 +224,20 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
           </Text>
 
           {job.category && (
-            <XStack alignItems="center" gap="$xs">
+            <XStack
+              alignItems="center"
+              gap="$xs"
+            >
               <View
                 width={6}
                 height={6}
                 borderRadius={3}
                 bg="$primary"
               />
-              <Text fontSize="$2" color="$colorSubtle">
+              <Text
+                fontSize="$2"
+                color="$colorSubtle"
+              >
                 {job.category.name}
               </Text>
             </XStack>
@@ -240,9 +245,19 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
 
           {/* Location */}
           {job.city && (
-            <XStack alignItems="center" gap="$xs">
-              <MapPin size={14} color="$colorSubtle" />
-              <Text fontSize="$2" color="$colorSubtle" numberOfLines={1}>
+            <XStack
+              alignItems="center"
+              gap="$xs"
+            >
+              <MapPin
+                size={14}
+                color="$colorSubtle"
+              />
+              <Text
+                fontSize="$2"
+                color="$colorSubtle"
+                numberOfLines={1}
+              >
                 {job.city.name}
               </Text>
             </XStack>
@@ -262,7 +277,10 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
               alignItems="center"
               gap="$xs"
             >
-              <Clock size={12} color="$success" />
+              <Clock
+                size={12}
+                color="$success"
+              />
               <Text
                 fontSize={11}
                 fontWeight="600"
@@ -294,9 +312,19 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
               onPress()
             }}
           >
-            <XStack alignItems="center" gap="$xs">
-              <Play size={14} color="white" />
-              <Text color="white" fontWeight="600" fontSize="$3">
+            <XStack
+              alignItems="center"
+              gap="$xs"
+            >
+              <Play
+                size={14}
+                color="white"
+              />
+              <Text
+                color="white"
+                fontWeight="600"
+                fontSize="$3"
+              >
                 View Dashboard
               </Text>
             </XStack>
@@ -339,7 +367,7 @@ export function HandymanJobsScreen() {
 
   // Filter to show only non-approved applications in Job Applicants tab
   const pendingApplications = useMemo(() => {
-    return allApplications.filter(app => app.status !== 'approved')
+    return allApplications.filter((app) => app.status !== 'approved')
   }, [allApplications])
 
   const activeJobs = useMemo(() => {
@@ -474,7 +502,9 @@ export function HandymanJobsScreen() {
                   color="$colorSubtle"
                   fontSize="$3"
                 >
-                  {activeTab === 'applicants' ? 'Loading applications...' : 'Loading active jobs...'}
+                  {activeTab === 'applicants'
+                    ? 'Loading applications...'
+                    : 'Loading active jobs...'}
                 </Text>
               </YStack>
             ) : error ? (
@@ -609,96 +639,95 @@ export function HandymanJobsScreen() {
                   )}
                 </YStack>
               )
-            ) : (
-              // Active Jobs Tab Content
-              activeJobs.length === 0 ? (
+            ) : // Active Jobs Tab Content
+            activeJobs.length === 0 ? (
+              <YStack
+                py="$2xl"
+                alignItems="center"
+                bg="rgba(255,255,255,0.7)"
+                borderRadius={20}
+                gap="$md"
+                px="$lg"
+              >
                 <YStack
-                  py="$2xl"
+                  width={80}
+                  height={80}
+                  borderRadius="$full"
+                  bg="rgba(12,154,92,0.1)"
                   alignItems="center"
-                  bg="rgba(255,255,255,0.7)"
-                  borderRadius={20}
-                  gap="$md"
-                  px="$lg"
+                  justifyContent="center"
                 >
-                  <YStack
-                    width={80}
-                    height={80}
-                    borderRadius="$full"
-                    bg="rgba(12,154,92,0.1)"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Play
-                      size={36}
-                      color="$primary"
-                    />
-                  </YStack>
-                  <Text
-                    color="$color"
-                    fontSize="$5"
-                    fontWeight="600"
-                  >
-                    No Active Jobs
-                  </Text>
-                  <Text
-                    color="$colorSubtle"
-                    fontSize="$3"
-                    textAlign="center"
-                  >
-                    Jobs you've been approved for will appear here. Keep applying to find your next opportunity!
-                  </Text>
+                  <Play
+                    size={36}
+                    color="$primary"
+                  />
                 </YStack>
-              ) : (
-                <YStack gap="$md">
-                  {activeJobs.map((application) => (
-                    <ActiveJobCard
-                      key={application.public_id}
-                      application={application}
-                      onPress={() => handleActiveJobPress(application)}
-                    />
-                  ))}
+                <Text
+                  color="$color"
+                  fontSize="$5"
+                  fontWeight="600"
+                >
+                  No Active Jobs
+                </Text>
+                <Text
+                  color="$colorSubtle"
+                  fontSize="$3"
+                  textAlign="center"
+                >
+                  Jobs you've been approved for will appear here. Keep applying to find your next
+                  opportunity!
+                </Text>
+              </YStack>
+            ) : (
+              <YStack gap="$md">
+                {activeJobs.map((application) => (
+                  <ActiveJobCard
+                    key={application.public_id}
+                    application={application}
+                    onPress={() => handleActiveJobPress(application)}
+                  />
+                ))}
 
-                  {/* Load More Button */}
-                  {hasMoreActiveJobs && (
-                    <Button
-                      onPress={() => fetchMoreActiveJobs()}
-                      disabled={isFetchingMoreActiveJobs}
-                      bg="rgba(255,255,255,0.7)"
-                      borderRadius="$md"
-                      py="$sm"
-                      mt="$sm"
-                      borderWidth={1}
-                      borderColor="$borderColor"
-                    >
-                      {isFetchingMoreActiveJobs ? (
-                        <XStack
-                          alignItems="center"
-                          gap="$sm"
-                        >
-                          <Spinner
-                            size="small"
-                            color="$primary"
-                          />
-                          <Text
-                            color="$colorSubtle"
-                            fontSize="$3"
-                          >
-                            Loading...
-                          </Text>
-                        </XStack>
-                      ) : (
-                        <Text
+                {/* Load More Button */}
+                {hasMoreActiveJobs && (
+                  <Button
+                    onPress={() => fetchMoreActiveJobs()}
+                    disabled={isFetchingMoreActiveJobs}
+                    bg="rgba(255,255,255,0.7)"
+                    borderRadius="$md"
+                    py="$sm"
+                    mt="$sm"
+                    borderWidth={1}
+                    borderColor="$borderColor"
+                  >
+                    {isFetchingMoreActiveJobs ? (
+                      <XStack
+                        alignItems="center"
+                        gap="$sm"
+                      >
+                        <Spinner
+                          size="small"
                           color="$primary"
+                        />
+                        <Text
+                          color="$colorSubtle"
                           fontSize="$3"
-                          fontWeight="500"
                         >
-                          Load more jobs
+                          Loading...
                         </Text>
-                      )}
-                    </Button>
-                  )}
-                </YStack>
-              )
+                      </XStack>
+                    ) : (
+                      <Text
+                        color="$primary"
+                        fontSize="$3"
+                        fontWeight="500"
+                      >
+                        Load more jobs
+                      </Text>
+                    )}
+                  </Button>
+                )}
+              </YStack>
             )}
           </YStack>
         </ScrollView>

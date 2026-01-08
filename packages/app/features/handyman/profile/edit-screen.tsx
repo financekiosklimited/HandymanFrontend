@@ -112,8 +112,8 @@ export function HandymanProfileEditScreen() {
         const [y, m, d] = profile.date_of_birth.split('-')
         setTempDate({
           year: y || '',
-          month: m ? (parseInt(m) - 1).toString() : '',
-          day: d ? parseInt(d).toString() : '',
+          month: m ? (Number.parseInt(m) - 1).toString() : '',
+          day: d ? Number.parseInt(d).toString() : '',
         })
       }
     }
@@ -158,7 +158,7 @@ export function HandymanProfileEditScreen() {
   }
 
   const handleDateConfirm = () => {
-    const month = (parseInt(tempDate.month) + 1).toString().padStart(2, '0')
+    const month = (Number.parseInt(tempDate.month) + 1).toString().padStart(2, '0')
     const day = tempDate.day.padStart(2, '0')
     const dateStr = `${tempDate.year}-${month}-${day}`
     updateField('date_of_birth', dateStr)
@@ -176,7 +176,7 @@ export function HandymanProfileEditScreen() {
       clientErrors.display_name = ['Display name is required']
     }
 
-    if (formData.hourly_rate && isNaN(parseFloat(formData.hourly_rate))) {
+    if (formData.hourly_rate && Number.isNaN(Number.parseFloat(formData.hourly_rate))) {
       clientErrors.hourly_rate = ['Please enter a valid number']
     }
 
@@ -189,7 +189,7 @@ export function HandymanProfileEditScreen() {
       const updateData: HandymanProfileUpdateRequest = {
         display_name: formData.display_name.trim(),
         job_title: formData.job_title.trim() || undefined,
-        hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
+        hourly_rate: formData.hourly_rate ? Number.parseFloat(formData.hourly_rate) : null,
         category_id: formData.category_id || null,
         address: formData.address.trim() || undefined,
         date_of_birth: formData.date_of_birth || null,

@@ -3,10 +3,15 @@ import { OngoingJobDashboard } from 'app/features/handyman/jobs/ongoing-dashboar
 
 export default function OngoingJobPage() {
   const { id, applicationId } = useLocalSearchParams<{ id: string; applicationId?: string }>()
-  
+
   if (!id) {
     return null
   }
-  
-  return <OngoingJobDashboard jobId={id} applicationId={applicationId} />
+
+  return (
+    <OngoingJobDashboard
+      jobId={id}
+      applicationId={applicationId}
+    />
+  )
 }

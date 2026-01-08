@@ -38,7 +38,10 @@ export function SplashScreen() {
         alignItems="center"
         px="$xl"
       >
-        <Logo size="lg" showTagline />
+        <Logo
+          size="lg"
+          showTagline
+        />
       </YStack>
     </GradientBackground>
   )
