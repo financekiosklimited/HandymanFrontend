@@ -43,9 +43,11 @@ export function HandymanUpdatesScreen() {
     // Navigate based on notification type and data
     const data = notification.data
     if (data?.job_id) {
-      router.push(`/(handyman)/jobs/${data.job_id}`)
+      // Redirect to jobs menu (dashboard) instead of job detail
+      router.push('/(handyman)/my-jobs')
     } else if (data?.application_id) {
-      router.push(`/(handyman)/my-jobs/${data.application_id}`)
+      // Redirect to jobs menu (dashboard) instead of application detail
+      router.push('/(handyman)/my-jobs')
     }
   }
 

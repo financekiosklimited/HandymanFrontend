@@ -43,7 +43,8 @@ export function HomeownerUpdatesScreen() {
     // Navigate based on notification type and data
     const data = notification.data
     if (data?.job_id) {
-      router.push(`/(homeowner)/jobs/${data.job_id}`)
+      // Redirect to jobs menu (management) instead of job detail
+      router.push('/(homeowner)/jobs')
     } else if (data?.handyman_id) {
       router.push(`/(homeowner)/handymen/${data.handyman_id}`)
     }
