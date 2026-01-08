@@ -32,7 +32,7 @@ const homeownerNavItems: BottomNavItem[] = [
 const handymanNavItems: BottomNavItem[] = [
   { id: 'explore', label: 'Explore', icon: Search, route: '/(handyman)/' },
   { id: 'updates', label: 'Updates', icon: Bell, route: '/(handyman)/updates' },
-  { id: 'my-jobs', label: 'My Jobs', icon: Briefcase, route: '/(handyman)/my-jobs' },
+  { id: 'jobs', label: 'Jobs', icon: Briefcase, route: '/(handyman)/jobs' },
   { id: 'profile', label: 'Profile', icon: User, route: '/(handyman)/profile' },
 ]
 

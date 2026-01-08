@@ -24,14 +24,9 @@ export function useGuestJobs(params?: GuestJobsParams) {
         searchParams.set('page', pageParam.toString())
 
         const url = `guest/jobs/?${searchParams.toString()}`
-        console.log('Fetching jobs from:', url)
 
-        const response = await apiClient
-          .get(url)
-          .json<PaginatedArrayResponse<GuestJob>>()
+        const response = await apiClient.get(url).json<PaginatedArrayResponse<GuestJob>>()
 
-        console.log('Jobs response:', response)
-        
         return {
           results: response.data || [],
           page: response.meta?.pagination?.page || 1,
@@ -58,9 +53,7 @@ export function useGuestJob(publicId: string) {
   return useQuery({
     queryKey: ['guest', 'jobs', publicId],
     queryFn: async () => {
-      const response = await apiClient
-        .get(`guest/jobs/${publicId}/`)
-        .json<ApiResponse<GuestJob>>()
+      const response = await apiClient.get(`guest/jobs/${publicId}/`).json<ApiResponse<GuestJob>>()
 
       return response.data
     },

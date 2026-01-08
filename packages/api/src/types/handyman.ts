@@ -156,5 +156,231 @@ export interface HandymanJobDetail extends HandymanJobForYou {
   my_application: MyApplicationInfo | null
 }
 
+// ========== Ongoing Job Types ==========
+
+// Work Session
+export interface WorkSession {
+  public_id: string
+  started_at: string
+  ended_at: string | null
+  start_latitude: number
+  start_longitude: number
+  start_accuracy: number | null
+  start_photo: string | null
+  end_latitude: number | null
+  end_longitude: number | null
+  end_accuracy: number | null
+  end_photo: string | null
+  duration_seconds: number | null
+  status: 'active' | 'completed'
+  media: WorkSessionMedia[]
+}
+
+export interface WorkSessionMedia {
+  public_id: string
+  media_type: 'photo' | 'video'
+  file: string
+  thumbnail?: string | null
+  caption: string | null
+  created_at: string
+}
+
+// Daily Report
+export type DailyReportStatus = 'pending' | 'approved' | 'rejected'
+
+export interface DailyReportTask {
+  public_id: string
+  task: {
+    public_id: string
+    title: string
+    description: string
+    is_completed: boolean
+  }
+  notes: string | null
+  marked_complete: boolean
+}
+
+export interface DailyReport {
+  public_id: string
+  report_date: string
+  summary: string
+  total_work_duration_seconds: number
+  status: DailyReportStatus
+  homeowner_comment: string | null
+  reviewed_at: string | null
+  review_deadline: string | null
+  tasks_worked: DailyReportTask[]
+  created_at: string
+}
+
+// Request types
+// React Native FormData file type
+export interface RNFile {
+  uri: string
+  type: string
+  name: string
+}
+
+export interface StartWorkSessionRequest {
+  started_at: string
+  start_latitude: number
+  start_longitude: number
+  start_accuracy?: number
+  start_photo: RNFile // React Native file format for FormData
+}
+
+export interface StopWorkSessionRequest {
+  ended_at: string // Required for API
+  end_latitude: number
+  end_longitude: number
+  end_accuracy?: number
+  end_photo: RNFile
+}
+
+export interface UploadSessionMediaRequest {
+  media_type: 'photo' | 'video'
+  file: RNFile
+  file_size: number
+  caption?: string
+  duration_seconds?: number
+}
+
+export interface CreateDailyReportRequest {
+  report_date: string
+  summary: string
+  total_work_duration_seconds: number
+  tasks: Array<{
+    task_id: string
+    notes?: string
+    marked_complete: boolean
+  }>
+}
+
+export interface UpdateDailyReportRequest {
+  summary?: string
+  total_work_duration_seconds?: number
+  tasks?: Array<{
+    task_id: string
+    notes?: string
+    marked_complete: boolean
+  }>
+}
+
+// Dashboard types
+export interface DashboardJobInfo {
+  public_id: string
+  title: string
+  description: string
+  status: HandymanJobStatus
+  estimated_budget: number
+  category: {
+    public_id: string
+    name: string
+    slug: string
+  } | null
+  city: {
+    public_id: string
+    name: string
+    province: string
+    province_code: string
+  } | null
+  address: string | null
+  postal_code: string | null
+  homeowner_display_name: string
+  homeowner_avatar_url: string | null
+  created_at: string
+}
+
+export interface DashboardTask {
+  public_id: string
+  title: string
+  description: string
+  order: number
+  is_completed: boolean
+  completed_at: string | null
+}
+
+export interface DashboardTasksProgress {
+  total_tasks: number
+  completed_tasks: number
+  pending_tasks: number
+  completion_percentage: number
+  tasks: DashboardTask[]
+}
+
+export interface DashboardTimeStats {
+  total_time_seconds: number
+  total_time_formatted: string
+  average_session_duration_seconds: number
+  average_session_duration_formatted: string
+  longest_session_seconds: number
+  longest_session_formatted: string
+}
+
+export interface DashboardSessionStats {
+  total_sessions: number
+  completed_sessions: number
+  in_progress_sessions: number
+  has_active_session: boolean
+  active_session_id: string | null
+}
+
+export interface DashboardReportStats {
+  total_reports: number
+  pending_reports: number
+  approved_reports: number
+  rejected_reports: number
+  latest_report_date: string | null
+}
+
+export interface SessionMediaItem {
+  public_id: string
+  media_type: 'photo' | 'video'
+  file: string
+  thumbnail: string | null
+  description: string | null
+  created_at: string
+}
+
+export interface DashboardActiveSession {
+  public_id: string
+  started_at: string
+  start_latitude: number
+  start_longitude: number
+  start_photo: string | null
+  start_accuracy: number | null
+  current_duration_seconds: number
+  current_duration_formatted: string
+  media_count: number
+  media: SessionMediaItem[]
+}
+
+export interface HomeownerReview {
+  public_id: string
+  rating: number
+  comment: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateReviewRequest {
+  rating: number
+  comment?: string
+}
+
+export interface JobDashboardData {
+  job: DashboardJobInfo
+  tasks_progress: DashboardTasksProgress
+  time_stats: DashboardTimeStats
+  session_stats: DashboardSessionStats
+  active_session: DashboardActiveSession | null
+  report_stats: DashboardReportStats
+  homeowner_review: HomeownerReview | null
+  my_review: HomeownerReview | null
+}
+
+
 // Re-export for convenience
 export type { PaginatedArrayResponse, ApiResponse, Notification } from './common'
+
+

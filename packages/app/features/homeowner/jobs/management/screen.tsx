@@ -231,6 +231,30 @@ function ExpandableJobCard({ job, isExpanded, onToggle, onApplicationPress }: Ex
                     {statusLabels[job.status] || job.status}
                   </Text>
                 </XStack>
+                {/* Report Button - Show for ongoing/completed jobs */}
+                {['in_progress', 'pending_completion', 'completed'].includes(job.status) && (
+                  <Button
+                    unstyled
+                    onPress={(e) => {
+                      e.stopPropagation()
+                      router.push({
+                        pathname: '/(homeowner)/jobs/ongoing/[id]',
+                        params: { id: job.public_id },
+                      } as any)
+                    }}
+                    bg="$primary"
+                    borderRadius="$full"
+                    px="$sm"
+                    py={4}
+                    pressStyle={{ opacity: 0.8 }}
+                  >
+                    <XStack gap="$xs" alignItems="center">
+                      <Text fontSize={11} fontWeight="600" color="white">
+                        REPORT
+                      </Text>
+                    </XStack>
+                  </Button>
+                )}
                 <Button
                   unstyled
                   onPress={(e) => {

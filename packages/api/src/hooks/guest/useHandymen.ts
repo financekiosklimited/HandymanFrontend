@@ -25,14 +25,9 @@ export function useGuestHandymen(params?: GuestHandymenParams) {
         searchParams.set('page', pageParam.toString())
 
         const url = `guest/handymen/?${searchParams.toString()}`
-        console.log('Fetching handymen from:', url)
 
-        const response = await apiClient
-          .get(url)
-          .json<PaginatedArrayResponse<GuestHandyman>>()
+        const response = await apiClient.get(url).json<PaginatedArrayResponse<GuestHandyman>>()
 
-        console.log('Handymen response:', response)
-        
         return {
           results: response.data || [],
           page: response.meta?.pagination?.page || 1,

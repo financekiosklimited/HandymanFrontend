@@ -22,21 +22,21 @@ const createStorage = () => {
         localStorage.removeItem(name)
       },
     }
-  } else {
-    // For React Native, we'll use a simple in-memory storage for now
-    // In production, you should use @react-native-async-storage/async-storage
-    const memoryStorage: Record<string, string> = {}
-    return {
-      getItem: async (name: string): Promise<string | null> => {
-        return memoryStorage[name] || null
-      },
-      setItem: async (name: string, value: string): Promise<void> => {
-        memoryStorage[name] = value
-      },
-      removeItem: async (name: string): Promise<void> => {
-        delete memoryStorage[name]
-      },
-    }
+  }
+
+  // For React Native, we'll use a simple in-memory storage for now
+  // In production, you should use @react-native-async-storage/async-storage
+  const memoryStorage: Record<string, string> = {}
+  return {
+    getItem: async (name: string): Promise<string | null> => {
+      return memoryStorage[name] || null
+    },
+    setItem: async (name: string, value: string): Promise<void> => {
+      memoryStorage[name] = value
+    },
+    removeItem: async (name: string): Promise<void> => {
+      delete memoryStorage[name]
+    },
   }
 }
 
@@ -51,7 +51,7 @@ interface AuthState {
   // Token state
   accessToken: string | null
   refreshToken: string | null
-  
+
   // User state
   user: AuthUser | null
   activeRole: Role | null
@@ -60,10 +60,10 @@ interface AuthState {
   isPhoneVerified: boolean
   phoneNumber: string | null
   email: string | null
-  
+
   // Computed
   isAuthenticated: boolean
-  
+
   // Actions
   setTokens: (accessToken: string, refreshToken: string) => void
   setUser: (user: AuthUser | null) => void

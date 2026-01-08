@@ -1,6 +1,23 @@
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../client'
-import type { PaginatedArrayResponse, ApiResponse, HomeownerJob, HomeownerHandyman, HomeownerProfile, HomeownerProfileUpdateRequest, Notification, HomeownerApplication, HomeownerApplicationDetail } from '../../types/homeowner'
+import type { 
+  PaginatedArrayResponse, 
+  ApiResponse, 
+  HomeownerJob, 
+  HomeownerHandyman, 
+  HomeownerProfile, 
+  HomeownerProfileUpdateRequest, 
+  Notification, 
+  HomeownerApplication, 
+  HomeownerApplicationDetail,
+  WorkSession,
+  DailyReport,
+  JobDispute,
+  ReviewDailyReportRequest,
+  RejectCompletionRequest,
+  CreateDisputeRequest,
+} from '../../types/homeowner'
+
 
 
 interface HomeownerJobsParams {
@@ -376,3 +393,217 @@ export * from './useCreateJob'
 export * from './useUpdateJob'
 export * from './useDeleteJob'
 
+// ========== Ongoing Job Hooks ==========
+
+/**
+ * Hook to fetch work sessions for a job.
+ */
+export function useHomeownerWorkSessions(jobId: string) {
+  return useQuery({
+    queryKey: ['homeowner', 'jobs', jobId, 'sessions'],
+    queryFn: async () => {
+      const response = await apiClient
+        .get(`homeowner/jobs/${jobId}/sessions/`)
+        .json<ApiResponse<WorkSession[]>>()
+      return response.data || []
+    },
+    enabled: !!jobId,
+  })
+}
+
+/**
+ * Hook to fetch daily reports for a job.
+ */
+export function useHomeownerDailyReports(jobId: string) {
+  return useQuery({
+    queryKey: ['homeowner', 'jobs', jobId, 'reports'],
+    queryFn: async () => {
+      const response = await apiClient
+        .get(`homeowner/jobs/${jobId}/reports/`)
+        .json<ApiResponse<DailyReport[]>>()
+      return response.data || []
+    },
+    enabled: !!jobId,
+  })
+}
+
+/**
+ * Hook to fetch a single daily report.
+ */
+export function useHomeownerDailyReport(jobId: string, reportId: string) {
+  return useQuery({
+    queryKey: ['homeowner', 'jobs', jobId, 'reports', reportId],
+    queryFn: async () => {
+      const response = await apiClient
+        .get(`homeowner/jobs/${jobId}/reports/${reportId}/`)
+        .json<ApiResponse<DailyReport>>()
+      return response.data
+    },
+    enabled: !!jobId && !!reportId,
+  })
+}
+
+/**
+ * Hook to review (approve/reject) a daily report.
+ */
+export function useReviewDailyReport() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async ({ jobId, reportId, data }: { jobId: string; reportId: string; data: ReviewDailyReportRequest }) => {
+      const response = await apiClient
+        .post(`homeowner/jobs/${jobId}/reports/${reportId}/review/`, { json: data })
+        .json<ApiResponse<DailyReport>>()
+      return response.data
+    },
+    onSuccess: (_, { jobId, reportId }) => {
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'jobs', jobId, 'reports'] })
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'jobs', jobId, 'reports', reportId] })
+    },
+  })
+}
+
+/**
+ * Hook to approve job completion.
+ */
+export function useApproveJobCompletion() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (jobId: string) => {
+      const response = await apiClient
+        .post(`homeowner/jobs/${jobId}/completion/approve/`)
+        .json<ApiResponse<{ status: string }>>()
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'jobs'] })
+    },
+  })
+}
+
+/**
+ * Hook to reject job completion.
+ */
+export function useRejectJobCompletion() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async ({ jobId, data }: { jobId: string; data?: RejectCompletionRequest }) => {
+      const response = await apiClient
+        .post(`homeowner/jobs/${jobId}/completion/reject/`, { json: data || {} })
+        .json<ApiResponse<{ status: string }>>()
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'jobs'] })
+    },
+  })
+}
+
+/**
+ * Hook to fetch disputes for a job.
+ */
+export function useHomeownerDisputes(jobId: string) {
+  return useQuery({
+    queryKey: ['homeowner', 'jobs', jobId, 'disputes'],
+    queryFn: async () => {
+      const response = await apiClient
+        .get(`homeowner/jobs/${jobId}/disputes/`)
+        .json<ApiResponse<JobDispute[]>>()
+      return response.data || []
+    },
+    enabled: !!jobId,
+  })
+}
+
+/**
+ * Hook to create a dispute.
+ */
+export function useCreateDispute() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async ({ jobId, data }: { jobId: string; data: CreateDisputeRequest }) => {
+      const response = await apiClient
+        .post(`homeowner/jobs/${jobId}/disputes/create/`, { json: data })
+        .json<ApiResponse<JobDispute>>()
+      return response.data
+    },
+    onSuccess: (_, { jobId }) => {
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'jobs', jobId, 'disputes'] })
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'job-dashboard', jobId] })
+    },
+  })
+}
+
+// ========== Dashboard Hooks ==========
+
+import type { HomeownerJobDashboardData, CreateHandymanReviewRequest, HandymanReview } from '../../types/homeowner'
+
+/**
+ * Hook to fetch comprehensive job dashboard data for homeowner.
+ */
+export function useHomeownerJobDashboard(jobId: string) {
+  return useQuery({
+    queryKey: ['homeowner', 'job-dashboard', jobId],
+    queryFn: async () => {
+      console.log(`DEBUG: Fetching homeowner job dashboard for jobId: ${jobId}`)
+      try {
+        const response = await apiClient
+          .get(`homeowner/jobs/${jobId}/dashboard/`)
+          .json<ApiResponse<HomeownerJobDashboardData>>()
+        console.log('DEBUG: Homeowner job dashboard response:', response.data)
+        return response.data
+      } catch (error: any) {
+        console.error('DEBUG: ERROR fetching homeowner job dashboard:', error)
+        throw error
+      }
+    },
+    enabled: !!jobId,
+    staleTime: 5 * 1000,
+  })
+}
+
+/**
+ * Hook to create a review for a handyman.
+ */
+export function useCreateHandymanReview() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ jobId, data }: { jobId: string; data: CreateHandymanReviewRequest }) => {
+      console.log('DEBUG: Creating handyman review:', { jobId, data })
+      const response = await apiClient
+        .post(`homeowner/jobs/${jobId}/review/`, { json: data })
+        .json<ApiResponse<HandymanReview>>()
+      console.log('DEBUG: Handyman review created:', response.data)
+      return response.data
+    },
+    onSuccess: (_, { jobId }) => {
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'job-dashboard', jobId] })
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'jobs'] })
+    },
+  })
+}
+
+/**
+ * Hook to update a review for a handyman.
+ */
+export function useUpdateHandymanReview() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ jobId, data }: { jobId: string; data: CreateHandymanReviewRequest }) => {
+      const response = await apiClient
+        .put(`homeowner/jobs/${jobId}/review/`, { json: data })
+        .json<ApiResponse<HandymanReview>>()
+      return response.data
+    },
+    onSuccess: (_, { jobId }) => {
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'job-dashboard', jobId] })
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'jobs'] })
+    },
+  })
+}

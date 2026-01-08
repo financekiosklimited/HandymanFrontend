@@ -84,17 +84,10 @@ export function ForgotPasswordResetScreen() {
     setError(null)
 
     try {
-      console.log('[Debug] Reset Password Payload:', {
+      await resetPasswordMutation.mutateAsync({
         reset_token: resetToken,
         new_password: newPassword,
       })
-
-      const response = await resetPasswordMutation.mutateAsync({
-        reset_token: resetToken,
-        new_password: newPassword,
-      })
-
-      console.log('[Debug] Reset Password Response:', response)
 
       toast.show('Password updated!', {
         message: 'Your password has been successfully reset.',
