@@ -339,7 +339,7 @@ function JobProgressBar({
   completionPercentage: number
 }) {
   const clampedProgress = Math.min(100, Math.max(0, completionPercentage))
-  
+
   // Define progress stages
   const stages = [
     { icon: Play, label: 'Started', threshold: 0 },
@@ -431,7 +431,7 @@ function JobProgressBar({
             const IconComponent = stage.icon
             const isCompleted = status === 'completed'
             const isCurrent = status === 'current'
-            
+
             return (
               <YStack
                 key={index}
@@ -1662,7 +1662,6 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
             pb="$2xl"
             gap="$lg"
           >
-
             {/* Pending Completion Banner - Premium Design */}
             {isPendingCompletion && (
               <YStack
@@ -1807,7 +1806,6 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
                 </XStack>
               </YStack>
             )}
-
 
             {/* Job Card */}
             <YStack

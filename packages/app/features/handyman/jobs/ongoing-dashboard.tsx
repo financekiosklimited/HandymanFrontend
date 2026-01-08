@@ -499,7 +499,7 @@ function JobProgressBar({
   completionPercentage: number
 }) {
   const clampedProgress = Math.min(100, Math.max(0, completionPercentage))
-  
+
   // Define progress stages
   const stages = [
     { icon: Play, label: 'Started', threshold: 0 },
@@ -591,7 +591,7 @@ function JobProgressBar({
             const IconComponent = stage.icon
             const isCompleted = status === 'completed'
             const isCurrent = status === 'current'
-            
+
             return (
               <YStack
                 key={index}
@@ -2165,7 +2165,6 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
               pb="$2xl"
               gap="$lg"
             >
-
               {/* Pending Approval Banner */}
               {isPending && (
                 <YStack
@@ -2242,7 +2241,6 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                   </XStack>
                 </YStack>
               )}
-
 
               {/* Job Card */}
               <YStack
@@ -2590,7 +2588,6 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                     </XStack>
                   </Button>
                 ) : null}
-
               </YStack>
 
               {tasks_progress.tasks.length > 0 && (
