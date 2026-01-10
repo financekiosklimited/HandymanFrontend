@@ -47,6 +47,13 @@
           "color": "#0C9A5C",
           "sounds": []
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow SolutionBank to access your location to show nearby jobs and handymen.",
+          "locationWhenInUsePermission": "Allow SolutionBank to access your location while using the app to show nearby jobs and handymen."
+        }
       ]
     ],
     "experiments": {

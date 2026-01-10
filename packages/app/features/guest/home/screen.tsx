@@ -29,19 +29,24 @@ export function GuestHomeScreen() {
 
   // Request location permission and get current location
   useEffect(() => {
+    let isMounted = true
+
     async function getLocation() {
       try {
-        // Check if location services are enabled
         const enabled = await Location.hasServicesEnabledAsync()
         if (!enabled) {
-          setLocationError('Location services are disabled')
+          if (isMounted) {
+            setLocationError('Location services are disabled')
+          }
           console.warn('Location services are disabled')
           return
         }
 
         const { status } = await Location.requestForegroundPermissionsAsync()
         if (status !== 'granted') {
-          setLocationError('Location permission denied')
+          if (isMounted) {
+            setLocationError('Location permission denied')
+          }
           console.warn('Location permission denied')
           return
         }
@@ -50,17 +55,38 @@ export function GuestHomeScreen() {
           accuracy: Location.Accuracy.Balanced,
         })
 
-        setLocation({
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-        })
+        if (isMounted) {
+          setLocation({
+            latitude: currentLocation.coords.latitude,
+            longitude: currentLocation.coords.longitude,
+          })
+        }
       } catch (error) {
-        console.error('Error getting location:', error)
-        setLocationError('Failed to get location')
+        console.warn('Error getting location, trying last known:', error)
+        try {
+          const fallbackLocation = await Location.getLastKnownPositionAsync()
+          if (fallbackLocation && isMounted) {
+            setLocation({
+              latitude: fallbackLocation.coords.latitude,
+              longitude: fallbackLocation.coords.longitude,
+            })
+          } else if (isMounted) {
+            setLocationError('Current location unavailable')
+          }
+        } catch (fallbackError) {
+          console.warn('Error getting last known location:', fallbackError)
+          if (isMounted) {
+            setLocationError('Current location unavailable')
+          }
+        }
       }
     }
 
     getLocation()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   // Fetch jobs and handymen with location (or without if location not available)
