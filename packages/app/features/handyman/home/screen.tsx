@@ -2,14 +2,45 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import * as Location from 'expo-location'
-import { YStack, XStack, ScrollView, Text, Button, Spinner } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
 import { SearchBar, JobCard, GradientBackground, WelcomeHeader } from '@my/ui'
-import { useHandymanJobsForYou, useAuthStore, useHandymanProfile } from '@my/api'
+import { useHandymanJobsForYou, useAuthStore, useHandymanProfile, useTotalUnreadCount } from '@my/api'
 import { Menu, Bookmark, MessageCircle } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 
 type TabType = 'top-picks' | 'nearby'
+
+// Message button with unread badge
+function MessageBadgeButton({ role, onPress }: { role: 'homeowner' | 'handyman'; onPress: () => void }) {
+  const { data: unreadCount } = useTotalUnreadCount(role)
+  const hasUnread = (unreadCount ?? 0) > 0
+
+  return (
+    <Button unstyled onPress={onPress} position="relative">
+      <MessageCircle size={20} color="$color" />
+      {hasUnread && (
+        <View
+          position="absolute"
+          top={-4}
+          right={-4}
+          bg="$primary"
+          minWidth={16}
+          height={16}
+          borderRadius={8}
+          alignItems="center"
+          justifyContent="center"
+          borderWidth={2}
+          borderColor="white"
+        >
+          <Text fontSize={9} fontWeight="700" color="white">
+            {(unreadCount ?? 0) > 9 ? '9+' : unreadCount}
+          </Text>
+        </View>
+      )}
+    </Button>
+  )
+}
 
 export function HandymanHomeScreen() {
   const router = useRouter()
@@ -144,17 +175,7 @@ export function HandymanHomeScreen() {
             />
           </Button>
 
-          <Button
-            unstyled
-            onPress={() => {
-              router.push('/(handyman)/messages')
-            }}
-          >
-            <MessageCircle
-              size={20}
-              color="$color"
-            />
-          </Button>
+          <MessageBadgeButton role="handyman" onPress={() => router.push('/(handyman)/messages')} />
         </XStack>
 
         {/* Content */}

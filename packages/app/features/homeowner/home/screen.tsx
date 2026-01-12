@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import * as Location from 'expo-location'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
-import { useHomeownerJobs, useNearbyHandymen, useAuthStore, useHomeownerProfile } from '@my/api'
+import { useHomeownerJobs, useNearbyHandymen, useAuthStore, useHomeownerProfile, useTotalUnreadCount } from '@my/api'
 import type { HomeownerJobStatus } from '@my/api'
 import { SearchBar, JobCard, HandymanCard, GradientBackground, WelcomeHeader } from '@my/ui'
 import { Menu, Bookmark, MessageCircle, Plus, Briefcase, Users } from '@tamagui/lucide-icons'
@@ -20,6 +20,37 @@ const statusLabels: Record<HomeownerJobStatus, string> = {
   pending_completion: 'Pending',
   completed: 'Completed',
   cancelled: 'Cancelled',
+}
+
+// Message button with unread badge
+function MessageBadgeButton({ role, onPress }: { role: 'homeowner' | 'handyman'; onPress: () => void }) {
+  const { data: unreadCount } = useTotalUnreadCount(role)
+  const hasUnread = (unreadCount ?? 0) > 0
+
+  return (
+    <Button unstyled onPress={onPress} position="relative">
+      <MessageCircle size={20} color="$color" />
+      {hasUnread && (
+        <View
+          position="absolute"
+          top={-4}
+          right={-4}
+          bg="$primary"
+          minWidth={16}
+          height={16}
+          borderRadius={8}
+          alignItems="center"
+          justifyContent="center"
+          borderWidth={2}
+          borderColor="white"
+        >
+          <Text fontSize={9} fontWeight="700" color="white">
+            {(unreadCount ?? 0) > 9 ? '9+' : unreadCount}
+          </Text>
+        </View>
+      )}
+    </Button>
+  )
 }
 
 export function HomeownerHomeScreen() {
@@ -209,17 +240,7 @@ export function HomeownerHomeScreen() {
             />
           </Button>
 
-          <Button
-            unstyled
-            onPress={() => {
-              router.push('/(homeowner)/messages')
-            }}
-          >
-            <MessageCircle
-              size={20}
-              color="$color"
-            />
-          </Button>
+          <MessageBadgeButton role="homeowner" onPress={() => router.push('/(homeowner)/messages')} />
         </XStack>
 
         {/* Content */}

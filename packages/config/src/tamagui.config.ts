@@ -142,6 +142,8 @@ export const config = createTamagui({
       warningBackground: '#FEF3C7',
       errorBackground: '#FEE2E2',
       infoBackground: '#DBEAFE',
+      // Accent color for star ratings and highlights
+      accent: colors.accent,
     },
   },
   themes: {

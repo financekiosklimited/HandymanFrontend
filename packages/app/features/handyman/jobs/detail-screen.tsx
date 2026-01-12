@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View, ImageViewer } from '@my/ui'
 import { GradientBackground } from '@my/ui'
-import { useHandymanJobDetail, useApplyForJob, formatErrorMessage } from '@my/api'
+import { useHandymanJobDetail, useApplyForJob, formatErrorMessage, apiClient } from '@my/api'
+import type { ChatConversationResponse } from '@my/api'
 import {
   ArrowLeft,
   MapPin,
@@ -16,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
+  MessageCircle,
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -37,6 +39,7 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
   const applyMutation = useApplyForJob()
   const [isApplying, setIsApplying] = useState(false)
   const [hasJustApplied, setHasJustApplied] = useState(false)
+  const [isChatLoading, setIsChatLoading] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [imageViewerVisible, setImageViewerVisible] = useState(false)
   const [imageViewerIndex, setImageViewerIndex] = useState(0)
@@ -687,6 +690,35 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
                       Homeowner
                     </Text>
                   </YStack>
+                  {/* Chat Button */}
+                  <Button
+                    bg="$primary"
+                    borderRadius={12}
+                    px="$md"
+                    py="$sm"
+                    disabled={isChatLoading}
+                    onPress={() => {
+                      if (!job?.homeowner?.public_id) return
+                      const params = new URLSearchParams({
+                        userId: job.homeowner.public_id,
+                        name: job.homeowner.display_name,
+                      })
+                      if (job.homeowner.avatar_url) params.append('avatar', job.homeowner.avatar_url)
+                      router.push(`/(handyman)/messages/new?${params.toString()}`)
+                    }}
+                    pressStyle={{ opacity: 0.8 }}
+                  >
+                    <XStack alignItems="center" gap="$xs">
+                      {isChatLoading ? (
+                        <Spinner size="small" color="white" />
+                      ) : (
+                        <MessageCircle size={16} color="white" />
+                      )}
+                      <Text color="white" fontSize="$3" fontWeight="500">
+                        {isChatLoading ? 'Opening...' : 'Chat'}
+                      </Text>
+                    </XStack>
+                  </Button>
                 </XStack>
               </YStack>
             )}

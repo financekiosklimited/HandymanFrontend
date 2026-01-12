@@ -12,6 +12,7 @@ import {
   useReviewDailyReport,
   useCreateDispute,
   useCreateHandymanReview,
+  useJobChatUnreadCount,
 } from '@my/api'
 import type {
   DashboardTask,
@@ -44,6 +45,7 @@ import {
   MapPin,
   User,
   Hourglass,
+  MessageCircle,
 } from '@tamagui/lucide-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -59,6 +61,43 @@ import {
 
 interface HomeownerJobDashboardProps {
   jobId: string
+}
+
+// Chat Button Component with Unread Badge
+function ChatButton({ jobId }: { jobId: string }) {
+  const router = useRouter()
+  const { data: unreadCount = 0 } = useJobChatUnreadCount('homeowner', jobId)
+
+  const handlePress = () => {
+    router.push({
+      pathname: '/(homeowner)/jobs/ongoing/chat/[id]',
+      params: { id: jobId },
+    } as any)
+  }
+
+  return (
+    <Pressable onPress={handlePress} style={{ padding: 8, position: 'relative' }}>
+      <MessageCircle size={22} color="#0C9A5C" />
+      {unreadCount > 0 && (
+        <View
+          position="absolute"
+          top={2}
+          right={2}
+          minWidth={18}
+          height={18}
+          borderRadius={9}
+          bg="#EF4444"
+          alignItems="center"
+          justifyContent="center"
+          px={4}
+        >
+          <Text fontSize={10} fontWeight="700" color="white">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </Text>
+        </View>
+      )}
+    </Pressable>
+  )
 }
 
 // Star Rating Component
@@ -1650,7 +1689,8 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
           >
             Job Progress
           </Text>
-          <View width={38} />
+          {/* Chat Button */}
+          <ChatButton jobId={jobId} />
         </XStack>
 
         <ScrollView
