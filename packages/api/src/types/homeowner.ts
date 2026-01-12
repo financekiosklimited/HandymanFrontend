@@ -124,6 +124,11 @@ export interface HomeownerApplicationDetail extends HomeownerApplication {
   updated_at?: string
   message?: string | null
   proposed_rate?: number | null
+  predicted_hours?: number
+  estimated_total_price?: number
+  negotiation_reasoning?: string
+  materials?: import('./handyman').JobApplicationMaterial[]
+  attachments?: import('./handyman').JobApplicationAttachment[]
 }
 
 // ========== Ongoing Job Types ==========

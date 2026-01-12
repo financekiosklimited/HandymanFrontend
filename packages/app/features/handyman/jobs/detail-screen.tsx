@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View, ImageViewer } from '@my/ui'
 import { GradientBackground } from '@my/ui'
-import { useHandymanJobDetail, useApplyForJob, formatErrorMessage, apiClient } from '@my/api'
+import { useHandymanJobDetail, formatErrorMessage, apiClient } from '@my/api'
 import type { ChatConversationResponse } from '@my/api'
 import {
   ArrowLeft,
@@ -36,9 +36,6 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
   const insets = useSafeArea()
   const toast = useToastController()
   const { data: job, isLoading, error, refetch } = useHandymanJobDetail(jobId)
-  const applyMutation = useApplyForJob()
-  const [isApplying, setIsApplying] = useState(false)
-  const [hasJustApplied, setHasJustApplied] = useState(false)
   const [isChatLoading, setIsChatLoading] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [imageViewerVisible, setImageViewerVisible] = useState(false)
@@ -57,38 +54,10 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
     setCurrentImageIndex(index)
   }
 
-  // Redirect to My Jobs after successful apply
-  useEffect(() => {
-    if (hasJustApplied) {
-      const timer = setTimeout(() => {
-        router.push('/(handyman)/my-jobs')
-      }, 2500)
-      return () => clearTimeout(timer)
-    }
-  }, [hasJustApplied, router])
-
-  const handleApply = async () => {
+  // Navigate to apply form
+  const handleApply = () => {
     if (!job) return
-
-    setIsApplying(true)
-    try {
-      await applyMutation.mutateAsync(job.public_id)
-      toast.show('Application Submitted!', {
-        message: 'You have successfully applied for this job.',
-        duration: 3000,
-        native: false,
-      })
-      setHasJustApplied(true)
-      refetch()
-    } catch (error: unknown) {
-      toast.show('Application Failed', {
-        message: formatErrorMessage(error),
-        duration: 4000,
-        native: false,
-      })
-    } finally {
-      setIsApplying(false)
-    }
+    router.push(`/(handyman)/jobs/${jobId}/apply`)
   }
 
   const handleNegotiate = () => {
@@ -172,7 +141,7 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
   }
 
   const hasPrice = job.hourly_rate_min || job.estimated_budget
-  const isPending = job.has_applied || hasJustApplied
+  const isPending = job.has_applied
   const applicationStatus = job.my_application?.status
   const hasImages = job.images && job.images.length > 0
 
@@ -889,28 +858,12 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
             borderRadius="$lg"
             fontWeight="600"
             fontSize="$4"
-            disabled={isPending || isApplying}
-            opacity={isPending || isApplying ? 0.7 : 1}
+            disabled={isPending}
+            opacity={isPending ? 0.7 : 1}
             onPress={handleApply}
             pressStyle={{ opacity: 0.8 }}
           >
-            {isApplying ? (
-              <XStack
-                alignItems="center"
-                gap="$sm"
-              >
-                <Spinner
-                  size="small"
-                  color="white"
-                />
-                <Text
-                  color="white"
-                  fontWeight="600"
-                >
-                  Applying...
-                </Text>
-              </XStack>
-            ) : isPending ? (
+            {isPending ? (
               <Text
                 color="white"
                 fontWeight="600"

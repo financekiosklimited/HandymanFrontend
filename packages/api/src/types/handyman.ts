@@ -113,6 +113,23 @@ export interface HandymanProfileUpdateRequest {
 // Application status
 export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn'
 
+// Material in application
+export interface JobApplicationMaterial {
+  public_id: string
+  name: string
+  price: number
+  description?: string
+  created_at?: string
+}
+
+// Attachment in application
+export interface JobApplicationAttachment {
+  public_id: string
+  file: string
+  file_name: string
+  created_at?: string
+}
+
 // Job application
 export interface JobApplication {
   public_id: string
@@ -136,8 +153,40 @@ export interface JobApplication {
   }
   status: ApplicationStatus
   status_at: string
+  predicted_hours?: number
+  estimated_total_price?: number
+  negotiation_reasoning?: string
+  materials?: JobApplicationMaterial[]
+  attachments?: JobApplicationAttachment[]
   created_at: string
   updated_at: string
+}
+
+// Request type for creating application
+export interface CreateJobApplicationRequest {
+  job_id: string
+  predicted_hours: number
+  estimated_total_price: number
+  negotiation_reasoning?: string
+  materials?: Array<{
+    name: string
+    price: number
+    description?: string
+  }>
+  attachments?: RNFile[]
+}
+
+// Request type for editing application
+export interface EditJobApplicationRequest {
+  predicted_hours?: number
+  estimated_total_price?: number
+  negotiation_reasoning?: string
+  materials?: Array<{
+    name: string
+    price: number
+    description?: string
+  }>
+  attachments?: RNFile[]
 }
 
 // My application info embedded in job detail

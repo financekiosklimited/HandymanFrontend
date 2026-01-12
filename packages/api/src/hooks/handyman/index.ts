@@ -19,6 +19,8 @@ import type {
   UpdateDailyReportRequest,
   JobDashboardData,
   CreateReviewRequest,
+  CreateJobApplicationRequest,
+  EditJobApplicationRequest,
 } from '../../types/handyman'
 
 interface HandymanJobsForYouParams {
@@ -225,23 +227,85 @@ export function useHandymanApplications(params?: HandymanApplicationsParams) {
 }
 
 /**
- * Hook to apply for a job.
+ * Hook to apply for a job with proposal data.
  */
 export function useApplyForJob() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (jobId: string) => {
+    mutationFn: async (data: CreateJobApplicationRequest) => {
+      const formData = new FormData()
+      formData.append('job_id', data.job_id)
+      formData.append('predicted_hours', data.predicted_hours.toString())
+      formData.append('estimated_total_price', data.estimated_total_price.toString())
+      if (data.negotiation_reasoning) {
+        formData.append('negotiation_reasoning', data.negotiation_reasoning)
+      }
+      if (data.materials && data.materials.length > 0) {
+        formData.append('materials', JSON.stringify(data.materials))
+      }
+      if (data.attachments) {
+        data.attachments.forEach((file) => {
+          formData.append('attachments', file as any)
+        })
+      }
+
       const response = await apiClient
-        .post('handyman/applications/', { json: { job_id: jobId } })
+        .post('handyman/applications/', {
+          body: formData,
+          headers: { 'Content-Type': undefined },
+        })
         .json<ApiResponse<JobApplication>>()
 
       return response.data
     },
-    onSuccess: (_, jobId) => {
+    onSuccess: (_, data) => {
       // Invalidate job detail to refresh has_applied status
-      queryClient.invalidateQueries({ queryKey: ['handyman', 'job-detail', jobId] })
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'job-detail', data.job_id] })
       queryClient.invalidateQueries({ queryKey: ['handyman', 'applications'] })
+    },
+  })
+}
+
+/**
+ * Hook to edit a pending job application.
+ */
+export function useEditApplication() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ applicationId, data }: { applicationId: string; data: EditJobApplicationRequest }) => {
+      const formData = new FormData()
+      if (data.predicted_hours !== undefined) {
+        formData.append('predicted_hours', data.predicted_hours.toString())
+      }
+      if (data.estimated_total_price !== undefined) {
+        formData.append('estimated_total_price', data.estimated_total_price.toString())
+      }
+      if (data.negotiation_reasoning !== undefined) {
+        formData.append('negotiation_reasoning', data.negotiation_reasoning)
+      }
+      if (data.materials !== undefined) {
+        formData.append('materials', JSON.stringify(data.materials))
+      }
+      if (data.attachments) {
+        data.attachments.forEach((file) => {
+          formData.append('attachments', file as any)
+        })
+      }
+
+      const response = await apiClient
+        .put(`handyman/applications/${applicationId}/edit/`, {
+          body: formData,
+          headers: { 'Content-Type': undefined },
+        })
+        .json<ApiResponse<JobApplication>>()
+
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'applications'] })
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'job-detail'] })
     },
   })
 }
@@ -264,6 +328,23 @@ export function useWithdrawApplication() {
       queryClient.invalidateQueries({ queryKey: ['handyman', 'applications'] })
       queryClient.invalidateQueries({ queryKey: ['handyman', 'job-detail'] })
     },
+  })
+}
+
+/**
+ * Hook to fetch detailed application information for handyman.
+ */
+export function useHandymanApplicationDetail(applicationId: string) {
+  return useQuery({
+    queryKey: ['handyman', 'applications', applicationId],
+    queryFn: async () => {
+      const response = await apiClient
+        .get(`handyman/applications/${applicationId}/`)
+        .json<ApiResponse<JobApplication>>()
+
+      return response.data
+    },
+    enabled: !!applicationId,
   })
 }
 

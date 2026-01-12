@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { Alert, Pressable } from 'react-native'
 import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View, ImageViewer } from '@my/ui'
 import { GradientBackground } from '@my/ui'
-import { useHandymanJobDetail, useWithdrawApplication, formatErrorMessage } from '@my/api'
+import { useHandymanJobDetail, useHandymanApplicationDetail, useWithdrawApplication, formatErrorMessage } from '@my/api'
 import {
   ArrowLeft,
   MapPin,
@@ -18,6 +18,8 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
+  Package,
+  Paperclip,
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -53,6 +55,7 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
   const insets = useSafeArea()
   const toast = useToastController()
   const { data: job, isLoading, error, refetch } = useHandymanJobDetail(jobId)
+  const { data: applicationDetails } = useHandymanApplicationDetail(applicationId)
   const withdrawMutation = useWithdrawApplication()
   const [isWithdrawing, setIsWithdrawing] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -277,6 +280,114 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                   </Text>
                 )}
               </YStack>
+            </XStack>
+
+            {/* My Proposal Section */}
+            {applicationDetails && (applicationDetails.predicted_hours || applicationDetails.estimated_total_price) && (
+              <YStack
+                bg="rgba(12,154,92,0.08)"
+                borderRadius={20}
+                p="$lg"
+                mb="$lg"
+                borderWidth={1}
+                borderColor="$primary"
+              >
+                <XStack alignItems="center" gap="$2" mb="$md">
+                  <DollarSign size={18} color="$primary" />
+                  <Text fontSize="$3" fontWeight="600" color="$primary" textTransform="uppercase">
+                    My Proposal
+                  </Text>
+                </XStack>
+                
+                <YStack gap="$md">
+                  {/* Hours and Price Row */}
+                  <XStack justifyContent="space-between" flexWrap="wrap" gap="$sm">
+                    {applicationDetails.predicted_hours && (
+                      <YStack flex={1} minWidth={120}>
+                        <Text fontSize="$2" color="$colorSubtle">Predicted Hours</Text>
+                        <XStack alignItems="baseline" gap="$xs">
+                          <Text fontSize="$6" fontWeight="bold" color="$color">
+                            {applicationDetails.predicted_hours}
+                          </Text>
+                          <Text fontSize="$2" color="$colorSubtle">hours</Text>
+                        </XStack>
+                      </YStack>
+                    )}
+                    {applicationDetails.estimated_total_price && (
+                      <YStack flex={1} minWidth={120}>
+                        <Text fontSize="$2" color="$colorSubtle">Estimated Price</Text>
+                        <Text fontSize="$6" fontWeight="bold" color="$primary">
+                          ${applicationDetails.estimated_total_price}
+                        </Text>
+                      </YStack>
+                    )}
+                  </XStack>
+
+                  {/* Negotiation Reasoning */}
+                  {applicationDetails.negotiation_reasoning && (
+                    <YStack pt="$sm" borderTopWidth={1} borderTopColor="rgba(12,154,92,0.2)">
+                      <Text fontSize="$2" color="$colorSubtle" mb="$xs">Notes</Text>
+                      <Text fontSize="$3" color="$color" lineHeight={20}>
+                        {applicationDetails.negotiation_reasoning}
+                      </Text>
+                    </YStack>
+                  )}
+
+                  {/* Materials List */}
+                  {applicationDetails.materials && applicationDetails.materials.length > 0 && (
+                    <YStack pt="$sm" borderTopWidth={1} borderTopColor="rgba(12,154,92,0.2)">
+                      <XStack alignItems="center" gap="$xs" mb="$sm">
+                        <Package size={14} color="$colorSubtle" />
+                        <Text fontSize="$2" color="$colorSubtle">Materials ({applicationDetails.materials.length})</Text>
+                      </XStack>
+                      <YStack gap="$sm">
+                        {applicationDetails.materials.map((material, index) => (
+                          <XStack key={material.public_id || index} justifyContent="space-between" alignItems="center">
+                            <YStack flex={1}>
+                              <Text fontSize="$3" fontWeight="500" color="$color">{material.name}</Text>
+                              {material.description && (
+                                <Text fontSize="$2" color="$colorSubtle">{material.description}</Text>
+                              )}
+                            </YStack>
+                            <Text fontSize="$3" fontWeight="600" color="$primary">${material.price}</Text>
+                          </XStack>
+                        ))}
+                      </YStack>
+                    </YStack>
+                  )}
+
+                  {/* Attachments */}
+                  {applicationDetails.attachments && applicationDetails.attachments.length > 0 && (
+                    <YStack pt="$sm" borderTopWidth={1} borderTopColor="rgba(12,154,92,0.2)">
+                      <XStack alignItems="center" gap="$xs" mb="$sm">
+                        <Paperclip size={14} color="$colorSubtle" />
+                        <Text fontSize="$2" color="$colorSubtle">Attachments ({applicationDetails.attachments.length})</Text>
+                      </XStack>
+                      <YStack gap="$xs">
+                        {applicationDetails.attachments.map((attachment, index) => (
+                          <XStack key={attachment.public_id || index} alignItems="center" gap="$sm">
+                            <View width={32} height={32} borderRadius="$2" bg="$primaryBackground" alignItems="center" justifyContent="center">
+                              <Paperclip size={14} color="$primary" />
+                            </View>
+                            <Text fontSize="$3" color="$color" numberOfLines={1} flex={1}>
+                              {attachment.file_name || 'Attachment'}
+                            </Text>
+                          </XStack>
+                        ))}
+                      </YStack>
+                    </YStack>
+                  )}
+                </YStack>
+              </YStack>
+            )}
+
+            {/* Divider between Proposal and Job Details */}
+            <XStack alignItems="center" gap="$md" my="$lg">
+              <View flex={1} height={1} bg="$borderColor" />
+              <Text fontSize="$2" fontWeight="600" color="$colorSubtle" textTransform="uppercase">
+                Job Details
+              </Text>
+              <View flex={1} height={1} bg="$borderColor" />
             </XStack>
 
             {/* Hero Section */}
