@@ -1,17 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import {
-  YStack,
-  XStack,
-  ScrollView,
-  Text,
-  Button,
-  Input,
-  Spinner,
-  TextArea,
-  View,
-} from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Input, Spinner, TextArea, View } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useHandymanJobDetail, useApplyForJob, formatErrorMessage } from '@my/api'
 import type { RNFile } from '@my/api'
@@ -177,13 +167,19 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
     if (!formData.predicted_hours.trim()) {
       validationErrors.predicted_hours = 'Predicted hours is required'
-    } else if (Number.isNaN(Number.parseFloat(formData.predicted_hours)) || Number.parseFloat(formData.predicted_hours) <= 0) {
+    } else if (
+      Number.isNaN(Number.parseFloat(formData.predicted_hours)) ||
+      Number.parseFloat(formData.predicted_hours) <= 0
+    ) {
       validationErrors.predicted_hours = 'Please enter a valid number greater than 0'
     }
 
     if (!formData.estimated_total_price.trim()) {
       validationErrors.estimated_total_price = 'Estimated total price is required'
-    } else if (Number.isNaN(Number.parseFloat(formData.estimated_total_price)) || Number.parseFloat(formData.estimated_total_price) <= 0) {
+    } else if (
+      Number.isNaN(Number.parseFloat(formData.estimated_total_price)) ||
+      Number.parseFloat(formData.estimated_total_price) <= 0
+    ) {
       validationErrors.estimated_total_price = 'Please enter a valid price greater than 0'
     }
 
@@ -242,9 +238,22 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
   if (jobLoading) {
     return (
       <GradientBackground>
-        <YStack flex={1} justifyContent="center" alignItems="center" gap="$md">
-          <Spinner size="large" color="$primary" />
-          <Text color="$colorSubtle" fontSize="$4">Loading job details...</Text>
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          gap="$md"
+        >
+          <Spinner
+            size="large"
+            color="$primary"
+          />
+          <Text
+            color="$colorSubtle"
+            fontSize="$4"
+          >
+            Loading job details...
+          </Text>
         </YStack>
       </GradientBackground>
     )
@@ -254,12 +263,41 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
   if (!job) {
     return (
       <GradientBackground>
-        <YStack flex={1} justifyContent="center" alignItems="center" px="$xl" gap="$md">
-          <YStack width={64} height={64} borderRadius="$full" bg="rgba(255,59,48,0.1)" alignItems="center" justifyContent="center">
-            <Briefcase size={28} color="$error" />
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          px="$xl"
+          gap="$md"
+        >
+          <YStack
+            width={64}
+            height={64}
+            borderRadius="$full"
+            bg="rgba(255,59,48,0.1)"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Briefcase
+              size={28}
+              color="$error"
+            />
           </YStack>
-          <Text color="$color" fontSize="$5" fontWeight="600">Job Not Found</Text>
-          <Button mt="$sm" onPress={() => router.back()} bg="$primary" color="white" borderRadius="$lg" px="$xl">
+          <Text
+            color="$color"
+            fontSize="$5"
+            fontWeight="600"
+          >
+            Job Not Found
+          </Text>
+          <Button
+            mt="$sm"
+            onPress={() => router.back()}
+            bg="$primary"
+            color="white"
+            borderRadius="$lg"
+            px="$xl"
+          >
             Go Back
           </Button>
         </YStack>
@@ -268,14 +306,36 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
   }
 
   // Form field label component
-  const FieldLabel = ({ label, required = false, icon: Icon }: { label: string; required?: boolean; icon?: any }) => (
-    <XStack gap="$2" alignItems="center" mb="$2">
-      {Icon && <Icon size={16} color="$primary" />}
-      <Text fontSize="$3" fontWeight="600" color="$color">
+  const FieldLabel = ({
+    label,
+    required = false,
+    icon: Icon,
+  }: { label: string; required?: boolean; icon?: any }) => (
+    <XStack
+      gap="$2"
+      alignItems="center"
+      mb="$2"
+    >
+      {Icon && (
+        <Icon
+          size={16}
+          color="$primary"
+        />
+      )}
+      <Text
+        fontSize="$3"
+        fontWeight="600"
+        color="$color"
+      >
         {label}
       </Text>
       {required && (
-        <Text color="$primary" fontWeight="bold">*</Text>
+        <Text
+          color="$primary"
+          fontWeight="bold"
+        >
+          *
+        </Text>
       )}
     </XStack>
   )
@@ -283,7 +343,11 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
   // Error text component
   const ErrorText = ({ error }: { error?: string }) =>
     error ? (
-      <Text color="$error" fontSize="$2" mt="$1">
+      <Text
+        color="$error"
+        fontSize="$2"
+        mt="$1"
+      >
         {error}
       </Text>
     ) : null
@@ -295,9 +359,17 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
-        <YStack flex={1} pt={insets.top}>
+        <YStack
+          flex={1}
+          pt={insets.top}
+        >
           {/* Header */}
-          <XStack px="$4" py="$3" alignItems="center" gap="$3">
+          <XStack
+            px="$4"
+            py="$3"
+            alignItems="center"
+            gap="$3"
+          >
             <Button
               unstyled
               onPress={() => router.back()}
@@ -305,9 +377,18 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
               hitSlop={12}
               pressStyle={{ opacity: 0.7 }}
             >
-              <ArrowLeft size={24} color="$color" />
+              <ArrowLeft
+                size={24}
+                color="$color"
+              />
             </Button>
-            <Text flex={1} fontSize={17} fontWeight="700" color="$color" textAlign="center">
+            <Text
+              flex={1}
+              fontSize={17}
+              fontWeight="700"
+              color="$color"
+              textAlign="center"
+            >
               Submit Proposal
             </Text>
             <View width={38} />
@@ -320,7 +401,10 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: 120 }}
           >
-            <YStack px="$4" gap="$6">
+            <YStack
+              px="$4"
+              gap="$6"
+            >
               {/* Job Preview Card */}
               <YStack
                 bg="rgba(12,154,92,0.08)"
@@ -330,16 +414,34 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                 borderColor="$primary"
                 gap="$sm"
               >
-                <Text fontSize="$2" fontWeight="600" color="$primary" textTransform="uppercase">
+                <Text
+                  fontSize="$2"
+                  fontWeight="600"
+                  color="$primary"
+                  textTransform="uppercase"
+                >
                   Applying For
                 </Text>
-                <Text fontSize="$5" fontWeight="bold" color="$color">
+                <Text
+                  fontSize="$5"
+                  fontWeight="bold"
+                  color="$color"
+                >
                   {job.title}
                 </Text>
                 {job.estimated_budget && (
-                  <XStack alignItems="center" gap="$xs">
-                    <DollarSign size={14} color="$colorSubtle" />
-                    <Text fontSize="$3" color="$colorSubtle">
+                  <XStack
+                    alignItems="center"
+                    gap="$xs"
+                  >
+                    <DollarSign
+                      size={14}
+                      color="$colorSubtle"
+                    />
+                    <Text
+                      fontSize="$3"
+                      color="$colorSubtle"
+                    >
                       Budget: ${job.estimated_budget}
                     </Text>
                   </XStack>
@@ -348,10 +450,17 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
               {/* Title Section */}
               <YStack gap="$1">
-                <Text fontSize={28} fontWeight="bold" color="$color">
+                <Text
+                  fontSize={28}
+                  fontWeight="bold"
+                  color="$color"
+                >
                   Your Proposal
                 </Text>
-                <Text fontSize="$4" color="$colorSubtle">
+                <Text
+                  fontSize="$4"
+                  color="$colorSubtle"
+                >
                   Provide your estimated hours, price, and materials
                 </Text>
               </YStack>
@@ -360,7 +469,11 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
               <YStack gap="$5">
                 {/* Predicted Hours */}
                 <YStack>
-                  <FieldLabel label="Predicted Hours" required icon={Clock} />
+                  <FieldLabel
+                    label="Predicted Hours"
+                    required
+                    icon={Clock}
+                  />
                   <Input
                     value={formData.predicted_hours}
                     onChangeText={(text) => updateField('predicted_hours', text)}
@@ -376,14 +489,23 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
                 {/* Estimated Total Price */}
                 <YStack>
-                  <FieldLabel label="Estimated Total Price" required icon={DollarSign} />
+                  <FieldLabel
+                    label="Estimated Total Price"
+                    required
+                    icon={DollarSign}
+                  />
                   <XStack
                     {...inputStyles}
                     borderColor={errors.estimated_total_price ? '$error' : '$borderColorHover'}
                     alignItems="center"
                     gap="$2"
                   >
-                    <Text color="$colorSubtle" fontSize="$4">$</Text>
+                    <Text
+                      color="$colorSubtle"
+                      fontSize="$4"
+                    >
+                      $
+                    </Text>
                     <Input
                       value={formData.estimated_total_price}
                       onChangeText={(text) => updateField('estimated_total_price', text)}
@@ -403,11 +525,16 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
                 {/* Negotiation Reasoning */}
                 <YStack>
-                  <FieldLabel label="Notes / Negotiation" icon={FileText} />
+                  <FieldLabel
+                    label="Notes / Negotiation"
+                    icon={FileText}
+                  />
                   <YStack position="relative">
                     <TextArea
                       value={formData.negotiation_reasoning}
-                      onChangeText={(text) => updateField('negotiation_reasoning', text.slice(0, 1000))}
+                      onChangeText={(text) =>
+                        updateField('negotiation_reasoning', text.slice(0, 1000))
+                      }
                       placeholder="Add any notes about your pricing, approach, or negotiate terms..."
                       {...inputStyles}
                       minHeight={100}
@@ -415,7 +542,13 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                       textAlignVertical="top"
                       focusStyle={{ borderColor: '$primary', borderWidth: 1.5 }}
                     />
-                    <Text position="absolute" bottom="$2" right="$3" fontSize="$1" color="$colorMuted">
+                    <Text
+                      position="absolute"
+                      bottom="$2"
+                      right="$3"
+                      fontSize="$1"
+                      color="$colorMuted"
+                    >
                       {formData.negotiation_reasoning.length}/1000
                     </Text>
                   </YStack>
@@ -423,14 +556,24 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
                 {/* Materials Section */}
                 <YStack>
-                  <FieldLabel label="Materials (Optional)" icon={Package} />
-                  <Text fontSize="$2" color="$colorSubtle" mb="$3">
+                  <FieldLabel
+                    label="Materials (Optional)"
+                    icon={Package}
+                  />
+                  <Text
+                    fontSize="$2"
+                    color="$colorSubtle"
+                    mb="$3"
+                  >
                     List any materials required for the job with estimated prices
                   </Text>
 
                   {/* Existing materials */}
                   {formData.materials.length > 0 && (
-                    <YStack gap="$2" mb="$3">
+                    <YStack
+                      gap="$2"
+                      mb="$3"
+                    >
                       {formData.materials.map((material, index) => (
                         <XStack
                           key={material.id}
@@ -450,21 +593,39 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                             alignItems="center"
                             justifyContent="center"
                           >
-                            <Text color="$primary" fontSize="$2" fontWeight="600">
+                            <Text
+                              color="$primary"
+                              fontSize="$2"
+                              fontWeight="600"
+                            >
                               {index + 1}
                             </Text>
                           </View>
-                          <YStack flex={1} gap="$xs">
-                            <Text fontSize="$3" fontWeight="500" color="$color">
+                          <YStack
+                            flex={1}
+                            gap="$xs"
+                          >
+                            <Text
+                              fontSize="$3"
+                              fontWeight="500"
+                              color="$color"
+                            >
                               {material.name}
                             </Text>
                             {material.description && (
-                              <Text fontSize="$2" color="$colorSubtle">
+                              <Text
+                                fontSize="$2"
+                                color="$colorSubtle"
+                              >
                                 {material.description}
                               </Text>
                             )}
                           </YStack>
-                          <Text fontSize="$4" fontWeight="600" color="$primary">
+                          <Text
+                            fontSize="$4"
+                            fontWeight="600"
+                            color="$primary"
+                          >
                             ${material.price}
                           </Text>
                           <Button
@@ -474,7 +635,10 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                             hitSlop={8}
                             pressStyle={{ opacity: 0.7 }}
                           >
-                            <X size={18} color="$error" />
+                            <X
+                              size={18}
+                              color="$error"
+                            />
                           </Button>
                         </XStack>
                       ))}
@@ -497,23 +661,33 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                       {...inputStyles}
                       placeholderTextColor="$placeholderColor"
                     />
-                    <XStack gap="$3" width="100%">
-                      <XStack 
+                    <XStack
+                      gap="$3"
+                      width="100%"
+                    >
+                      <XStack
                         bg="white"
-                        borderColor="$borderColorHover" 
-                        borderWidth={1} 
-                        borderRadius="$4" 
-                        px="$4" 
+                        borderColor="$borderColorHover"
+                        borderWidth={1}
+                        borderRadius="$4"
+                        px="$4"
                         py="$3"
-                        alignItems="center" 
-                        gap="$2" 
+                        alignItems="center"
+                        gap="$2"
                         flex={1}
                         minHeight={52}
                       >
-                        <Text color="$colorSubtle" fontSize="$4">$</Text>
+                        <Text
+                          color="$colorSubtle"
+                          fontSize="$4"
+                        >
+                          $
+                        </Text>
                         <Input
                           value={newMaterial.price}
-                          onChangeText={(text) => setNewMaterial((prev) => ({ ...prev, price: text }))}
+                          onChangeText={(text) =>
+                            setNewMaterial((prev) => ({ ...prev, price: text }))
+                          }
                           placeholder="0.00"
                           bg="transparent"
                           borderWidth={0}
@@ -527,13 +701,15 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                       </XStack>
                       <Input
                         value={newMaterial.description}
-                        onChangeText={(text) => setNewMaterial((prev) => ({ ...prev, description: text }))}
+                        onChangeText={(text) =>
+                          setNewMaterial((prev) => ({ ...prev, description: text }))
+                        }
                         placeholder="Qty/Description"
                         bg="white"
-                        borderColor="$borderColorHover" 
-                        borderWidth={1} 
-                        borderRadius="$4" 
-                        px="$4" 
+                        borderColor="$borderColorHover"
+                        borderWidth={1}
+                        borderRadius="$4"
+                        px="$4"
                         py="$3"
                         flex={1}
                         minHeight={52}
@@ -543,14 +719,29 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                     <Button
                       onPress={addMaterial}
                       disabled={!newMaterial.name.trim() || !newMaterial.price.trim()}
-                      bg={newMaterial.name.trim() && newMaterial.price.trim() ? '$primary' : '$borderColorHover'}
+                      bg={
+                        newMaterial.name.trim() && newMaterial.price.trim()
+                          ? '$primary'
+                          : '$borderColorHover'
+                      }
                       borderRadius="$lg"
                       py="$3"
                       pressStyle={{ opacity: 0.8 }}
                     >
-                      <XStack alignItems="center" gap="$2">
-                        <Plus size={18} color="white" />
-                        <Text color="white" fontWeight="600">Add Material</Text>
+                      <XStack
+                        alignItems="center"
+                        gap="$2"
+                      >
+                        <Plus
+                          size={18}
+                          color="white"
+                        />
+                        <Text
+                          color="white"
+                          fontWeight="600"
+                        >
+                          Add Material
+                        </Text>
                       </XStack>
                     </Button>
                   </YStack>
@@ -558,14 +749,24 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
                 {/* Attachments Section */}
                 <YStack>
-                  <FieldLabel label="Attachments (Optional)" icon={Paperclip} />
-                  <Text fontSize="$2" color="$colorSubtle" mb="$3">
+                  <FieldLabel
+                    label="Attachments (Optional)"
+                    icon={Paperclip}
+                  />
+                  <Text
+                    fontSize="$2"
+                    color="$colorSubtle"
+                    mb="$3"
+                  >
                     Upload quotes, photos, or relevant documents
                   </Text>
 
                   {/* Existing attachments */}
                   {formData.attachments.length > 0 && (
-                    <YStack gap="$2" mb="$3">
+                    <YStack
+                      gap="$2"
+                      mb="$3"
+                    >
                       {formData.attachments.map((attachment) => (
                         <XStack
                           key={attachment.id}
@@ -585,9 +786,17 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                             alignItems="center"
                             justifyContent="center"
                           >
-                            <Paperclip size={18} color="$primary" />
+                            <Paperclip
+                              size={18}
+                              color="$primary"
+                            />
                           </View>
-                          <Text flex={1} fontSize="$3" color="$color" numberOfLines={1}>
+                          <Text
+                            flex={1}
+                            fontSize="$3"
+                            color="$color"
+                            numberOfLines={1}
+                          >
                             {attachment.name}
                           </Text>
                           <Button
@@ -597,7 +806,10 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                             hitSlop={8}
                             pressStyle={{ opacity: 0.7 }}
                           >
-                            <X size={18} color="$error" />
+                            <X
+                              size={18}
+                              color="$error"
+                            />
                           </Button>
                         </XStack>
                       ))}
@@ -614,9 +826,20 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                     borderStyle="dashed"
                     pressStyle={{ opacity: 0.8, bg: 'rgba(12,154,92,0.05)' }}
                   >
-                    <XStack alignItems="center" gap="$2">
-                      <Plus size={18} color="$primary" />
-                      <Text color="$primary" fontWeight="600">Add Attachment</Text>
+                    <XStack
+                      alignItems="center"
+                      gap="$2"
+                    >
+                      <Plus
+                        size={18}
+                        color="$primary"
+                      />
+                      <Text
+                        color="$primary"
+                        fontWeight="600"
+                      >
+                        Add Attachment
+                      </Text>
                     </XStack>
                   </Button>
                 </YStack>
@@ -647,11 +870,25 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
               pressStyle={{ opacity: 0.9 }}
             >
               {isSubmitting ? (
-                <Spinner size="small" color="white" />
+                <Spinner
+                  size="small"
+                  color="white"
+                />
               ) : (
-                <XStack alignItems="center" justifyContent="center" gap="$2">
-                  <Send size={18} color="white" />
-                  <Text color="white" fontWeight="bold" fontSize="$4">
+                <XStack
+                  alignItems="center"
+                  justifyContent="center"
+                  gap="$2"
+                >
+                  <Send
+                    size={18}
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontWeight="bold"
+                    fontSize="$4"
+                  >
                     Submit Application
                   </Text>
                 </XStack>

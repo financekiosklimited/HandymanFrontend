@@ -4,7 +4,12 @@ import { useState, useEffect, useMemo } from 'react'
 import * as Location from 'expo-location'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
 import { SearchBar, JobCard, GradientBackground, WelcomeHeader } from '@my/ui'
-import { useHandymanJobsForYou, useAuthStore, useHandymanProfile, useTotalUnreadCount } from '@my/api'
+import {
+  useHandymanJobsForYou,
+  useAuthStore,
+  useHandymanProfile,
+  useTotalUnreadCount,
+} from '@my/api'
 import { Menu, Bookmark, MessageCircle } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -12,13 +17,23 @@ import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 type TabType = 'top-picks' | 'nearby'
 
 // Message button with unread badge
-function MessageBadgeButton({ role, onPress }: { role: 'homeowner' | 'handyman'; onPress: () => void }) {
-  const { data: unreadCount } = useTotalUnreadCount(role)
+function MessageBadgeButton({
+  chatRole,
+  onPress,
+}: { chatRole: 'homeowner' | 'handyman'; onPress: () => void }) {
+  const { data: unreadCount } = useTotalUnreadCount(chatRole)
   const hasUnread = (unreadCount ?? 0) > 0
 
   return (
-    <Button unstyled onPress={onPress} position="relative">
-      <MessageCircle size={20} color="$color" />
+    <Button
+      unstyled
+      onPress={onPress}
+      position="relative"
+    >
+      <MessageCircle
+        size={20}
+        color="$color"
+      />
       {hasUnread && (
         <View
           position="absolute"
@@ -33,7 +48,11 @@ function MessageBadgeButton({ role, onPress }: { role: 'homeowner' | 'handyman';
           borderWidth={2}
           borderColor="white"
         >
-          <Text fontSize={9} fontWeight="700" color="white">
+          <Text
+            fontSize={9}
+            fontWeight="700"
+            color="white"
+          >
             {(unreadCount ?? 0) > 9 ? '9+' : unreadCount}
           </Text>
         </View>
@@ -175,7 +194,10 @@ export function HandymanHomeScreen() {
             />
           </Button>
 
-          <MessageBadgeButton role="handyman" onPress={() => router.push('/(handyman)/messages')} />
+          <MessageBadgeButton
+            chatRole="handyman"
+            onPress={() => router.push('/(handyman)/messages')}
+          />
         </XStack>
 
         {/* Content */}

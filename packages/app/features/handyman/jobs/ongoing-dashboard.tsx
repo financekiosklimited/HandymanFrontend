@@ -13,7 +13,7 @@ import {
   Input,
   TextArea,
 } from '@my/ui'
-import { GradientBackground } from '@my/ui'
+import { GradientBackground, ImageViewer } from '@my/ui'
 import {
   useJobDashboard,
   useHandymanDailyReports,
@@ -24,6 +24,7 @@ import {
   useRequestJobCompletion,
   useCreateHomeownerReview,
   useJobChatUnreadCount,
+  useHandymanReimbursements,
 } from '@my/api'
 import type {
   DashboardTask,
@@ -32,6 +33,8 @@ import type {
   WorkSession,
   SessionMediaItem,
   HomeownerReview,
+  JobReimbursement,
+  ReimbursementStatus,
 } from '@my/api'
 import {
   ArrowLeft,
@@ -60,6 +63,8 @@ import {
   Star,
   Hourglass,
   MessageCircle,
+  Receipt,
+  ExternalLink,
 } from '@tamagui/lucide-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -73,6 +78,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Linking,
 } from 'react-native'
 
 interface OngoingJobDashboardProps {
@@ -93,8 +99,14 @@ function ChatButton({ jobId }: { jobId: string }) {
   }
 
   return (
-    <Pressable onPress={handlePress} style={{ padding: 8, position: 'relative' }}>
-      <MessageCircle size={22} color="#0C9A5C" />
+    <Pressable
+      onPress={handlePress}
+      style={{ padding: 8, position: 'relative' }}
+    >
+      <MessageCircle
+        size={22}
+        color="#0C9A5C"
+      />
       {unreadCount > 0 && (
         <View
           position="absolute"
@@ -108,7 +120,11 @@ function ChatButton({ jobId }: { jobId: string }) {
           justifyContent="center"
           px={4}
         >
-          <Text fontSize={10} fontWeight="700" color="white">
+          <Text
+            fontSize={10}
+            fontWeight="700"
+            color="white"
+          >
             {unreadCount > 99 ? '99+' : unreadCount}
           </Text>
         </View>
@@ -526,6 +542,15 @@ const reportStatusColors: Record<
   pending: { bg: '$warningBackground', text: '$warning', label: 'Pending', dot: '#F59E0B' },
   approved: { bg: '$successBackground', text: '$success', label: 'Approved', dot: '#22C55E' },
   rejected: { bg: '$errorBackground', text: '$error', label: 'Revision', dot: '#EF4444' },
+}
+
+const reimbursementStatusColors: Record<
+  ReimbursementStatus,
+  { bg: string; text: string; label: string; dot: string }
+> = {
+  pending: { bg: '$warningBackground', text: '$warning', label: 'Pending', dot: '#F59E0B' },
+  approved: { bg: '$successBackground', text: '$success', label: 'Approved', dot: '#22C55E' },
+  rejected: { bg: '$errorBackground', text: '$error', label: 'Rejected', dot: '#EF4444' },
 }
 
 // Job Progress Bar - Premium horizontal stepper design
@@ -1410,6 +1435,346 @@ function ExpandableReportCard({
   )
 }
 
+// Helper function to check if file is an image
+function isImageFile(fileName: string): boolean {
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.heic', '.heif']
+  const lowerFileName = fileName.toLowerCase()
+  return imageExtensions.some((ext) => lowerFileName.endsWith(ext))
+}
+
+// Expandable Reimbursement Card
+function ExpandableReimbursementCard({
+  reimbursement,
+  index,
+  onEdit,
+  onImagePress,
+}: {
+  reimbursement: JobReimbursement
+  index: number
+  onEdit: () => void
+  onImagePress: (images: string[], startIndex: number) => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const statusStyle = reimbursementStatusColors[reimbursement.status]
+  const canEdit = reimbursement.status === 'pending'
+
+  const handleOpenLink = (url: string) => {
+    Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err))
+  }
+
+  const imageAttachments = reimbursement.attachments.filter((a) => isImageFile(a.file_name))
+  const otherAttachments = reimbursement.attachments.filter((a) => !isImageFile(a.file_name))
+
+  return (
+    <XStack>
+      <YStack
+        alignItems="center"
+        width={32}
+      >
+        <View
+          width={14}
+          height={14}
+          borderRadius={7}
+          bg={statusStyle.dot as any}
+          borderWidth={3}
+          borderColor="white"
+          zIndex={1}
+        />
+        <View
+          width={2}
+          flex={1}
+          bg="rgba(0,0,0,0.1)"
+          marginTop={-2}
+        />
+      </YStack>
+      <YStack
+        flex={1}
+        ml="$sm"
+        mb="$md"
+      >
+        <Pressable onPress={() => setExpanded(!expanded)}>
+          <YStack
+            bg="rgba(255,255,255,0.98)"
+            borderRadius={14}
+            p="$md"
+            borderWidth={1}
+            borderColor="rgba(0,0,0,0.06)"
+            gap="$sm"
+          >
+            <XStack
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <XStack
+                alignItems="center"
+                gap="$sm"
+              >
+                <View
+                  bg="$accentBackground"
+                  px="$xs"
+                  py={2}
+                  borderRadius={6}
+                >
+                  <Text
+                    fontSize={9}
+                    fontWeight="800"
+                    color="$accent"
+                  >
+                    #{index}
+                  </Text>
+                </View>
+                <Text
+                  fontSize="$1"
+                  color="$colorSubtle"
+                >
+                  {new Date(reimbursement.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </Text>
+              </XStack>
+              <XStack
+                alignItems="center"
+                gap="$xs"
+              >
+                <View
+                  bg={statusStyle.bg as any}
+                  px="$xs"
+                  py={2}
+                  borderRadius="$full"
+                >
+                  <Text
+                    fontSize={9}
+                    fontWeight="700"
+                    color={statusStyle.text as any}
+                  >
+                    {statusStyle.label.toUpperCase()}
+                  </Text>
+                </View>
+                {expanded ? (
+                  <ChevronUp
+                    size={16}
+                    color="$colorSubtle"
+                  />
+                ) : (
+                  <ChevronDown
+                    size={16}
+                    color="$colorSubtle"
+                  />
+                )}
+              </XStack>
+            </XStack>
+            <Text
+              fontSize="$3"
+              fontWeight="600"
+              color="$color"
+              numberOfLines={expanded ? undefined : 1}
+            >
+              {reimbursement.name}
+            </Text>
+            <XStack
+              gap="$md"
+              pt="$xs"
+              borderTopWidth={1}
+              borderTopColor="rgba(0,0,0,0.04)"
+              alignItems="center"
+            >
+              <XStack
+                alignItems="center"
+                gap="$xs"
+              >
+                <Receipt
+                  size={12}
+                  color="$primary"
+                />
+                <Text
+                  fontSize="$1"
+                  color="$colorSubtle"
+                >
+                  {reimbursement.category.name}
+                </Text>
+              </XStack>
+              <XStack
+                alignItems="center"
+                gap="$xs"
+                bg="$primaryBackground"
+                px="$sm"
+                py={2}
+                borderRadius="$full"
+              >
+                <DollarSign
+                  size={12}
+                  color="$primary"
+                />
+                <Text
+                  fontSize="$2"
+                  fontWeight="700"
+                  color="$primary"
+                >
+                  {Number.parseFloat(String(reimbursement.amount)).toFixed(2)}
+                </Text>
+              </XStack>
+            </XStack>
+
+            {expanded && (
+              <YStack
+                gap="$sm"
+                pt="$sm"
+                borderTopWidth={1}
+                borderTopColor="rgba(0,0,0,0.04)"
+              >
+                {reimbursement.notes && (
+                  <YStack gap="$xs">
+                    <Text
+                      fontSize="$2"
+                      fontWeight="600"
+                      color="$colorSubtle"
+                    >
+                      Notes
+                    </Text>
+                    <Text
+                      fontSize="$2"
+                      color="$color"
+                    >
+                      {reimbursement.notes}
+                    </Text>
+                  </YStack>
+                )}
+
+                {/* Image Attachments */}
+                {imageAttachments.length > 0 && (
+                  <YStack gap="$xs">
+                    <Text
+                      fontSize="$2"
+                      fontWeight="600"
+                      color="$colorSubtle"
+                    >
+                      Attachments
+                    </Text>
+                    <XStack
+                      flexWrap="wrap"
+                      gap="$sm"
+                    >
+                      {imageAttachments.map((attachment, idx) => (
+                        <Pressable
+                          key={attachment.public_id}
+                          onPress={() =>
+                            onImagePress(
+                              imageAttachments.map((a) => a.file),
+                              idx
+                            )
+                          }
+                        >
+                          <Image
+                            source={{ uri: attachment.file }}
+                            width={60}
+                            height={60}
+                            borderRadius={8}
+                          />
+                        </Pressable>
+                      ))}
+                    </XStack>
+                  </YStack>
+                )}
+
+                {/* Other Attachments (non-image files) */}
+                {otherAttachments.length > 0 && (
+                  <YStack gap="$xs">
+                    {imageAttachments.length === 0 && (
+                      <Text
+                        fontSize="$2"
+                        fontWeight="600"
+                        color="$colorSubtle"
+                      >
+                        Attachments
+                      </Text>
+                    )}
+                    {otherAttachments.map((attachment) => (
+                      <Pressable
+                        key={attachment.public_id}
+                        onPress={() => handleOpenLink(attachment.file)}
+                      >
+                        <XStack
+                          bg="$backgroundMuted"
+                          p="$sm"
+                          borderRadius={8}
+                          alignItems="center"
+                          gap="$sm"
+                        >
+                          <FileText
+                            size={16}
+                            color="$primary"
+                          />
+                          <Text
+                            fontSize="$2"
+                            color="$primary"
+                            flex={1}
+                            numberOfLines={1}
+                          >
+                            {attachment.file_name}
+                          </Text>
+                          <ExternalLink
+                            size={14}
+                            color="$colorSubtle"
+                          />
+                        </XStack>
+                      </Pressable>
+                    ))}
+                  </YStack>
+                )}
+
+                {reimbursement.homeowner_comment && (
+                  <View
+                    bg={
+                      reimbursement.status === 'rejected'
+                        ? '$errorBackground'
+                        : '$primaryBackground'
+                    }
+                    p="$sm"
+                    borderRadius={8}
+                  >
+                    <Text
+                      fontSize="$1"
+                      color={reimbursement.status === 'rejected' ? '$error' : '$primary'}
+                    >
+                      Feedback: {reimbursement.homeowner_comment}
+                    </Text>
+                  </View>
+                )}
+
+                {canEdit && (
+                  <Button
+                    bg="$primary"
+                    borderRadius="$lg"
+                    py="$sm"
+                    onPress={onEdit}
+                  >
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                    >
+                      <Edit3
+                        size={14}
+                        color="white"
+                      />
+                      <Text
+                        color="white"
+                        fontWeight="600"
+                      >
+                        Edit Request
+                      </Text>
+                    </XStack>
+                  </Button>
+                )}
+              </YStack>
+            )}
+          </YStack>
+        </Pressable>
+      </YStack>
+    </XStack>
+  )
+}
+
 // Expandable Session Card
 function ExpandableSessionCard({
   session,
@@ -1901,6 +2266,11 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
     refetch: refetchReports,
   } = useHandymanDailyReports(jobId)
   const { data: sessions, refetch: refetchSessions } = useHandymanWorkSessions(jobId)
+  const {
+    data: reimbursements,
+    isLoading: reimbursementsLoading,
+    refetch: refetchReimbursements,
+  } = useHandymanReimbursements(jobId)
 
   // Refetch all data when screen is focused (e.g., coming back from report creation)
   useFocusEffect(
@@ -1908,7 +2278,8 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
       refetch()
       refetchReports()
       refetchSessions()
-    }, [refetch, refetchReports, refetchSessions])
+      refetchReimbursements()
+    }, [refetch, refetchReports, refetchSessions, refetchReimbursements])
   )
 
   // Mutations
@@ -2076,6 +2447,30 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
       pathname: '/(handyman)/jobs/ongoing/reports/[reportId]/edit',
       params: { jobId, reportId },
     } as any)
+
+  // Reimbursement handlers
+  const handleCreateReimbursement = () =>
+    router.push({
+      pathname: '/(handyman)/jobs/ongoing/reimbursements/create',
+      params: { jobId },
+    } as any)
+  const handleEditReimbursement = (reimbursementId: string) =>
+    router.push({
+      pathname: '/(handyman)/jobs/ongoing/reimbursements/[reimbursementId]/edit',
+      params: { jobId, reimbursementId },
+    } as any)
+
+  // Reimbursement image viewer state
+  const [reimbursementImages, setReimbursementImages] = useState<string[]>([])
+  const [reimbursementImageIndex, setReimbursementImageIndex] = useState(0)
+  const [showReimbursementViewer, setShowReimbursementViewer] = useState(false)
+
+  const handleReimbursementImagePress = (images: string[], startIndex: number) => {
+    setReimbursementImages(images)
+    setReimbursementImageIndex(startIndex)
+    setShowReimbursementViewer(true)
+  }
+
   const handleRequestCompletion = async () => {
     setIsRequestingCompletion(true)
     try {
@@ -2900,6 +3295,135 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                 )}
               </YStack>
 
+              {/* Reimbursements Section */}
+              <YStack gap="$md">
+                <XStack
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <XStack
+                    alignItems="center"
+                    gap="$sm"
+                  >
+                    <Receipt
+                      size={20}
+                      color="$primary"
+                    />
+                    <Text
+                      fontSize="$4"
+                      fontWeight="600"
+                      color="$color"
+                    >
+                      Reimbursements
+                    </Text>
+                    {reimbursements &&
+                      reimbursements.filter((r) => r.status === 'pending').length > 0 && (
+                        <View
+                          bg="$warning"
+                          px={8}
+                          py={2}
+                          borderRadius={10}
+                        >
+                          <Text
+                            fontSize={10}
+                            fontWeight="700"
+                            color="white"
+                          >
+                            {reimbursements.filter((r) => r.status === 'pending').length}
+                          </Text>
+                        </View>
+                      )}
+                  </XStack>
+                  <Button
+                    unstyled
+                    onPress={handleCreateReimbursement}
+                    bg="$primary"
+                    px="$md"
+                    py="$sm"
+                    borderRadius={20}
+                  >
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                    >
+                      <Plus
+                        size={14}
+                        color="white"
+                      />
+                      <Text
+                        color="white"
+                        fontSize="$2"
+                        fontWeight="600"
+                      >
+                        New
+                      </Text>
+                    </XStack>
+                  </Button>
+                </XStack>
+                {reimbursementsLoading ? (
+                  <YStack
+                    py="$lg"
+                    alignItems="center"
+                  >
+                    <Spinner
+                      size="small"
+                      color="$primary"
+                    />
+                  </YStack>
+                ) : reimbursements && reimbursements.length > 0 ? (
+                  <YStack mt="$sm">
+                    {reimbursements.map((reimbursement, i) => (
+                      <ExpandableReimbursementCard
+                        key={reimbursement.public_id}
+                        reimbursement={reimbursement}
+                        index={reimbursements.length - i}
+                        onEdit={() => handleEditReimbursement(reimbursement.public_id)}
+                        onImagePress={handleReimbursementImagePress}
+                      />
+                    ))}
+                  </YStack>
+                ) : (
+                  <YStack
+                    bg="rgba(255,255,255,0.9)"
+                    borderRadius={16}
+                    p="$xl"
+                    alignItems="center"
+                    gap="$md"
+                    borderWidth={1}
+                    borderStyle="dashed"
+                    borderColor="$borderColor"
+                  >
+                    <View
+                      width={56}
+                      height={56}
+                      borderRadius={28}
+                      bg="$primaryBackground"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Receipt
+                        size={26}
+                        color="$primary"
+                      />
+                    </View>
+                    <Text
+                      color="$color"
+                      fontSize="$4"
+                      fontWeight="600"
+                    >
+                      No Reimbursements
+                    </Text>
+                    <Text
+                      color="$colorSubtle"
+                      fontSize="$2"
+                      textAlign="center"
+                    >
+                      Request reimbursement for materials or expenses
+                    </Text>
+                  </YStack>
+                )}
+              </YStack>
+
               {canComplete && (
                 <YStack
                   bg="rgba(34,197,94,0.1)"
@@ -3081,6 +3605,12 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
           visible={viewerItem !== null}
           item={viewerItem}
           onClose={() => setViewerItem(null)}
+        />
+        <ImageViewer
+          images={reimbursementImages}
+          initialIndex={reimbursementImageIndex}
+          visible={showReimbursementViewer}
+          onClose={() => setShowReimbursementViewer(false)}
         />
       </YStack>
     </GradientBackground>

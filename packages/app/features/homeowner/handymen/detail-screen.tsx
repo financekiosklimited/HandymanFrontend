@@ -5,7 +5,15 @@ import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View } from '
 import { GradientBackground } from '@my/ui'
 import { useGuestHandyman, formatErrorMessage, apiClient } from '@my/api'
 import type { ChatConversationResponse } from '@my/api'
-import { ArrowLeft, MapPin, Star, DollarSign, Award, User, MessageCircle } from '@tamagui/lucide-icons'
+import {
+  ArrowLeft,
+  MapPin,
+  Star,
+  DollarSign,
+  Award,
+  User,
+  MessageCircle,
+} from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
@@ -32,13 +40,23 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
     router.push(`/(homeowner)/messages/new?${params.toString()}`)
   }
 
-
   if (isLoading) {
     return (
       <GradientBackground>
-        <YStack flex={1} justifyContent="center" alignItems="center" gap="$md">
-          <Spinner size="large" color="$primary" />
-          <Text color="$colorSubtle" fontSize="$4">
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          gap="$md"
+        >
+          <Spinner
+            size="large"
+            color="$primary"
+          />
+          <Text
+            color="$colorSubtle"
+            fontSize="$4"
+          >
             Loading profile...
           </Text>
         </YStack>
@@ -49,7 +67,13 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
   if (error || !handyman) {
     return (
       <GradientBackground>
-        <YStack flex={1} justifyContent="center" alignItems="center" px="$xl" gap="$md">
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          px="$xl"
+          gap="$md"
+        >
           <YStack
             width={64}
             height={64}
@@ -58,15 +82,33 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
             alignItems="center"
             justifyContent="center"
           >
-            <User size={28} color="$error" />
+            <User
+              size={28}
+              color="$error"
+            />
           </YStack>
-          <Text color="$color" fontSize="$5" fontWeight="600">
+          <Text
+            color="$color"
+            fontSize="$5"
+            fontWeight="600"
+          >
             Profile Not Found
           </Text>
-          <Text color="$colorSubtle" fontSize="$3" textAlign="center">
+          <Text
+            color="$colorSubtle"
+            fontSize="$3"
+            textAlign="center"
+          >
             {formatErrorMessage(error)}
           </Text>
-          <Button mt="$sm" onPress={() => router.back()} bg="$primary" color="white" borderRadius="$lg" px="$xl">
+          <Button
+            mt="$sm"
+            onPress={() => router.back()}
+            bg="$primary"
+            color="white"
+            borderRadius="$lg"
+            px="$xl"
+          >
             Go Back
           </Button>
         </YStack>
@@ -76,22 +118,54 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
 
   return (
     <GradientBackground>
-      <YStack flex={1} pt={insets.top}>
+      <YStack
+        flex={1}
+        pt={insets.top}
+      >
         {/* Header with back button */}
-        <XStack px="$5" py="$4" alignItems="center" gap="$3">
-          <Button unstyled onPress={() => router.back()} p="$2" hitSlop={12} pressStyle={{ opacity: 0.7 }}>
-            <ArrowLeft size={22} color="$color" />
+        <XStack
+          px="$5"
+          py="$4"
+          alignItems="center"
+          gap="$3"
+        >
+          <Button
+            unstyled
+            onPress={() => router.back()}
+            p="$2"
+            hitSlop={12}
+            pressStyle={{ opacity: 0.7 }}
+          >
+            <ArrowLeft
+              size={22}
+              color="$color"
+            />
           </Button>
-          <Text flex={1} fontSize={17} fontWeight="700" color="$color" textAlign="center">
+          <Text
+            flex={1}
+            fontSize={17}
+            fontWeight="700"
+            color="$color"
+            textAlign="center"
+          >
             Handyman Profile
           </Text>
           <View width={38} />
         </XStack>
 
-        <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-          <YStack px="$lg" pb={100}>
+        <ScrollView
+          flex={1}
+          showsVerticalScrollIndicator={false}
+        >
+          <YStack
+            px="$lg"
+            pb={100}
+          >
             {/* Profile Hero */}
-            <YStack alignItems="center" mb="$xl">
+            <YStack
+              alignItems="center"
+              mb="$xl"
+            >
               {/* Avatar */}
               <YStack
                 width={120}
@@ -107,10 +181,24 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                 borderColor="rgba(255,255,255,0.8)"
               >
                 {handyman.avatar_url ? (
-                  <Image source={{ uri: handyman.avatar_url }} width="100%" height="100%" resizeMode="cover" />
+                  <Image
+                    source={{ uri: handyman.avatar_url }}
+                    width="100%"
+                    height="100%"
+                    resizeMode="cover"
+                  />
                 ) : (
-                  <YStack flex={1} alignItems="center" justifyContent="center" bg="$primaryBackground">
-                    <Text fontSize={40} fontWeight="bold" color="$primary">
+                  <YStack
+                    flex={1}
+                    alignItems="center"
+                    justifyContent="center"
+                    bg="$primaryBackground"
+                  >
+                    <Text
+                      fontSize={40}
+                      fontWeight="bold"
+                      color="$primary"
+                    >
                       {handyman.display_name.charAt(0).toUpperCase()}
                     </Text>
                   </YStack>
@@ -118,25 +206,54 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
               </YStack>
 
               {/* Name */}
-              <Text fontSize={26} fontWeight="bold" color="$color" textAlign="center" mb="$xs">
+              <Text
+                fontSize={26}
+                fontWeight="bold"
+                color="$color"
+                textAlign="center"
+                mb="$xs"
+              >
                 {handyman.display_name}
               </Text>
 
               {/* Categories as subtitle */}
               {handyman.categories && handyman.categories.length > 0 && (
-                <Text fontSize="$4" color="$colorSubtle" textAlign="center" mb="$md">
+                <Text
+                  fontSize="$4"
+                  color="$colorSubtle"
+                  textAlign="center"
+                  mb="$md"
+                >
                   {handyman.categories.map((c) => c.name).join(' • ')}
                 </Text>
               )}
 
               {/* Rating Badge */}
               {handyman.rating > 0 && (
-                <XStack bg="$warningBackground" px="$lg" py="$sm" borderRadius="$full" alignItems="center" gap="$xs">
-                  <Star size={18} fill="#FFB800" color="#FFB800" />
-                  <Text fontSize="$5" fontWeight="600" color="$accent">
+                <XStack
+                  bg="$warningBackground"
+                  px="$lg"
+                  py="$sm"
+                  borderRadius="$full"
+                  alignItems="center"
+                  gap="$xs"
+                >
+                  <Star
+                    size={18}
+                    fill="#FFB800"
+                    color="#FFB800"
+                  />
+                  <Text
+                    fontSize="$5"
+                    fontWeight="600"
+                    color="$accent"
+                  >
                     {Number(handyman.rating).toFixed(1)}
                   </Text>
-                  <Text fontSize="$3" color="$accent">
+                  <Text
+                    fontSize="$3"
+                    color="$accent"
+                  >
                     ({handyman.total_reviews} {handyman.total_reviews === 1 ? 'review' : 'reviews'})
                   </Text>
                 </XStack>
@@ -157,20 +274,37 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
               shadowOpacity={0.3}
               shadowRadius={8}
             >
-              <XStack alignItems="center" justifyContent="center" gap="$sm">
+              <XStack
+                alignItems="center"
+                justifyContent="center"
+                gap="$sm"
+              >
                 {isChatLoading ? (
-                  <Spinner size="small" color="white" />
+                  <Spinner
+                    size="small"
+                    color="white"
+                  />
                 ) : (
-                  <MessageCircle size={22} color="white" />
+                  <MessageCircle
+                    size={22}
+                    color="white"
+                  />
                 )}
-                <Text color="white" fontSize="$4" fontWeight="600">
+                <Text
+                  color="white"
+                  fontSize="$4"
+                  fontWeight="600"
+                >
                   {isChatLoading ? 'Starting chat...' : 'Chat with Handyman'}
                 </Text>
               </XStack>
             </Button>
 
             {/* Quick Stats */}
-            <XStack gap="$md" mb="$lg">
+            <XStack
+              gap="$md"
+              mb="$lg"
+            >
               {handyman.hourly_rate && (
                 <YStack
                   flex={1}
@@ -190,12 +324,22 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                     justifyContent="center"
                     mb="$xs"
                   >
-                    <DollarSign size={18} color="$primary" />
+                    <DollarSign
+                      size={18}
+                      color="$primary"
+                    />
                   </YStack>
-                  <Text fontSize="$5" fontWeight="bold" color="$color">
+                  <Text
+                    fontSize="$5"
+                    fontWeight="bold"
+                    color="$color"
+                  >
                     ${handyman.hourly_rate}
                   </Text>
-                  <Text fontSize="$2" color="$colorSubtle">
+                  <Text
+                    fontSize="$2"
+                    color="$colorSubtle"
+                  >
                     per hour
                   </Text>
                 </YStack>
@@ -220,12 +364,22 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                     justifyContent="center"
                     mb="$xs"
                   >
-                    <MapPin size={18} color="$primary" />
+                    <MapPin
+                      size={18}
+                      color="$primary"
+                    />
                   </YStack>
-                  <Text fontSize="$5" fontWeight="bold" color="$color">
+                  <Text
+                    fontSize="$5"
+                    fontWeight="bold"
+                    color="$color"
+                  >
                     {Number(handyman.distance_km).toFixed(1)} km
                   </Text>
-                  <Text fontSize="$2" color="$colorSubtle">
+                  <Text
+                    fontSize="$2"
+                    color="$colorSubtle"
+                  >
                     away
                   </Text>
                 </YStack>
@@ -250,12 +404,22 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                     justifyContent="center"
                     mb="$xs"
                   >
-                    <Award size={18} color="$primary" />
+                    <Award
+                      size={18}
+                      color="$primary"
+                    />
                   </YStack>
-                  <Text fontSize="$5" fontWeight="bold" color="$color">
+                  <Text
+                    fontSize="$5"
+                    fontWeight="bold"
+                    color="$color"
+                  >
                     {handyman.total_reviews}
                   </Text>
-                  <Text fontSize="$2" color="$colorSubtle">
+                  <Text
+                    fontSize="$2"
+                    color="$colorSubtle"
+                  >
                     reviews
                   </Text>
                 </YStack>
@@ -264,11 +428,27 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
 
             {/* About Card */}
             {handyman.bio && (
-              <YStack bg="$backgroundMuted" borderRadius={20} p="$lg" mb="$lg" borderWidth={1} borderColor="$borderColor">
-                <Text fontSize="$3" fontWeight="600" color="$colorSubtle" mb="$sm">
+              <YStack
+                bg="$backgroundMuted"
+                borderRadius={20}
+                p="$lg"
+                mb="$lg"
+                borderWidth={1}
+                borderColor="$borderColor"
+              >
+                <Text
+                  fontSize="$3"
+                  fontWeight="600"
+                  color="$colorSubtle"
+                  mb="$sm"
+                >
                   ABOUT
                 </Text>
-                <Text fontSize="$4" color="$color" lineHeight={22}>
+                <Text
+                  fontSize="$4"
+                  color="$color"
+                  lineHeight={22}
+                >
                   {handyman.bio}
                 </Text>
               </YStack>
@@ -276,14 +456,39 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
 
             {/* Specialties */}
             {handyman.categories && handyman.categories.length > 0 && (
-              <YStack bg="$backgroundMuted" borderRadius={20} p="$lg" mb="$lg" borderWidth={1} borderColor="$borderColor">
-                <Text fontSize="$3" fontWeight="600" color="$colorSubtle" mb="$md">
+              <YStack
+                bg="$backgroundMuted"
+                borderRadius={20}
+                p="$lg"
+                mb="$lg"
+                borderWidth={1}
+                borderColor="$borderColor"
+              >
+                <Text
+                  fontSize="$3"
+                  fontWeight="600"
+                  color="$colorSubtle"
+                  mb="$md"
+                >
                   SPECIALTIES
                 </Text>
-                <XStack flexWrap="wrap" gap="$sm">
+                <XStack
+                  flexWrap="wrap"
+                  gap="$sm"
+                >
                   {handyman.categories.map((category) => (
-                    <XStack key={category.public_id} bg="$primary" px="$md" py="$sm" borderRadius="$full">
-                      <Text fontSize="$3" fontWeight="500" color="white">
+                    <XStack
+                      key={category.public_id}
+                      bg="$primary"
+                      px="$md"
+                      py="$sm"
+                      borderRadius="$full"
+                    >
+                      <Text
+                        fontSize="$3"
+                        fontWeight="500"
+                        color="white"
+                      >
                         {category.name}
                       </Text>
                     </XStack>
@@ -294,16 +499,39 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
 
             {/* Rating Details Card */}
             {handyman.rating > 0 && (
-              <YStack bg="$backgroundMuted" borderRadius={20} p="$lg" borderWidth={1} borderColor="$borderColor">
-                <Text fontSize="$3" fontWeight="600" color="$colorSubtle" mb="$md">
+              <YStack
+                bg="$backgroundMuted"
+                borderRadius={20}
+                p="$lg"
+                borderWidth={1}
+                borderColor="$borderColor"
+              >
+                <Text
+                  fontSize="$3"
+                  fontWeight="600"
+                  color="$colorSubtle"
+                  mb="$md"
+                >
                   RATING & REVIEWS
                 </Text>
-                <XStack alignItems="center" gap="$lg">
+                <XStack
+                  alignItems="center"
+                  gap="$lg"
+                >
                   <YStack alignItems="center">
-                    <Text fontSize={42} fontWeight="bold" color="$color" lineHeight={48}>
+                    <Text
+                      fontSize={42}
+                      fontWeight="bold"
+                      color="$color"
+                      lineHeight={48}
+                    >
                       {Number(handyman.rating).toFixed(1)}
                     </Text>
-                    <XStack alignItems="center" gap={4} mt="$xs">
+                    <XStack
+                      alignItems="center"
+                      gap={4}
+                      mt="$xs"
+                    >
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
@@ -314,11 +542,22 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                       ))}
                     </XStack>
                   </YStack>
-                  <YStack flex={1} gap="$xs">
-                    <Text fontSize="$4" fontWeight="500" color="$color">
+                  <YStack
+                    flex={1}
+                    gap="$xs"
+                  >
+                    <Text
+                      fontSize="$4"
+                      fontWeight="500"
+                      color="$color"
+                    >
                       {handyman.total_reviews} {handyman.total_reviews === 1 ? 'Review' : 'Reviews'}
                     </Text>
-                    <Text fontSize="$3" color="$colorSubtle" lineHeight={18}>
+                    <Text
+                      fontSize="$3"
+                      color="$colorSubtle"
+                      lineHeight={18}
+                    >
                       Based on verified customer feedback and completed jobs
                     </Text>
                   </YStack>

@@ -672,18 +672,32 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
                         userId: job.homeowner.public_id,
                         name: job.homeowner.display_name,
                       })
-                      if (job.homeowner.avatar_url) params.append('avatar', job.homeowner.avatar_url)
+                      if (job.homeowner.avatar_url)
+                        params.append('avatar', job.homeowner.avatar_url)
                       router.push(`/(handyman)/messages/new?${params.toString()}`)
                     }}
                     pressStyle={{ opacity: 0.8 }}
                   >
-                    <XStack alignItems="center" gap="$xs">
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                    >
                       {isChatLoading ? (
-                        <Spinner size="small" color="white" />
+                        <Spinner
+                          size="small"
+                          color="white"
+                        />
                       ) : (
-                        <MessageCircle size={16} color="white" />
+                        <MessageCircle
+                          size={16}
+                          color="white"
+                        />
                       )}
-                      <Text color="white" fontSize="$3" fontWeight="500">
+                      <Text
+                        color="white"
+                        fontSize="$3"
+                        fontWeight="500"
+                      >
                         {isChatLoading ? 'Opening...' : 'Chat'}
                       </Text>
                     </XStack>

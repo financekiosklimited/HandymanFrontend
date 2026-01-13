@@ -489,31 +489,79 @@ export function ApplicationDetailScreen() {
                 borderWidth={1}
                 borderColor="$primary"
               >
-                <XStack alignItems="center" gap="$2" mb="$md">
-                  <DollarSign size={18} color="$primary" />
-                  <Text fontSize="$3" fontWeight="600" color="$primary" textTransform="uppercase">
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                  mb="$md"
+                >
+                  <DollarSign
+                    size={18}
+                    color="$primary"
+                  />
+                  <Text
+                    fontSize="$3"
+                    fontWeight="600"
+                    color="$primary"
+                    textTransform="uppercase"
+                  >
                     Handyman's Proposal
                   </Text>
                 </XStack>
-                
+
                 <YStack gap="$md">
                   {/* Hours and Price Row */}
-                  <XStack justifyContent="space-between" flexWrap="wrap" gap="$sm">
+                  <XStack
+                    justifyContent="space-between"
+                    flexWrap="wrap"
+                    gap="$sm"
+                  >
                     {application.predicted_hours && (
-                      <YStack flex={1} minWidth={120}>
-                        <Text fontSize="$2" color="$colorSubtle">Predicted Hours</Text>
-                        <XStack alignItems="baseline" gap="$xs">
-                          <Text fontSize="$6" fontWeight="bold" color="$color">
+                      <YStack
+                        flex={1}
+                        minWidth={120}
+                      >
+                        <Text
+                          fontSize="$2"
+                          color="$colorSubtle"
+                        >
+                          Predicted Hours
+                        </Text>
+                        <XStack
+                          alignItems="baseline"
+                          gap="$xs"
+                        >
+                          <Text
+                            fontSize="$6"
+                            fontWeight="bold"
+                            color="$color"
+                          >
                             {application.predicted_hours}
                           </Text>
-                          <Text fontSize="$2" color="$colorSubtle">hours</Text>
+                          <Text
+                            fontSize="$2"
+                            color="$colorSubtle"
+                          >
+                            hours
+                          </Text>
                         </XStack>
                       </YStack>
                     )}
                     {application.estimated_total_price && (
-                      <YStack flex={1} minWidth={120}>
-                        <Text fontSize="$2" color="$colorSubtle">Estimated Price</Text>
-                        <Text fontSize="$6" fontWeight="bold" color="$primary">
+                      <YStack
+                        flex={1}
+                        minWidth={120}
+                      >
+                        <Text
+                          fontSize="$2"
+                          color="$colorSubtle"
+                        >
+                          Estimated Price
+                        </Text>
+                        <Text
+                          fontSize="$6"
+                          fontWeight="bold"
+                          color="$primary"
+                        >
                           ${application.estimated_total_price}
                         </Text>
                       </YStack>
@@ -522,9 +570,23 @@ export function ApplicationDetailScreen() {
 
                   {/* Negotiation Reasoning */}
                   {application.negotiation_reasoning && (
-                    <YStack pt="$sm" borderTopWidth={1} borderTopColor="rgba(12,154,92,0.2)">
-                      <Text fontSize="$2" color="$colorSubtle" mb="$xs">Notes from Handyman</Text>
-                      <Text fontSize="$3" color="$color" lineHeight={20}>
+                    <YStack
+                      pt="$sm"
+                      borderTopWidth={1}
+                      borderTopColor="rgba(12,154,92,0.2)"
+                    >
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                        mb="$xs"
+                      >
+                        Notes from Handyman
+                      </Text>
+                      <Text
+                        fontSize="$3"
+                        color="$color"
+                        lineHeight={20}
+                      >
                         {application.negotiation_reasoning}
                       </Text>
                     </YStack>
@@ -532,21 +594,58 @@ export function ApplicationDetailScreen() {
 
                   {/* Materials List */}
                   {application.materials && application.materials.length > 0 && (
-                    <YStack pt="$sm" borderTopWidth={1} borderTopColor="rgba(12,154,92,0.2)">
-                      <XStack alignItems="center" gap="$xs" mb="$sm">
-                        <Package size={14} color="$colorSubtle" />
-                        <Text fontSize="$2" color="$colorSubtle">Materials ({application.materials.length})</Text>
+                    <YStack
+                      pt="$sm"
+                      borderTopWidth={1}
+                      borderTopColor="rgba(12,154,92,0.2)"
+                    >
+                      <XStack
+                        alignItems="center"
+                        gap="$xs"
+                        mb="$sm"
+                      >
+                        <Package
+                          size={14}
+                          color="$colorSubtle"
+                        />
+                        <Text
+                          fontSize="$2"
+                          color="$colorSubtle"
+                        >
+                          Materials ({application.materials.length})
+                        </Text>
                       </XStack>
                       <YStack gap="$sm">
                         {application.materials.map((material, index) => (
-                          <XStack key={material.public_id || index} justifyContent="space-between" alignItems="center">
+                          <XStack
+                            key={material.public_id || index}
+                            justifyContent="space-between"
+                            alignItems="center"
+                          >
                             <YStack flex={1}>
-                              <Text fontSize="$3" fontWeight="500" color="$color">{material.name}</Text>
+                              <Text
+                                fontSize="$3"
+                                fontWeight="500"
+                                color="$color"
+                              >
+                                {material.name}
+                              </Text>
                               {material.description && (
-                                <Text fontSize="$2" color="$colorSubtle">{material.description}</Text>
+                                <Text
+                                  fontSize="$2"
+                                  color="$colorSubtle"
+                                >
+                                  {material.description}
+                                </Text>
                               )}
                             </YStack>
-                            <Text fontSize="$3" fontWeight="600" color="$primary">${material.price}</Text>
+                            <Text
+                              fontSize="$3"
+                              fontWeight="600"
+                              color="$primary"
+                            >
+                              ${material.price}
+                            </Text>
                           </XStack>
                         ))}
                       </YStack>
@@ -555,18 +654,53 @@ export function ApplicationDetailScreen() {
 
                   {/* Attachments */}
                   {application.attachments && application.attachments.length > 0 && (
-                    <YStack pt="$sm" borderTopWidth={1} borderTopColor="rgba(12,154,92,0.2)">
-                      <XStack alignItems="center" gap="$xs" mb="$sm">
-                        <Paperclip size={14} color="$colorSubtle" />
-                        <Text fontSize="$2" color="$colorSubtle">Attachments ({application.attachments.length})</Text>
+                    <YStack
+                      pt="$sm"
+                      borderTopWidth={1}
+                      borderTopColor="rgba(12,154,92,0.2)"
+                    >
+                      <XStack
+                        alignItems="center"
+                        gap="$xs"
+                        mb="$sm"
+                      >
+                        <Paperclip
+                          size={14}
+                          color="$colorSubtle"
+                        />
+                        <Text
+                          fontSize="$2"
+                          color="$colorSubtle"
+                        >
+                          Attachments ({application.attachments.length})
+                        </Text>
                       </XStack>
                       <YStack gap="$xs">
                         {application.attachments.map((attachment, index) => (
-                          <XStack key={attachment.public_id || index} alignItems="center" gap="$sm">
-                            <View width={32} height={32} borderRadius="$2" bg="$primaryBackground" alignItems="center" justifyContent="center">
-                              <Paperclip size={14} color="$primary" />
+                          <XStack
+                            key={attachment.public_id || index}
+                            alignItems="center"
+                            gap="$sm"
+                          >
+                            <View
+                              width={32}
+                              height={32}
+                              borderRadius="$2"
+                              bg="$primaryBackground"
+                              alignItems="center"
+                              justifyContent="center"
+                            >
+                              <Paperclip
+                                size={14}
+                                color="$primary"
+                              />
                             </View>
-                            <Text fontSize="$3" color="$color" numberOfLines={1} flex={1}>
+                            <Text
+                              fontSize="$3"
+                              color="$color"
+                              numberOfLines={1}
+                              flex={1}
+                            >
                               {attachment.file_name || 'Attachment'}
                             </Text>
                           </XStack>

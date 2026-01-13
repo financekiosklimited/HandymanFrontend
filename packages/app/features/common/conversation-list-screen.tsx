@@ -13,7 +13,7 @@ import { FlatList, Pressable, RefreshControl } from 'react-native'
 type ChatRole = 'homeowner' | 'handyman'
 
 interface ConversationListScreenProps {
-  role: ChatRole
+  chatRole: ChatRole
 }
 
 // ========== ConversationItem Component ==========
@@ -104,7 +104,11 @@ function ConversationItem({
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Text fontSize={22} fontWeight="700" color="$primary">
+                  <Text
+                    fontSize={22}
+                    fontWeight="700"
+                    color="$primary"
+                  >
                     {other_party.display_name.charAt(0).toUpperCase()}
                   </Text>
                 </View>
@@ -113,8 +117,14 @@ function ConversationItem({
           </View>
 
           {/* Content */}
-          <YStack flex={1} gap={3}>
-            <XStack alignItems="center" justifyContent="space-between">
+          <YStack
+            flex={1}
+            gap={3}
+          >
+            <XStack
+              alignItems="center"
+              justifyContent="space-between"
+            >
               <Text
                 fontSize={16}
                 fontWeight={hasUnread ? '700' : '600'}
@@ -124,7 +134,10 @@ function ConversationItem({
               >
                 {other_party.display_name}
               </Text>
-              <XStack alignItems="center" gap={4}>
+              <XStack
+                alignItems="center"
+                gap={4}
+              >
                 <Text
                   fontSize={12}
                   fontWeight={hasUnread ? '600' : '400'}
@@ -135,7 +148,10 @@ function ConversationItem({
               </XStack>
             </XStack>
 
-            <XStack alignItems="center" justifyContent="space-between">
+            <XStack
+              alignItems="center"
+              justifyContent="space-between"
+            >
               <Text
                 fontSize={14}
                 color={hasUnread ? '$color' : '$colorSubtle'}
@@ -167,12 +183,19 @@ function ConversationItem({
                   shadowOpacity={0.25}
                   shadowRadius={4}
                 >
-                  <Text fontSize={11} fontWeight="700" color="white">
+                  <Text
+                    fontSize={11}
+                    fontWeight="700"
+                    color="white"
+                  >
                     {unread_count > 99 ? '99+' : unread_count}
                   </Text>
                 </View>
               ) : (
-                <ChevronRight size={18} color="#D1D5DB" />
+                <ChevronRight
+                  size={18}
+                  color="#D1D5DB"
+                />
               )}
             </XStack>
           </YStack>
@@ -185,7 +208,13 @@ function ConversationItem({
 // ========== EmptyState Component ==========
 function EmptyState() {
   return (
-    <YStack flex={1} alignItems="center" justifyContent="center" px="$xl" gap="$lg">
+    <YStack
+      flex={1}
+      alignItems="center"
+      justifyContent="center"
+      px="$xl"
+      gap="$lg"
+    >
       {/* Icon Container with Gradient Effect */}
       <View
         width={100}
@@ -207,12 +236,23 @@ function EmptyState() {
           alignItems="center"
           justifyContent="center"
         >
-          <Inbox size={32} color="#0C9A5C" />
+          <Inbox
+            size={32}
+            color="#0C9A5C"
+          />
         </View>
       </View>
 
-      <YStack alignItems="center" gap="$sm">
-        <Text fontSize={22} fontWeight="700" color="$color" textAlign="center">
+      <YStack
+        alignItems="center"
+        gap="$sm"
+      >
+        <Text
+          fontSize={22}
+          fontWeight="700"
+          color="$color"
+          textAlign="center"
+        >
           No Messages Yet
         </Text>
         <Text
@@ -239,7 +279,7 @@ function EmptyState() {
 }
 
 // ========== Main ConversationListScreen Component ==========
-export function ConversationListScreen({ role }: ConversationListScreenProps) {
+export function ConversationListScreen({ chatRole }: ConversationListScreenProps) {
   const router = useRouter()
   const safeArea = useSafeArea()
 
@@ -249,9 +289,9 @@ export function ConversationListScreen({ role }: ConversationListScreenProps) {
     error,
     refetch,
     isRefetching,
-  } = useConversationList(role)
+  } = useConversationList(chatRole)
 
-  const { data: totalUnread, refetch: refetchUnread } = useTotalUnreadCount(role)
+  const { data: totalUnread, refetch: refetchUnread } = useTotalUnreadCount(chatRole)
 
   // Refetch on focus
   useFocusEffect(
@@ -262,14 +302,20 @@ export function ConversationListScreen({ role }: ConversationListScreenProps) {
   )
 
   const handleConversationPress = (conversationId: string) => {
-    router.push(`/(${role})/messages/${conversationId}`)
+    router.push(`/(${chatRole})/messages/${conversationId}`)
   }
 
   // Loading state
   if (isLoading && !conversations) {
     return (
       <GradientBackground>
-        <YStack flex={1} pt={safeArea.top} alignItems="center" justifyContent="center" gap="$md">
+        <YStack
+          flex={1}
+          pt={safeArea.top}
+          alignItems="center"
+          justifyContent="center"
+          gap="$md"
+        >
           <View
             width={60}
             height={60}
@@ -278,9 +324,17 @@ export function ConversationListScreen({ role }: ConversationListScreenProps) {
             alignItems="center"
             justifyContent="center"
           >
-            <Spinner size="large" color="$primary" />
+            <Spinner
+              size="large"
+              color="$primary"
+            />
           </View>
-          <Text color="$colorSubtle" fontSize={15}>Loading messages...</Text>
+          <Text
+            color="$colorSubtle"
+            fontSize={15}
+          >
+            Loading messages...
+          </Text>
         </YStack>
       </GradientBackground>
     )
@@ -290,7 +344,14 @@ export function ConversationListScreen({ role }: ConversationListScreenProps) {
   if (error) {
     return (
       <GradientBackground>
-        <YStack flex={1} pt={safeArea.top} alignItems="center" justifyContent="center" px="$xl" gap="$md">
+        <YStack
+          flex={1}
+          pt={safeArea.top}
+          alignItems="center"
+          justifyContent="center"
+          px="$xl"
+          gap="$md"
+        >
           <View
             width={70}
             height={70}
@@ -299,12 +360,24 @@ export function ConversationListScreen({ role }: ConversationListScreenProps) {
             alignItems="center"
             justifyContent="center"
           >
-            <MessageCircle size={32} color="$error" />
+            <MessageCircle
+              size={32}
+              color="$error"
+            />
           </View>
-          <Text fontSize={18} fontWeight="700" color="$color" textAlign="center">
+          <Text
+            fontSize={18}
+            fontWeight="700"
+            color="$color"
+            textAlign="center"
+          >
             Couldn't Load Messages
           </Text>
-          <Text fontSize={14} color="$colorSubtle" textAlign="center">
+          <Text
+            fontSize={14}
+            color="$colorSubtle"
+            textAlign="center"
+          >
             Pull down to try again
           </Text>
         </YStack>
@@ -314,7 +387,10 @@ export function ConversationListScreen({ role }: ConversationListScreenProps) {
 
   return (
     <GradientBackground>
-      <YStack flex={1} pt={safeArea.top}>
+      <YStack
+        flex={1}
+        pt={safeArea.top}
+      >
         {/* Premium Header */}
         <YStack
           bg="rgba(255,255,255,0.98)"
@@ -325,7 +401,12 @@ export function ConversationListScreen({ role }: ConversationListScreenProps) {
           shadowOpacity={0.04}
           shadowRadius={12}
         >
-          <XStack px="$md" py="$sm" alignItems="center" gap="$md">
+          <XStack
+            px="$md"
+            py="$sm"
+            alignItems="center"
+            gap="$md"
+          >
             <Pressable
               onPress={() => router.back()}
               style={({ pressed }) => ({
@@ -334,15 +415,26 @@ export function ConversationListScreen({ role }: ConversationListScreenProps) {
                 backgroundColor: pressed ? 'rgba(0,0,0,0.04)' : 'transparent',
               })}
             >
-              <ArrowLeft size={22} color="#1F2937" />
+              <ArrowLeft
+                size={22}
+                color="#1F2937"
+              />
             </Pressable>
 
             <YStack flex={1}>
-              <Text fontSize={20} fontWeight="700" color="$color">
+              <Text
+                fontSize={20}
+                fontWeight="700"
+                color="$color"
+              >
                 Messages
               </Text>
               {(totalUnread ?? 0) > 0 && (
-                <Text fontSize={12} color="$primary" fontWeight="500">
+                <Text
+                  fontSize={12}
+                  color="$primary"
+                  fontWeight="500"
+                >
                   {totalUnread} unread
                 </Text>
               )}
@@ -356,7 +448,11 @@ export function ConversationListScreen({ role }: ConversationListScreenProps) {
                 py="$xs"
                 borderRadius={12}
               >
-                <Text fontSize={12} fontWeight="600" color="$primary">
+                <Text
+                  fontSize={12}
+                  fontWeight="600"
+                  color="$primary"
+                >
                   {conversations.length} {conversations.length === 1 ? 'chat' : 'chats'}
                 </Text>
               </View>

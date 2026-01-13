@@ -146,4 +146,3 @@ export interface SendMessageRequest {
   content?: string
   images?: RNFile[]
 }
-

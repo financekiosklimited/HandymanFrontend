@@ -8,5 +8,10 @@ export default function HandymanChatPage() {
     return null
   }
 
-  return <ChatScreen jobId={id} role="handyman" />
+  return (
+    <ChatScreen
+      jobId={id}
+      chatRole="handyman"
+    />
+  )
 }

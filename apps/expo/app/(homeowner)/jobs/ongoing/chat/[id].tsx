@@ -8,5 +8,10 @@ export default function HomeownerChatPage() {
     return null
   }
 
-  return <ChatScreen jobId={id} role="homeowner" />
+  return (
+    <ChatScreen
+      jobId={id}
+      chatRole="homeowner"
+    />
+  )
 }

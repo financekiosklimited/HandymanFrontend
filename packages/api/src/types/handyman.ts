@@ -438,5 +438,60 @@ export interface JobDashboardData {
   my_review: HomeownerReview | null
 }
 
+// Reimbursement types
+export type ReimbursementStatus = 'pending' | 'approved' | 'rejected'
+
+export interface ReimbursementCategory {
+  public_id: string
+  name: string
+  slug: string
+  description: string
+  icon: string
+  is_active: boolean
+}
+
+export interface ReimbursementAttachment {
+  public_id: string
+  file: string
+  file_name: string
+  created_at: string
+}
+
+export interface JobReimbursement {
+  public_id: string
+  name: string
+  category: ReimbursementCategory
+  amount: number
+  notes: string | null
+  status: ReimbursementStatus
+  homeowner_comment: string | null
+  reviewed_at: string | null
+  attachments: ReimbursementAttachment[]
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateReimbursementRequest {
+  name: string
+  category_id: string
+  amount: number
+  notes?: string
+  attachments: RNFile[]
+}
+
+export interface UpdateReimbursementRequest {
+  name?: string
+  category_id?: string
+  amount?: number
+  notes?: string
+  attachments?: RNFile[]
+  attachments_to_remove?: string[]
+}
+
+export interface ReviewReimbursementRequest {
+  decision: 'approved' | 'rejected'
+  comment?: string
+}
+
 // Re-export for convenience
 export type { PaginatedArrayResponse, ApiResponse, Notification } from './common'

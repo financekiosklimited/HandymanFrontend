@@ -148,8 +148,14 @@ export function useGeneralChat(role: ChatRole, conversationId: string | undefine
         public_id: conv.public_id,
         conversation_type: 'general',
         job: null,
-        homeowner: role === 'homeowner' ? { public_id: '', display_name: '', avatar_url: null } : conv.other_party,
-        handyman: role === 'handyman' ? { public_id: '', display_name: '', avatar_url: null } : conv.other_party,
+        homeowner:
+          role === 'homeowner'
+            ? { public_id: '', display_name: '', avatar_url: null }
+            : conv.other_party,
+        handyman:
+          role === 'handyman'
+            ? { public_id: '', display_name: '', avatar_url: null }
+            : conv.other_party,
         status: conv.status,
         homeowner_unread_count: role === 'homeowner' ? conv.unread_count : 0,
         handyman_unread_count: role === 'handyman' ? conv.unread_count : 0,
@@ -270,11 +276,12 @@ export function useMarkAsRead(role: ChatRole) {
       // Invalidate unread counts
       queryClient.invalidateQueries({
         predicate: (query) =>
-          query.queryKey[0] === 'chat' && 
-          (query.queryKey[1] === 'unread' || query.queryKey[1] === 'totalUnread' || query.queryKey[1] === 'list') && 
+          query.queryKey[0] === 'chat' &&
+          (query.queryKey[1] === 'unread' ||
+            query.queryKey[1] === 'totalUnread' ||
+            query.queryKey[1] === 'list') &&
           query.queryKey[2] === role,
       })
     },
   })
 }
-

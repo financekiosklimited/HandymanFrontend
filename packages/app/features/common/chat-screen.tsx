@@ -1,25 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import {
-  YStack,
-  XStack,
-  ScrollView,
-  Text,
-  Button,
-  Spinner,
-  View,
-  Image,
-  Input,
-} from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, Input } from '@my/ui'
 import { GradientBackground } from '@my/ui'
-import {
-  useJobChat,
-  useChatMessages,
-  useSendMessage,
-  useMarkAsRead,
-  chatQueryKeys,
-} from '@my/api'
+import { useJobChat, useChatMessages, useSendMessage, useMarkAsRead, chatQueryKeys } from '@my/api'
 import type { ChatMessage, ChatImage, ChatConversation } from '@my/api'
 import {
   ArrowLeft,
@@ -54,7 +38,7 @@ type ChatRole = 'homeowner' | 'handyman'
 
 interface ChatScreenProps {
   jobId: string
-  role: ChatRole
+  chatRole: ChatRole
 }
 
 interface RNFile {
@@ -66,27 +50,35 @@ interface RNFile {
 // ========== ChatHeader Component ==========
 function ChatHeader({
   conversation,
-  role,
+  chatRole,
   onBack,
   isReadOnly,
 }: {
   conversation: ChatConversation
-  role: ChatRole
+  chatRole: ChatRole
   onBack: () => void
   isReadOnly: boolean
 }) {
-  const otherParty = role === 'homeowner' ? conversation.handyman : conversation.homeowner
-  const otherPartyLabel = role === 'homeowner' ? 'Handyman' : 'Homeowner'
+  const otherParty = chatRole === 'homeowner' ? conversation.handyman : conversation.homeowner
+  const otherPartyLabel = chatRole === 'homeowner' ? 'Handyman' : 'Homeowner'
 
   // Format status badge
   const getStatusBadge = () => {
     if (!conversation.job) return null
     const status = conversation.job.status
     if (status === 'completed') {
-      return { bg: 'rgba(34, 197, 94, 0.1)' as const, color: '#22C55E' as const, label: 'Completed' }
+      return {
+        bg: 'rgba(34, 197, 94, 0.1)' as const,
+        color: '#22C55E' as const,
+        label: 'Completed',
+      }
     }
     if (status === 'in_progress') {
-      return { bg: 'rgba(12, 154, 92, 0.1)' as const, color: '#0C9A5C' as const, label: 'In Progress' }
+      return {
+        bg: 'rgba(12, 154, 92, 0.1)' as const,
+        color: '#0C9A5C' as const,
+        label: 'In Progress',
+      }
     }
     if (status === 'pending_completion') {
       return { bg: 'rgba(245, 158, 11, 0.1)' as const, color: '#F59E0B' as const, label: 'Pending' }
@@ -116,9 +108,20 @@ function ChatHeader({
       shadowRadius={8}
     >
       {/* Main Header Row */}
-      <XStack px="$md" py="$sm" alignItems="center" gap="$sm">
-        <Pressable onPress={onBack} style={{ padding: 8 }}>
-          <ArrowLeft size={24} color="#1F2937" />
+      <XStack
+        px="$md"
+        py="$sm"
+        alignItems="center"
+        gap="$sm"
+      >
+        <Pressable
+          onPress={onBack}
+          style={{ padding: 8 }}
+        >
+          <ArrowLeft
+            size={24}
+            color="#1F2937"
+          />
         </Pressable>
 
         {/* Avatar */}
@@ -141,20 +144,41 @@ function ChatHeader({
               resizeMode="cover"
             />
           ) : (
-            <Text fontSize="$5" fontWeight="700" color="$primary">
+            <Text
+              fontSize="$5"
+              fontWeight="700"
+              color="$primary"
+            >
               {otherParty.display_name.charAt(0).toUpperCase()}
             </Text>
           )}
         </View>
 
         {/* Name and Role */}
-        <YStack flex={1} gap={2}>
-          <Text fontSize="$4" fontWeight="700" color="$color" numberOfLines={1}>
+        <YStack
+          flex={1}
+          gap={2}
+        >
+          <Text
+            fontSize="$4"
+            fontWeight="700"
+            color="$color"
+            numberOfLines={1}
+          >
             {otherParty.display_name}
           </Text>
-          <XStack alignItems="center" gap="$xs">
-            <User size={12} color="#6B7280" />
-            <Text fontSize="$2" color="$colorSubtle">
+          <XStack
+            alignItems="center"
+            gap="$xs"
+          >
+            <User
+              size={12}
+              color="#6B7280"
+            />
+            <Text
+              fontSize="$2"
+              color="$colorSubtle"
+            >
               {otherPartyLabel}
             </Text>
           </XStack>
@@ -162,8 +186,17 @@ function ChatHeader({
 
         {/* Status Badge */}
         {statusBadge && (
-          <View bg={statusBadge.bg} px="$sm" py="$xs" borderRadius={12}>
-            <Text fontSize={11} fontWeight="600" color={statusBadge.color}>
+          <View
+            bg={statusBadge.bg}
+            px="$sm"
+            py="$xs"
+            borderRadius={12}
+          >
+            <Text
+              fontSize={11}
+              fontWeight="600"
+              color={statusBadge.color}
+            >
               {statusBadge.label}
             </Text>
           </View>
@@ -180,28 +213,63 @@ function ChatHeader({
         borderTopColor="rgba(0,0,0,0.04)"
       >
         {/* Job Title */}
-        <XStack alignItems="center" gap="$xs">
-          <Briefcase size={14} color="#0C9A5C" />
-          <Text fontSize="$3" fontWeight="600" color="$color" numberOfLines={1} flex={1}>
+        <XStack
+          alignItems="center"
+          gap="$xs"
+        >
+          <Briefcase
+            size={14}
+            color="#0C9A5C"
+          />
+          <Text
+            fontSize="$3"
+            fontWeight="600"
+            color="$color"
+            numberOfLines={1}
+            flex={1}
+          >
             {conversation.job?.title ?? 'Job'}
           </Text>
         </XStack>
 
         {/* Job Meta Row */}
-        <XStack alignItems="center" gap="$md">
+        <XStack
+          alignItems="center"
+          gap="$md"
+        >
           {/* Created Date */}
-          <XStack alignItems="center" gap={4}>
-            <Calendar size={12} color="#6B7280" />
-            <Text fontSize={11} color="$colorSubtle">
+          <XStack
+            alignItems="center"
+            gap={4}
+          >
+            <Calendar
+              size={12}
+              color="#6B7280"
+            />
+            <Text
+              fontSize={11}
+              color="$colorSubtle"
+            >
               Started {formatDate(conversation.created_at)}
             </Text>
           </XStack>
 
           {/* Read Only Badge */}
           {isReadOnly && (
-            <XStack alignItems="center" gap={4} ml="auto">
-              <Lock size={12} color="#EF4444" />
-              <Text fontSize={11} color="#EF4444" fontWeight="600">
+            <XStack
+              alignItems="center"
+              gap={4}
+              ml="auto"
+            >
+              <Lock
+                size={12}
+                color="#EF4444"
+              />
+              <Text
+                fontSize={11}
+                color="#EF4444"
+                fontWeight="600"
+              >
                 Read Only
               </Text>
             </XStack>
@@ -241,9 +309,16 @@ function ChatBubble({
     >
       {/* Images */}
       {message.images && message.images.length > 0 && (
-        <XStack flexWrap="wrap" gap="$xs" mb={message.content ? '$xs' : 0}>
+        <XStack
+          flexWrap="wrap"
+          gap="$xs"
+          mb={message.content ? '$xs' : 0}
+        >
           {message.images.map((img) => (
-            <Pressable key={img.public_id} onPress={() => onImagePress?.(img)}>
+            <Pressable
+              key={img.public_id}
+              onPress={() => onImagePress?.(img)}
+            >
               <View
                 width={message.images.length === 1 ? 200 : 100}
                 height={message.images.length === 1 ? 150 : 100}
@@ -279,7 +354,11 @@ function ChatBubble({
           shadowOpacity={isSent ? 0.2 : 0.03}
           shadowRadius={6}
         >
-          <Text fontSize="$3" color={isSent ? 'white' : '$color'} lineHeight={22}>
+          <Text
+            fontSize="$3"
+            color={isSent ? 'white' : '$color'}
+            lineHeight={22}
+          >
             {message.content}
           </Text>
         </View>
@@ -294,14 +373,23 @@ function ChatBubble({
           mt={4}
           px="$xs"
         >
-          <Text fontSize={10} color="$colorMuted">
+          <Text
+            fontSize={10}
+            color="$colorMuted"
+          >
             {formatTime(message.created_at)}
           </Text>
           {isSent &&
             (message.is_read ? (
-              <CheckCheck size={12} color="#0C9A5C" />
+              <CheckCheck
+                size={12}
+                color="#0C9A5C"
+              />
             ) : (
-              <Check size={12} color="#9CA3AF" />
+              <Check
+                size={12}
+                color="#9CA3AF"
+              />
             ))}
         </XStack>
       )}
@@ -324,8 +412,18 @@ function ImageViewerModal({
   const { width, height } = Dimensions.get('window')
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View flex={1} bg="rgba(0,0,0,0.95)" justifyContent="center" alignItems="center">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View
+        flex={1}
+        bg="rgba(0,0,0,0.95)"
+        justifyContent="center"
+        alignItems="center"
+      >
         <Pressable
           onPress={onClose}
           style={{
@@ -338,7 +436,10 @@ function ImageViewerModal({
             borderRadius: 20,
           }}
         >
-          <X size={24} color="white" />
+          <X
+            size={24}
+            color="white"
+          />
         </Pressable>
 
         <Image
@@ -367,8 +468,18 @@ function PreviewImageModal({
   const { width, height } = Dimensions.get('window')
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View flex={1} bg="rgba(0,0,0,0.95)" justifyContent="center" alignItems="center">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View
+        flex={1}
+        bg="rgba(0,0,0,0.95)"
+        justifyContent="center"
+        alignItems="center"
+      >
         <Pressable
           onPress={onClose}
           style={{
@@ -381,12 +492,25 @@ function PreviewImageModal({
             borderRadius: 20,
           }}
         >
-          <X size={24} color="white" />
+          <X
+            size={24}
+            color="white"
+          />
         </Pressable>
 
-        <Image source={{ uri: imageUri }} width={width} height={height * 0.7} resizeMode="contain" />
+        <Image
+          source={{ uri: imageUri }}
+          width={width}
+          height={height * 0.7}
+          resizeMode="contain"
+        />
 
-        <Text color="white" fontSize="$2" mt="$md" opacity={0.7}>
+        <Text
+          color="white"
+          fontSize="$2"
+          mt="$md"
+          opacity={0.7}
+        >
           Tap X to close preview
         </Text>
       </View>
@@ -415,10 +539,16 @@ function ImagePreviewRow({
       borderTopWidth={1}
       borderTopColor="rgba(0,0,0,0.06)"
     >
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      >
         <XStack gap="$sm">
           {images.map((img, index) => (
-            <View key={index} position="relative">
+            <View
+              key={index}
+              position="relative"
+            >
               <Pressable onPress={() => onPreview(img.uri)}>
                 <View
                   width={64}
@@ -429,7 +559,12 @@ function ImagePreviewRow({
                   borderWidth={2}
                   borderColor="rgba(12, 154, 92, 0.3)"
                 >
-                  <Image source={{ uri: img.uri }} width={64} height={64} resizeMode="cover" />
+                  <Image
+                    source={{ uri: img.uri }}
+                    width={64}
+                    height={64}
+                    resizeMode="cover"
+                  />
                 </View>
               </Pressable>
               <Pressable
@@ -450,7 +585,10 @@ function ImagePreviewRow({
                   shadowRadius: 3,
                 }}
               >
-                <X size={12} color="white" />
+                <X
+                  size={12}
+                  color="white"
+                />
               </Pressable>
             </View>
           ))}
@@ -525,8 +663,15 @@ function ChatInput({
         borderTopWidth={1}
         borderTopColor="rgba(239, 68, 68, 0.15)"
       >
-        <Lock size={16} color="#EF4444" />
-        <Text fontSize="$3" color="#EF4444" fontWeight="500">
+        <Lock
+          size={16}
+          color="#EF4444"
+        />
+        <Text
+          fontSize="$3"
+          color="#EF4444"
+          fontWeight="500"
+        >
           Chat is closed for completed jobs
         </Text>
       </XStack>
@@ -534,10 +679,23 @@ function ChatInput({
   }
 
   return (
-    <YStack bg="rgba(255,255,255,0.98)" borderTopWidth={1} borderTopColor="rgba(0,0,0,0.06)">
-      <ImagePreviewRow images={images} onRemove={removeImage} onPreview={setPreviewUri} />
+    <YStack
+      bg="rgba(255,255,255,0.98)"
+      borderTopWidth={1}
+      borderTopColor="rgba(0,0,0,0.06)"
+    >
+      <ImagePreviewRow
+        images={images}
+        onRemove={removeImage}
+        onPreview={setPreviewUri}
+      />
 
-      <XStack px="$md" py="$sm" alignItems="flex-end" gap="$sm">
+      <XStack
+        px="$md"
+        py="$sm"
+        alignItems="flex-end"
+        gap="$sm"
+      >
         {/* Image Picker Button */}
         <Pressable
           onPress={handlePickImage}
@@ -550,7 +708,10 @@ function ChatInput({
             justifyContent: 'center',
           })}
         >
-          <ImagePlus size={22} color="#0C9A5C" />
+          <ImagePlus
+            size={22}
+            color="#0C9A5C"
+          />
         </Pressable>
 
         {/* Text Input */}
@@ -586,7 +747,11 @@ function ChatInput({
             width: 44,
             height: 44,
             borderRadius: 22,
-            backgroundColor: canSend ? (pressed ? 'rgba(12,154,92,0.9)' : '#0C9A5C') : 'rgba(0,0,0,0.08)',
+            backgroundColor: canSend
+              ? pressed
+                ? 'rgba(12,154,92,0.9)'
+                : '#0C9A5C'
+              : 'rgba(0,0,0,0.08)',
             alignItems: 'center',
             justifyContent: 'center',
             shadowColor: canSend ? '#0C9A5C' : 'transparent',
@@ -595,12 +760,26 @@ function ChatInput({
             shadowRadius: 6,
           })}
         >
-          {isSending ? <Spinner size="small" color="white" /> : <Send size={20} color={canSend ? 'white' : '#9CA3AF'} />}
+          {isSending ? (
+            <Spinner
+              size="small"
+              color="white"
+            />
+          ) : (
+            <Send
+              size={20}
+              color={canSend ? 'white' : '#9CA3AF'}
+            />
+          )}
         </Pressable>
       </XStack>
 
       {/* Preview Modal */}
-      <PreviewImageModal visible={!!previewUri} imageUri={previewUri} onClose={() => setPreviewUri(null)} />
+      <PreviewImageModal
+        visible={!!previewUri}
+        imageUri={previewUri}
+        onClose={() => setPreviewUri(null)}
+      />
     </YStack>
   )
 }
@@ -608,14 +787,40 @@ function ChatInput({
 // ========== EmptyState Component ==========
 function EmptyState() {
   return (
-    <YStack flex={1} alignItems="center" justifyContent="center" px="$xl" gap="$md">
-      <View width={80} height={80} borderRadius={40} bg="$primaryBackground" alignItems="center" justifyContent="center">
-        <MessageCircle size={36} color="#0C9A5C" />
+    <YStack
+      flex={1}
+      alignItems="center"
+      justifyContent="center"
+      px="$xl"
+      gap="$md"
+    >
+      <View
+        width={80}
+        height={80}
+        borderRadius={40}
+        bg="$primaryBackground"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <MessageCircle
+          size={36}
+          color="#0C9A5C"
+        />
       </View>
-      <Text fontSize="$5" fontWeight="700" color="$color" textAlign="center">
+      <Text
+        fontSize="$5"
+        fontWeight="700"
+        color="$color"
+        textAlign="center"
+      >
         Start the Conversation
       </Text>
-      <Text fontSize="$3" color="$colorSubtle" textAlign="center" lineHeight={22}>
+      <Text
+        fontSize="$3"
+        color="$colorSubtle"
+        textAlign="center"
+        lineHeight={22}
+      >
         Send a message to start chatting about this job
       </Text>
     </YStack>
@@ -623,7 +828,7 @@ function EmptyState() {
 }
 
 // ========== Main ChatScreen Component ==========
-export function ChatScreen({ jobId, role }: ChatScreenProps) {
+export function ChatScreen({ jobId, chatRole }: ChatScreenProps) {
   const router = useRouter()
   const safeArea = useSafeArea()
   const toast = useToastController()
@@ -639,7 +844,7 @@ export function ChatScreen({ jobId, role }: ChatScreenProps) {
     data: conversation,
     isLoading: conversationLoading,
     error: conversationError,
-  } = useJobChat(role, jobId)
+  } = useJobChat(chatRole, jobId)
 
   const {
     data: messagesData,
@@ -648,10 +853,10 @@ export function ChatScreen({ jobId, role }: ChatScreenProps) {
     hasNextPage,
     isFetchingNextPage,
     refetch: refetchMessages,
-  } = useChatMessages(role, conversation?.public_id)
+  } = useChatMessages(chatRole, conversation?.public_id)
 
-  const sendMessageMutation = useSendMessage(role)
-  const markAsReadMutation = useMarkAsRead(role)
+  const sendMessageMutation = useSendMessage(chatRole)
+  const markAsReadMutation = useMarkAsRead(chatRole)
 
   // Flatten messages from pages - API returns oldest first, which is what we want
   // Messages should be: [oldest, ..., newest] - oldest at top, newest at bottom
@@ -718,8 +923,17 @@ export function ChatScreen({ jobId, role }: ChatScreenProps) {
   if (conversationLoading || (messagesLoading && !messagesData)) {
     return (
       <GradientBackground>
-        <YStack flex={1} pt={safeArea.top} alignItems="center" justifyContent="center" gap="$md">
-          <Spinner size="large" color="$primary" />
+        <YStack
+          flex={1}
+          pt={safeArea.top}
+          alignItems="center"
+          justifyContent="center"
+          gap="$md"
+        >
+          <Spinner
+            size="large"
+            color="$primary"
+          />
           <Text color="$colorSubtle">Loading chat...</Text>
         </YStack>
       </GradientBackground>
@@ -730,15 +944,38 @@ export function ChatScreen({ jobId, role }: ChatScreenProps) {
   if (conversationError || !conversation) {
     return (
       <GradientBackground>
-        <YStack flex={1} pt={safeArea.top} alignItems="center" justifyContent="center" px="$xl" gap="$md">
-          <Text fontSize="$5" fontWeight="700" color="$error">
+        <YStack
+          flex={1}
+          pt={safeArea.top}
+          alignItems="center"
+          justifyContent="center"
+          px="$xl"
+          gap="$md"
+        >
+          <Text
+            fontSize="$5"
+            fontWeight="700"
+            color="$error"
+          >
             Unable to load chat
           </Text>
-          <Text fontSize="$3" color="$colorSubtle" textAlign="center">
+          <Text
+            fontSize="$3"
+            color="$colorSubtle"
+            textAlign="center"
+          >
             {(conversationError as any)?.message || 'Chat is only available for jobs in progress'}
           </Text>
-          <Button bg="$primary" borderRadius={12} onPress={() => router.back()} mt="$md">
-            <Text color="white" fontWeight="600">
+          <Button
+            bg="$primary"
+            borderRadius={12}
+            onPress={() => router.back()}
+            mt="$md"
+          >
+            <Text
+              color="white"
+              fontWeight="600"
+            >
               Go Back
             </Text>
           </Button>
@@ -749,10 +986,22 @@ export function ChatScreen({ jobId, role }: ChatScreenProps) {
 
   return (
     <GradientBackground>
-      <YStack flex={1} pt={safeArea.top}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0}>
+      <YStack
+        flex={1}
+        pt={safeArea.top}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={0}
+        >
           {/* Header */}
-          <ChatHeader conversation={conversation} role={role} onBack={() => router.back()} isReadOnly={isReadOnly} />
+          <ChatHeader
+            conversation={conversation}
+            chatRole={chatRole}
+            onBack={() => router.back()}
+            isReadOnly={isReadOnly}
+          />
 
           {/* Messages List */}
           {messages.length === 0 ? (
@@ -763,7 +1012,11 @@ export function ChatScreen({ jobId, role }: ChatScreenProps) {
               data={messages}
               keyExtractor={(item) => item.public_id}
               renderItem={({ item }) => (
-                <ChatBubble message={item} isSent={item.sender_role === role} onImagePress={setViewerImage} />
+                <ChatBubble
+                  message={item}
+                  isSent={item.sender_role === chatRole}
+                  onImagePress={setViewerImage}
+                />
               )}
               contentContainerStyle={{
                 padding: 16,
@@ -783,16 +1036,33 @@ export function ChatScreen({ jobId, role }: ChatScreenProps) {
               // Show loading indicator at TOP when loading older
               ListHeaderComponent={
                 isFetchingNextPage ? (
-                  <YStack py="$md" alignItems="center">
-                    <Spinner size="small" color="$primary" />
-                    <Text fontSize="$2" color="$colorSubtle" mt="$xs">
+                  <YStack
+                    py="$md"
+                    alignItems="center"
+                  >
+                    <Spinner
+                      size="small"
+                      color="$primary"
+                    />
+                    <Text
+                      fontSize="$2"
+                      color="$colorSubtle"
+                      mt="$xs"
+                    >
                       Loading older messages...
                     </Text>
                   </YStack>
                 ) : hasNextPage ? (
                   <Pressable onPress={handleLoadOlder}>
-                    <YStack py="$md" alignItems="center">
-                      <Text fontSize="$2" color="$primary" fontWeight="500">
+                    <YStack
+                      py="$md"
+                      alignItems="center"
+                    >
+                      <Text
+                        fontSize="$2"
+                        color="$primary"
+                        fontWeight="500"
+                      >
                         Load older messages
                       </Text>
                     </YStack>
@@ -806,11 +1076,19 @@ export function ChatScreen({ jobId, role }: ChatScreenProps) {
           )}
 
           {/* Input - No extra padding, directly at bottom */}
-          <ChatInput onSend={handleSend} isSending={sendMessageMutation.isPending} disabled={isReadOnly} />
+          <ChatInput
+            onSend={handleSend}
+            isSending={sendMessageMutation.isPending}
+            disabled={isReadOnly}
+          />
         </KeyboardAvoidingView>
 
         {/* Image Viewer Modal */}
-        <ImageViewerModal visible={!!viewerImage} image={viewerImage} onClose={() => setViewerImage(null)} />
+        <ImageViewerModal
+          visible={!!viewerImage}
+          image={viewerImage}
+          onClose={() => setViewerImage(null)}
+        />
       </YStack>
     </GradientBackground>
   )

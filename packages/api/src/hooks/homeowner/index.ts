@@ -603,3 +603,66 @@ export function useUpdateHandymanReview() {
     },
   })
 }
+
+// ========== Reimbursement Hooks ==========
+
+import type { JobReimbursement, ReviewReimbursementRequest } from '../../types/handyman'
+
+/**
+ * Hook to fetch reimbursements for a job (homeowner view).
+ */
+export function useHomeownerReimbursements(jobId: string) {
+  return useQuery({
+    queryKey: ['homeowner', 'jobs', jobId, 'reimbursements'],
+    queryFn: async () => {
+      const response = await apiClient
+        .get(`homeowner/jobs/${jobId}/reimbursements/`)
+        .json<ApiResponse<JobReimbursement[]>>()
+      return response.data || []
+    },
+    enabled: !!jobId,
+  })
+}
+
+/**
+ * Hook to fetch a single reimbursement (homeowner view).
+ */
+export function useHomeownerReimbursement(jobId: string, reimbursementId: string) {
+  return useQuery({
+    queryKey: ['homeowner', 'jobs', jobId, 'reimbursements', reimbursementId],
+    queryFn: async () => {
+      const response = await apiClient
+        .get(`homeowner/jobs/${jobId}/reimbursements/${reimbursementId}/`)
+        .json<ApiResponse<JobReimbursement>>()
+      return response.data
+    },
+    enabled: !!jobId && !!reimbursementId,
+  })
+}
+
+/**
+ * Hook to review (approve/reject) a reimbursement.
+ */
+export function useReviewReimbursement() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      jobId,
+      reimbursementId,
+      data,
+    }: { jobId: string; reimbursementId: string; data: ReviewReimbursementRequest }) => {
+      const response = await apiClient
+        .post(`homeowner/jobs/${jobId}/reimbursements/${reimbursementId}/review/`, { json: data })
+        .json<ApiResponse<JobReimbursement>>()
+      return response.data
+    },
+    onSuccess: (_, { jobId, reimbursementId }) => {
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'jobs', jobId, 'reimbursements'] })
+      queryClient.invalidateQueries({
+        queryKey: ['homeowner', 'jobs', jobId, 'reimbursements', reimbursementId],
+      })
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'job-dashboard', jobId] })
+    },
+  })
+}

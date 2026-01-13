@@ -21,6 +21,9 @@ import type {
   CreateReviewRequest,
   CreateJobApplicationRequest,
   EditJobApplicationRequest,
+  JobReimbursement,
+  CreateReimbursementRequest,
+  UpdateReimbursementRequest,
 } from '../../types/handyman'
 
 interface HandymanJobsForYouParams {
@@ -274,7 +277,10 @@ export function useEditApplication() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ applicationId, data }: { applicationId: string; data: EditJobApplicationRequest }) => {
+    mutationFn: async ({
+      applicationId,
+      data,
+    }: { applicationId: string; data: EditJobApplicationRequest }) => {
       const formData = new FormData()
       if (data.predicted_hours !== undefined) {
         formData.append('predicted_hours', data.predicted_hours.toString())
@@ -723,6 +729,128 @@ export function useCreateHomeownerReview() {
       return response.data
     },
     onSuccess: (_, { jobId }) => {
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'job-dashboard', jobId] })
+    },
+  })
+}
+
+/**
+ * Hook to fetch reimbursements for a job.
+ */
+export function useHandymanReimbursements(jobId: string) {
+  return useQuery({
+    queryKey: ['handyman', 'jobs', jobId, 'reimbursements'],
+    queryFn: async () => {
+      const response = await apiClient
+        .get(`handyman/jobs/${jobId}/reimbursements/`)
+        .json<ApiResponse<JobReimbursement[]>>()
+      return response.data || []
+    },
+    enabled: !!jobId,
+  })
+}
+
+/**
+ * Hook to fetch a single reimbursement.
+ */
+export function useHandymanReimbursement(jobId: string, reimbursementId: string) {
+  return useQuery({
+    queryKey: ['handyman', 'jobs', jobId, 'reimbursements', reimbursementId],
+    queryFn: async () => {
+      const response = await apiClient
+        .get(`handyman/jobs/${jobId}/reimbursements/${reimbursementId}/`)
+        .json<ApiResponse<JobReimbursement>>()
+      return response.data
+    },
+    enabled: !!jobId && !!reimbursementId,
+  })
+}
+
+/**
+ * Hook to create a reimbursement request.
+ */
+export function useCreateReimbursement() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ jobId, data }: { jobId: string; data: CreateReimbursementRequest }) => {
+      const formData = new FormData()
+      formData.append('name', data.name)
+      formData.append('category_id', data.category_id)
+      formData.append('amount', data.amount.toString())
+      if (data.notes) {
+        formData.append('notes', data.notes)
+      }
+      if (data.attachments && data.attachments.length > 0) {
+        data.attachments.forEach((file) => {
+          formData.append('attachments', file as any)
+        })
+      }
+
+      const response = await apiClient
+        .post(`handyman/jobs/${jobId}/reimbursements/`, {
+          body: formData,
+          headers: { 'Content-Type': undefined as any },
+        })
+        .json<ApiResponse<JobReimbursement>>()
+      return response.data
+    },
+    onSuccess: (_, { jobId }) => {
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'jobs', jobId, 'reimbursements'] })
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'job-dashboard', jobId] })
+    },
+  })
+}
+
+/**
+ * Hook to update a reimbursement request.
+ */
+export function useUpdateReimbursement() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      jobId,
+      reimbursementId,
+      data,
+    }: { jobId: string; reimbursementId: string; data: UpdateReimbursementRequest }) => {
+      const formData = new FormData()
+      if (data.name) {
+        formData.append('name', data.name)
+      }
+      if (data.category_id) {
+        formData.append('category_id', data.category_id)
+      }
+      if (data.amount !== undefined) {
+        formData.append('amount', data.amount.toString())
+      }
+      if (data.notes !== undefined) {
+        formData.append('notes', data.notes)
+      }
+      if (data.attachments && data.attachments.length > 0) {
+        data.attachments.forEach((file) => {
+          formData.append('attachments', file as any)
+        })
+      }
+      if (data.attachments_to_remove && data.attachments_to_remove.length > 0) {
+        data.attachments_to_remove.forEach((id) => {
+          formData.append('attachments_to_remove', id)
+        })
+      }
+
+      const response = await apiClient
+        .put(`handyman/jobs/${jobId}/reimbursements/${reimbursementId}/edit/`, {
+          body: formData,
+          headers: { 'Content-Type': undefined as any },
+        })
+        .json<ApiResponse<JobReimbursement>>()
+      return response.data
+    },
+    onSuccess: (_, { jobId, reimbursementId }) => {
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'jobs', jobId, 'reimbursements'] })
+      queryClient.invalidateQueries({
+        queryKey: ['handyman', 'jobs', jobId, 'reimbursements', reimbursementId],
+      })
       queryClient.invalidateQueries({ queryKey: ['handyman', 'job-dashboard', jobId] })
     },
   })
