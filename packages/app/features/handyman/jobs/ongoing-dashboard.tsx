@@ -3336,31 +3336,33 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                         </View>
                       )}
                   </XStack>
-                  <Button
-                    unstyled
-                    onPress={handleCreateReimbursement}
-                    bg="$primary"
-                    px="$md"
-                    py="$sm"
-                    borderRadius={20}
-                  >
-                    <XStack
-                      alignItems="center"
-                      gap="$xs"
+                  {!isCompleted && (
+                    <Button
+                      unstyled
+                      onPress={handleCreateReimbursement}
+                      bg="$primary"
+                      px="$md"
+                      py="$sm"
+                      borderRadius={20}
                     >
-                      <Plus
-                        size={14}
-                        color="white"
-                      />
-                      <Text
-                        color="white"
-                        fontSize="$2"
-                        fontWeight="600"
+                      <XStack
+                        alignItems="center"
+                        gap="$xs"
                       >
-                        New
-                      </Text>
-                    </XStack>
-                  </Button>
+                        <Plus
+                          size={14}
+                          color="white"
+                        />
+                        <Text
+                          color="white"
+                          fontSize="$2"
+                          fontWeight="600"
+                        >
+                          New
+                        </Text>
+                      </XStack>
+                    </Button>
+                  )}
                 </XStack>
                 {reimbursementsLoading ? (
                   <YStack
