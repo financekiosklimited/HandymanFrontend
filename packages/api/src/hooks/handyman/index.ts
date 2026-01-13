@@ -301,7 +301,7 @@ export function useEditApplication() {
       }
 
       const response = await apiClient
-        .put(`handyman/applications/${applicationId}/edit/`, {
+        .put(`handyman/applications/${applicationId}/`, {
           body: formData,
           headers: { 'Content-Type': undefined },
         })
@@ -655,7 +655,7 @@ export function useUpdateDailyReport() {
       data,
     }: { jobId: string; reportId: string; data: UpdateDailyReportRequest }) => {
       const response = await apiClient
-        .put(`handyman/jobs/${jobId}/reports/${reportId}/edit/`, { json: data })
+        .put(`handyman/jobs/${jobId}/reports/${reportId}/`, { json: data })
         .json<ApiResponse<DailyReport>>()
       return response.data
     },
@@ -839,7 +839,7 @@ export function useUpdateReimbursement() {
       }
 
       const response = await apiClient
-        .put(`handyman/jobs/${jobId}/reimbursements/${reimbursementId}/edit/`, {
+        .put(`handyman/jobs/${jobId}/reimbursements/${reimbursementId}/`, {
           body: formData,
           headers: { 'Content-Type': undefined as any },
         })
