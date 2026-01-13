@@ -2566,14 +2566,15 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
             )}
 
             {/* Job Card */}
-            <YStack
-              bg="rgba(255,255,255,0.98)"
-              borderRadius={24}
-              p="$lg"
-              gap="$md"
-              borderWidth={1}
-              borderColor="rgba(0,0,0,0.06)"
-            >
+            <Pressable onPress={() => router.push(`/(homeowner)/jobs/${jobId}`)}>
+              <YStack
+                bg="rgba(255,255,255,0.98)"
+                borderRadius={24}
+                p="$lg"
+                gap="$md"
+                borderWidth={1}
+                borderColor="rgba(0,0,0,0.06)"
+              >
               <YStack gap="$xs">
                 <Text
                   fontSize="$5"
@@ -2684,6 +2685,7 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
                 </XStack>
               </XStack>
             </YStack>
+            </Pressable>
 
             {job.description && (
               <YStack
