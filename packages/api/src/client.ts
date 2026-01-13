@@ -4,6 +4,12 @@ import { getAuthStore } from './store/auth'
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000'
 
+const API_TIMEOUT_MS = (() => {
+  const raw = process.env.NEXT_PUBLIC_API_TIMEOUT_MS || process.env.EXPO_PUBLIC_API_TIMEOUT_MS
+  const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN
+  return Number.isFinite(parsed) ? parsed : 30_000
+})()
+
 // Flag to prevent multiple refresh attempts
 let isRefreshing = false
 let refreshPromise: Promise<boolean> | null = null
@@ -22,6 +28,7 @@ async function refreshTokens(): Promise<boolean> {
       .post(`${API_BASE_URL}/api/v1/mobile/auth/refresh`, {
         json: { refresh_token: refreshToken },
         headers: { 'Content-Type': 'application/json' },
+        timeout: API_TIMEOUT_MS,
       })
       .json<{
         message: string
@@ -53,6 +60,7 @@ async function refreshTokens(): Promise<boolean> {
 export function createApiClient(): KyInstance {
   const client = ky.create({
     prefixUrl: `${API_BASE_URL}/api/v1/mobile`,
+    timeout: API_TIMEOUT_MS,
     headers: {
       'Content-Type': 'application/json',
     },
