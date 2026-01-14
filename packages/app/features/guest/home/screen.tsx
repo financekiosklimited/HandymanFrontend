@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import * as Location from 'expo-location'
 import { YStack, XStack, ScrollView, Text, Button, Spinner } from '@my/ui'
-import { SearchBar, BottomNav, JobCard, HandymanCard, GradientBackground } from '@my/ui'
-import { useGuestJobs, useGuestHandymen } from '@my/api'
+import { SearchBar, BottomNav, JobCard, HandymanCard, GradientBackground, JobFilters } from '@my/ui'
+import { useGuestJobs, useGuestHandymen, useCategories, useCities } from '@my/api'
 import {
   Menu,
   Bookmark,
@@ -21,11 +21,17 @@ export function GuestHomeScreen() {
   const router = useRouter()
   const insets = useSafeArea()
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
+  const [selectedCity, setSelectedCity] = useState<string | undefined>(undefined)
   const [location, setLocation] = useState<{
     latitude: number
     longitude: number
   } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+
+  // Fetch categories and cities for filters
+  const { data: categories, isLoading: categoriesLoading } = useCategories()
+  const { data: cities, isLoading: citiesLoading } = useCities()
 
   // Request location permission and get current location
   useEffect(() => {
@@ -99,6 +105,8 @@ export function GuestHomeScreen() {
     isFetchingNextPage: isFetchingMoreJobs,
   } = useGuestJobs({
     search: searchQuery || undefined,
+    category: selectedCategory,
+    city: selectedCity,
     ...(location && {
       latitude: location.latitude,
       longitude: location.longitude,
@@ -186,6 +194,20 @@ export function GuestHomeScreen() {
             />
           </Button>
         </XStack>
+
+        {/* Filters */}
+        <YStack px="$md">
+          <JobFilters
+            categories={categories}
+            cities={cities}
+            selectedCategory={selectedCategory}
+            selectedCity={selectedCity}
+            onCategoryChange={setSelectedCategory}
+            onCityChange={setSelectedCity}
+            isLoadingCategories={categoriesLoading}
+            isLoadingCities={citiesLoading}
+          />
+        </YStack>
 
         {/* Content */}
         <ScrollView flex={1}>

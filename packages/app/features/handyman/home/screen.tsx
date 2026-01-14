@@ -3,12 +3,14 @@
 import { useState, useEffect, useMemo } from 'react'
 import * as Location from 'expo-location'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
-import { SearchBar, JobCard, GradientBackground, WelcomeHeader } from '@my/ui'
+import { SearchBar, JobCard, GradientBackground, WelcomeHeader, JobFilters } from '@my/ui'
 import {
   useHandymanJobsForYou,
   useAuthStore,
   useHandymanProfile,
   useTotalUnreadCount,
+  useCategories,
+  useCities,
 } from '@my/api'
 import { Menu, Bookmark, MessageCircle } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
@@ -67,11 +69,17 @@ export function HandymanHomeScreen() {
   const user = useAuthStore((state) => state.user)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<TabType>('top-picks')
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
+  const [selectedCity, setSelectedCity] = useState<string | undefined>(undefined)
   const [location, setLocation] = useState<{
     latitude: number
     longitude: number
   } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+
+  // Fetch categories and cities for filters
+  const { data: categories, isLoading: categoriesLoading } = useCategories()
+  const { data: cities, isLoading: citiesLoading } = useCities()
 
   // Request location permission and get current location
   useEffect(() => {
@@ -110,10 +118,14 @@ export function HandymanHomeScreen() {
   const jobsParams = useMemo(() => {
     const baseParams: {
       search?: string
+      category?: string
+      city?: string
       latitude?: number
       longitude?: number
     } = {
       search: searchQuery || undefined,
+      category: selectedCategory,
+      city: selectedCity,
     }
 
     // Only include location for 'nearby' tab
@@ -123,7 +135,7 @@ export function HandymanHomeScreen() {
     }
 
     return baseParams
-  }, [searchQuery, activeTab, location])
+  }, [searchQuery, activeTab, location, selectedCategory, selectedCity])
 
   const {
     data: jobsData,
@@ -199,6 +211,20 @@ export function HandymanHomeScreen() {
             onPress={() => router.push('/(handyman)/messages')}
           />
         </XStack>
+
+        {/* Filters */}
+        <YStack px="$md">
+          <JobFilters
+            categories={categories}
+            cities={cities}
+            selectedCategory={selectedCategory}
+            selectedCity={selectedCity}
+            onCategoryChange={setSelectedCategory}
+            onCityChange={setSelectedCity}
+            isLoadingCategories={categoriesLoading}
+            isLoadingCities={citiesLoading}
+          />
+        </YStack>
 
         {/* Content */}
         <ScrollView flex={1}>
