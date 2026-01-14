@@ -34,7 +34,7 @@ export function useHomeownerJobs(params?: HomeownerJobsParams) {
       try {
         const searchParams = new URLSearchParams()
         if (params?.status) searchParams.set('status', params.status)
-        if (params?.category) searchParams.set('category', params.category)
+        if (params?.category) searchParams.set('category_id', params.category)
         if (params?.search) searchParams.set('search', params.search)
         searchParams.set('page', pageParam.toString())
 

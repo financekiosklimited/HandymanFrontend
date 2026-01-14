@@ -44,8 +44,8 @@ export function useHandymanJobsForYou(params?: HandymanJobsForYouParams) {
     queryFn: async ({ pageParam = 1 }) => {
       try {
         const searchParams = new URLSearchParams()
-        if (params?.category) searchParams.set('category', params.category)
-        if (params?.city) searchParams.set('city', params.city)
+        if (params?.category) searchParams.set('category_id', params.category)
+        if (params?.city) searchParams.set('city_id', params.city)
         if (params?.latitude) searchParams.set('latitude', params.latitude.toString())
         if (params?.longitude) searchParams.set('longitude', params.longitude.toString())
         if (params?.search) searchParams.set('search', params.search)

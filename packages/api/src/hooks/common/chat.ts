@@ -180,7 +180,7 @@ export function useChatMessages(role: ChatRole, conversationId: string | undefin
     queryFn: async ({ pageParam }): Promise<{ messages: ChatMessage[]; hasMore: boolean }> => {
       const params = new URLSearchParams({ limit: '50' })
       if (pageParam) {
-        params.set('before', pageParam)
+        params.set('before_id', pageParam)
       }
 
       const response = await apiClient
