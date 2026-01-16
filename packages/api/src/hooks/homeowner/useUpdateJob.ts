@@ -107,7 +107,7 @@ export function useUpdateJob() {
         .put(`homeowner/jobs/${publicId}/`, {
           body: formData,
           headers: {
-            // Let the browser set Content-Type with boundary for FormData
+            'Content-Type': undefined,
           },
         })
         .json<ApiResponse<HomeownerJob>>()
