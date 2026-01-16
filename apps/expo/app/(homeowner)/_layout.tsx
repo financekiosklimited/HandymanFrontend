@@ -120,7 +120,10 @@ export default function HomeownerLayout() {
       flex={1}
       backgroundColor="$background"
     >
-      <View flex={1}>
+      <View
+        flex={1}
+        pb={shouldShowBottomNav()}
+      >
         <Stack
           screenOptions={{
             headerShown: false,

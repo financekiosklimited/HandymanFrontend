@@ -1,6 +1,7 @@
 import { XStack, YStack, Text, Button, View, Spinner, useTheme } from 'tamagui'
 import { Search, Bell, Plus, Briefcase, User } from '@tamagui/lucide-icons'
 import type { IconProps } from '@tamagui/helpers-icon'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 type NavVariant = 'guest' | 'homeowner' | 'handyman'
 
@@ -70,6 +71,7 @@ export function BottomNav({
 }: BottomNavProps) {
   const navItems = getNavItems(variant)
   const theme = useTheme()
+  const insets = useSafeAreaInsets()
 
   const handleNavPress = (item: BottomNavItem) => {
     // If it's the Add button and we have a custom handler, use it
@@ -93,6 +95,7 @@ export function BottomNav({
       borderTopColor="$borderColor"
       px="$xl"
       py="$md"
+      pb={insets.bottom || '$md'}
       justifyContent="space-around"
       alignItems="flex-start"
     >
