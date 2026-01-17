@@ -213,7 +213,10 @@ export function HandymanHomeScreen() {
         </XStack>
 
         {/* Filters */}
-        <YStack px="$md">
+        <YStack
+          px="$md"
+          pb="$sm"
+        >
           <JobFilters
             categories={categories}
             cities={cities}
