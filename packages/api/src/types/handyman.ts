@@ -1,4 +1,5 @@
 import type { PaginatedArrayResponse, ApiResponse } from './common'
+import type { Attachment, AttachmentUpload } from './attachment'
 
 // Job status for handyman view
 export type HandymanJobStatus =
@@ -40,10 +41,7 @@ export interface HandymanJobForYou {
     avatar_url: string | null
   } | null
   distance_km: number | null
-  images?: Array<{
-    public_id: string
-    image: string
-  }>
+  attachments?: Attachment[]
 }
 
 // Handyman's own applied/assigned jobs
@@ -122,13 +120,8 @@ export interface JobApplicationMaterial {
   created_at?: string
 }
 
-// Attachment in application
-export interface JobApplicationAttachment {
-  public_id: string
-  file: string
-  file_name: string
-  created_at?: string
-}
+// Attachment in application - now uses unified Attachment type
+export type JobApplicationAttachment = Attachment
 
 // Job application
 export interface JobApplication {
@@ -150,6 +143,7 @@ export interface JobApplication {
       province_code: string
     } | null
     status: HandymanJobStatus
+    attachments?: Attachment[]
   }
   status: ApplicationStatus
   status_at: string
@@ -173,7 +167,7 @@ export interface CreateJobApplicationRequest {
     price: number
     description?: string
   }>
-  attachments?: RNFile[]
+  attachments?: AttachmentUpload[]
 }
 
 // Request type for editing application
@@ -186,7 +180,8 @@ export interface EditJobApplicationRequest {
     price: number
     description?: string
   }>
-  attachments?: RNFile[]
+  attachments?: AttachmentUpload[]
+  attachments_to_remove?: string[]
 }
 
 // My application info embedded in job detail
@@ -207,6 +202,7 @@ export interface HandymanJobDetail extends HandymanJobForYou {
     is_completed: boolean
     completed_at: string | null
   }>
+  attachments?: Attachment[]
   has_applied: boolean
   my_application: MyApplicationInfo | null
 }
@@ -450,12 +446,8 @@ export interface ReimbursementCategory {
   is_active: boolean
 }
 
-export interface ReimbursementAttachment {
-  public_id: string
-  file: string
-  file_name: string
-  created_at: string
-}
+// Reimbursement attachment - now uses unified Attachment type
+export type ReimbursementAttachment = Attachment
 
 export interface JobReimbursement {
   public_id: string
@@ -476,7 +468,7 @@ export interface CreateReimbursementRequest {
   category_id: string
   amount: number
   notes?: string
-  attachments: RNFile[]
+  attachments: AttachmentUpload[]
 }
 
 export interface UpdateReimbursementRequest {
@@ -484,7 +476,7 @@ export interface UpdateReimbursementRequest {
   category_id?: string
   amount?: number
   notes?: string
-  attachments?: RNFile[]
+  attachments?: AttachmentUpload[]
   attachments_to_remove?: string[]
 }
 

@@ -1,4 +1,5 @@
 import type { PaginatedArrayResponse, ApiResponse } from './common'
+import type { Attachment } from './attachment'
 
 // Job status for homeowner view
 export type HomeownerJobStatus =
@@ -40,10 +41,7 @@ export interface HomeownerJob {
     display_name: string
     avatar_url: string | null
   } | null
-  images?: Array<{
-    public_id: string
-    image: string
-  }>
+  attachments?: Attachment[]
   tasks?: Array<{
     public_id: string
     title: string
