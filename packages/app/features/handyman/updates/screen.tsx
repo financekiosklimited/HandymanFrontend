@@ -42,6 +42,14 @@ export function HandymanUpdatesScreen() {
 
     // Navigate based on notification type and data
     const data = notification.data
+    const notificationType = notification.notification_type
+
+    // Handle direct offer notifications - redirect to jobs with offers tab
+    if (notificationType.startsWith('direct_offer_')) {
+      router.push('/(handyman)/jobs?tab=offers')
+      return
+    }
+
     if (data?.job_id) {
       // Redirect to jobs menu (dashboard) instead of job detail
       router.push('/(handyman)/my-jobs')

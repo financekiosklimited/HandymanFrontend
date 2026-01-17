@@ -8,6 +8,7 @@ import {
   useSendMessage,
   useMarkAsRead,
   useConversationList,
+  useOpenUserChat,
   apiClient,
 } from '@my/api'
 import type { ChatMessage, GeneralConversationListItem, AttachmentUpload } from '@my/api'
@@ -943,6 +944,24 @@ export function GeneralChatScreen({
     }
   }, [initialConversationId])
 
+  // Eager load conversation when opening chat via recipientId
+  // This ensures we get existing conversation & can load message history immediately
+  const { data: openedChat, isLoading: isOpeningChat } = useOpenUserChat(
+    role,
+    recipientId || '',
+    // Only enable if we have recipientId but no conversationId yet
+    !!recipientId && !conversationId
+  )
+
+  // When openedChat returns, set the conversationId to load messages
+  useEffect(() => {
+    if (openedChat?.public_id && !conversationId) {
+      setConversationId(openedChat.public_id)
+      // Update route params so back/refresh works correctly
+      router.setParams({ id: openedChat.public_id })
+    }
+  }, [openedChat, conversationId, router])
+
   // Get conversation list to find this conversation info
   const { data: conversations } = useConversationList(role)
 
@@ -1007,6 +1026,11 @@ export function GeneralChatScreen({
           // Replace route so back button and refresh work correctly
           router.setParams({ id: activeConvId })
         } catch (err) {
+          console.error('[GeneralChatScreen] Failed to create conversation:', {
+            role,
+            recipientId,
+            error: err,
+          })
           toast.show('Could not start conversation', { native: false })
           setIsCreatingConversation(false)
           return
@@ -1110,7 +1134,7 @@ export function GeneralChatScreen({
             flex={1}
             bg="$background"
           >
-            {messagesLoading && !conversationId ? (
+            {(messagesLoading || isOpeningChat) && !messages.length ? (
               <YStack
                 flex={1}
                 alignItems="center"

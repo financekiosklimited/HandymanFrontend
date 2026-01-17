@@ -1,10 +1,15 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image } from '@my/ui'
-import { GradientBackground, SearchBar } from '@my/ui'
-import { useHomeownerJobs, useHomeownerApplications } from '@my/api'
-import type { HomeownerJob, HomeownerApplication, HomeownerJobStatus } from '@my/api'
+import { GradientBackground, SearchBar, DirectOfferCard } from '@my/ui'
+import { useHomeownerJobs, useHomeownerApplications, useHomeownerDirectOffers } from '@my/api'
+import type {
+  HomeownerJob,
+  HomeownerApplication,
+  HomeownerJobStatus,
+  HomeownerDirectOffer,
+} from '@my/api'
 import {
   ArrowLeft,
   Briefcase,
@@ -18,14 +23,17 @@ import {
   Eye,
   FileText,
 } from '@tamagui/lucide-icons'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import {
   jobStatusColors,
   type JobStatus,
   applicationStatusColors,
   type ApplicationStatus,
+  colors,
 } from '@my/config'
+
+type TabType = 'jobs' | 'offers'
 
 const statusLabels: Record<HomeownerJobStatus, string> = {
   draft: 'Draft',
@@ -128,8 +136,8 @@ function ApplicantCard({ application, onPress }: ApplicantCardProps) {
           >
             <Star
               size={12}
-              color="$warning"
-              fill="$warning"
+              color={colors.warning as any}
+              fill={colors.warning as any}
             />
             <Text
               fontSize="$2"
@@ -576,11 +584,20 @@ function ExpandableJobCard({
 export function JobManagementScreen() {
   const router = useRouter()
   const insets = useSafeArea()
+  const { tab } = useLocalSearchParams<{ tab?: string }>()
 
+  const [activeTab, setActiveTab] = useState<TabType>('jobs')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [showStatusDropdown, setShowStatusDropdown] = useState(false)
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null)
+
+  // Set initial tab from query param
+  useEffect(() => {
+    if (tab === 'offers' || tab === 'jobs') {
+      setActiveTab(tab)
+    }
+  }, [tab])
 
   // Fetch jobs with filters
   const {
@@ -595,10 +612,29 @@ export function JobManagementScreen() {
     status: statusFilter || undefined,
   })
 
+  // Fetch direct offers for the offers tab
+  const {
+    data: offersData,
+    isLoading: offersLoading,
+    error: offersError,
+    fetchNextPage: fetchMoreOffers,
+    hasNextPage: hasMoreOffers,
+    isFetchingNextPage: isFetchingMoreOffers,
+  } = useHomeownerDirectOffers()
+
   // Flatten paginated data
   const jobs = useMemo(() => {
     return jobsData?.pages.flatMap((page) => page.results) || []
   }, [jobsData])
+
+  const offers = useMemo(() => {
+    return offersData?.pages.flatMap((page) => page.results) || []
+  }, [offersData])
+
+  // Count pending offers for badge
+  const pendingOffersCount = useMemo(() => {
+    return offers.filter((o) => o.offer_status === 'pending').length
+  }, [offers])
 
   const handleToggleJob = useCallback((jobId: string) => {
     setExpandedJobId((prev) => (prev === jobId ? null : jobId))
@@ -609,6 +645,16 @@ export function JobManagementScreen() {
       router.push({
         pathname: '/(homeowner)/jobs/applications/[id]',
         params: { id: applicationId },
+      } as any)
+    },
+    [router]
+  )
+
+  const handleOfferPress = useCallback(
+    (offerId: string) => {
+      router.push({
+        pathname: '/(homeowner)/direct-offers/[id]',
+        params: { id: offerId },
       } as any)
     },
     [router]
@@ -739,6 +785,75 @@ export function JobManagementScreen() {
           </YStack>
         )}
 
+        {/* Tabs */}
+        <XStack
+          px="$lg"
+          borderBottomWidth={1}
+          borderBottomColor="$borderColor"
+        >
+          <Button
+            unstyled
+            flex={1}
+            pb="$md"
+            borderBottomWidth={3}
+            borderBottomColor={activeTab === 'jobs' ? '$primary' : 'transparent'}
+            marginBottom={-1}
+            onPress={() => setActiveTab('jobs')}
+          >
+            <Text
+              fontSize="$4"
+              fontWeight={activeTab === 'jobs' ? '600' : '500'}
+              color={activeTab === 'jobs' ? '$primary' : '$colorSubtle'}
+              textAlign="center"
+            >
+              My Jobs
+            </Text>
+          </Button>
+          <Button
+            unstyled
+            flex={1}
+            pb="$md"
+            borderBottomWidth={3}
+            borderBottomColor={activeTab === 'offers' ? '$primary' : 'transparent'}
+            marginBottom={-1}
+            onPress={() => setActiveTab('offers')}
+          >
+            <XStack
+              alignItems="center"
+              justifyContent="center"
+              gap="$xs"
+            >
+              <Text
+                fontSize="$4"
+                fontWeight={activeTab === 'offers' ? '600' : '500'}
+                color={activeTab === 'offers' ? '$primary' : '$colorSubtle'}
+                textAlign="center"
+              >
+                Direct Offers
+              </Text>
+              {pendingOffersCount > 0 && (
+                <View
+                  bg="$primary"
+                  borderRadius="$full"
+                  minWidth={20}
+                  height={20}
+                  alignItems="center"
+                  justifyContent="center"
+                  px={6}
+                >
+                  <Text
+                    fontSize={11}
+                    fontWeight="700"
+                    color="white"
+                  >
+                    {pendingOffersCount}
+                  </Text>
+                </View>
+              )}
+            </XStack>
+          </Button>
+        </XStack>
+
         {/* Content */}
         <ScrollView
           flex={1}
@@ -749,223 +864,386 @@ export function JobManagementScreen() {
             pb="$xl"
             gap="$md"
           >
-            {/* Section Header */}
-            <YStack
-              gap="$xs"
-              mb="$xs"
-              py="$xl"
-            >
-              <Text
-                fontSize="$6"
-                fontWeight="bold"
-                color="$color"
-              >
-                Your Jobs
-              </Text>
-              <Text
-                fontSize="$3"
-                color="$colorSubtle"
-              >
-                Manage your job listings and review applicants
-              </Text>
-            </YStack>
+            {activeTab === 'jobs' ? (
+              <>
+                {/* Section Header */}
+                <YStack
+                  gap="$xs"
+                  mb="$xs"
+                  py="$xl"
+                >
+                  <Text
+                    fontSize="$6"
+                    fontWeight="bold"
+                    color="$color"
+                  >
+                    Your Jobs
+                  </Text>
+                  <Text
+                    fontSize="$3"
+                    color="$colorSubtle"
+                  >
+                    Manage your job listings and review applicants
+                  </Text>
+                </YStack>
 
-            {/* Filter indicator */}
-            {statusFilter && (
-              <XStack
-                alignItems="center"
-                gap="$xs"
-              >
-                <Text
-                  fontSize="$2"
-                  color="$colorSubtle"
-                >
-                  Filtering by:
-                </Text>
-                <Button
-                  unstyled
-                  onPress={() => setStatusFilter('')}
-                  bg="$primary"
-                  px="$sm"
-                  py={4}
-                  borderRadius="$full"
-                  pressStyle={{ opacity: 0.8 }}
-                >
+                {/* Filter indicator */}
+                {statusFilter && (
                   <XStack
                     alignItems="center"
                     gap="$xs"
                   >
                     <Text
                       fontSize="$2"
-                      color="white"
-                      fontWeight="500"
+                      color="$colorSubtle"
                     >
-                      {selectedStatusLabel}
+                      Filtering by:
                     </Text>
-                    <Text
-                      fontSize="$2"
-                      color="white"
+                    <Button
+                      unstyled
+                      onPress={() => setStatusFilter('')}
+                      bg="$primary"
+                      px="$sm"
+                      py={4}
+                      borderRadius="$full"
+                      pressStyle={{ opacity: 0.8 }}
                     >
-                      ×
-                    </Text>
-                  </XStack>
-                </Button>
-              </XStack>
-            )}
-
-            {/* Loading State */}
-            {isLoading ? (
-              <YStack
-                py="$xl"
-                alignItems="center"
-                gap="$md"
-              >
-                <Spinner
-                  size="large"
-                  color="$primary"
-                />
-                <Text
-                  color="$colorSubtle"
-                  fontSize="$3"
-                >
-                  Loading your jobs...
-                </Text>
-              </YStack>
-            ) : error ? (
-              <YStack
-                py="$xl"
-                alignItems="center"
-                bg="rgba(255,255,255,0.7)"
-                borderRadius={20}
-                gap="$sm"
-              >
-                <Briefcase
-                  size={40}
-                  color="$error"
-                />
-                <Text
-                  color="$error"
-                  fontSize="$4"
-                  fontWeight="500"
-                >
-                  Failed to load jobs
-                </Text>
-                <Text
-                  color="$colorSubtle"
-                  fontSize="$2"
-                  textAlign="center"
-                >
-                  Please try again later
-                </Text>
-              </YStack>
-            ) : jobs.length === 0 ? (
-              <YStack
-                py="$2xl"
-                alignItems="center"
-                bg="rgba(255,255,255,0.7)"
-                borderRadius={20}
-                gap="$md"
-                px="$lg"
-              >
-                <YStack
-                  width={80}
-                  height={80}
-                  borderRadius="$full"
-                  bg="rgba(12,154,92,0.1)"
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Briefcase
-                    size={36}
-                    color="$primary"
-                  />
-                </YStack>
-                <Text
-                  color="$color"
-                  fontSize="$5"
-                  fontWeight="600"
-                >
-                  {statusFilter || searchQuery ? 'No Jobs Found' : 'No Jobs Yet'}
-                </Text>
-                <Text
-                  color="$colorSubtle"
-                  fontSize="$3"
-                  textAlign="center"
-                >
-                  {statusFilter || searchQuery
-                    ? 'Try adjusting your filters or search query.'
-                    : 'Post your first job to start receiving applications from skilled handymen.'}
-                </Text>
-                {!statusFilter && !searchQuery && (
-                  <Button
-                    mt="$sm"
-                    bg="$primary"
-                    color="white"
-                    borderRadius="$lg"
-                    px="$xl"
-                    onPress={() => router.push('/(homeowner)/jobs/add')}
-                  >
-                    <Text
-                      color="white"
-                      fontWeight="600"
-                    >
-                      Post a Job
-                    </Text>
-                  </Button>
-                )}
-              </YStack>
-            ) : (
-              <YStack gap="$md">
-                {jobs.map((job) => (
-                  <ExpandableJobCard
-                    key={job.public_id}
-                    job={job}
-                    isExpanded={expandedJobId === job.public_id}
-                    onToggle={() => handleToggleJob(job.public_id)}
-                    onApplicationPress={handleApplicationPress}
-                  />
-                ))}
-
-                {/* Load More Jobs */}
-                {hasNextPage && (
-                  <Button
-                    onPress={() => fetchNextPage()}
-                    disabled={isFetchingNextPage}
-                    bg="rgba(255,255,255,0.7)"
-                    borderRadius="$md"
-                    py="$sm"
-                    mt="$sm"
-                    borderWidth={1}
-                    borderColor="$borderColor"
-                  >
-                    {isFetchingNextPage ? (
                       <XStack
                         alignItems="center"
-                        gap="$sm"
+                        gap="$xs"
                       >
-                        <Spinner
-                          size="small"
-                          color="$primary"
-                        />
                         <Text
-                          color="$colorSubtle"
-                          fontSize="$3"
+                          fontSize="$2"
+                          color="white"
+                          fontWeight="500"
                         >
-                          Loading...
+                          {selectedStatusLabel}
+                        </Text>
+                        <Text
+                          fontSize="$2"
+                          color="white"
+                        >
+                          ×
                         </Text>
                       </XStack>
-                    ) : (
-                      <Text
-                        color="$primary"
-                        fontSize="$3"
-                        fontWeight="500"
-                      >
-                        Load more jobs
-                      </Text>
-                    )}
-                  </Button>
+                    </Button>
+                  </XStack>
                 )}
-              </YStack>
+
+                {/* Loading State */}
+                {isLoading ? (
+                  <YStack
+                    py="$xl"
+                    alignItems="center"
+                    gap="$md"
+                  >
+                    <Spinner
+                      size="large"
+                      color="$primary"
+                    />
+                    <Text
+                      color="$colorSubtle"
+                      fontSize="$3"
+                    >
+                      Loading your jobs...
+                    </Text>
+                  </YStack>
+                ) : error ? (
+                  <YStack
+                    py="$xl"
+                    alignItems="center"
+                    bg="rgba(255,255,255,0.7)"
+                    borderRadius={20}
+                    gap="$sm"
+                  >
+                    <Briefcase
+                      size={40}
+                      color="$error"
+                    />
+                    <Text
+                      color="$error"
+                      fontSize="$4"
+                      fontWeight="500"
+                    >
+                      Failed to load jobs
+                    </Text>
+                    <Text
+                      color="$colorSubtle"
+                      fontSize="$2"
+                      textAlign="center"
+                    >
+                      Please try again later
+                    </Text>
+                  </YStack>
+                ) : jobs.length === 0 ? (
+                  <YStack
+                    py="$2xl"
+                    alignItems="center"
+                    bg="rgba(255,255,255,0.7)"
+                    borderRadius={20}
+                    gap="$md"
+                    px="$lg"
+                  >
+                    <YStack
+                      width={80}
+                      height={80}
+                      borderRadius="$full"
+                      bg="rgba(12,154,92,0.1)"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Briefcase
+                        size={36}
+                        color="$primary"
+                      />
+                    </YStack>
+                    <Text
+                      color="$color"
+                      fontSize="$5"
+                      fontWeight="600"
+                    >
+                      {statusFilter || searchQuery ? 'No Jobs Found' : 'No Jobs Yet'}
+                    </Text>
+                    <Text
+                      color="$colorSubtle"
+                      fontSize="$3"
+                      textAlign="center"
+                    >
+                      {statusFilter || searchQuery
+                        ? 'Try adjusting your filters or search query.'
+                        : 'Post your first job to start receiving applications from skilled handymen.'}
+                    </Text>
+                    {!statusFilter && !searchQuery && (
+                      <Button
+                        mt="$sm"
+                        bg="$primary"
+                        color="white"
+                        borderRadius="$lg"
+                        px="$xl"
+                        onPress={() => router.push('/(homeowner)/jobs/add')}
+                      >
+                        <Text
+                          color="white"
+                          fontWeight="600"
+                        >
+                          Post a Job
+                        </Text>
+                      </Button>
+                    )}
+                  </YStack>
+                ) : (
+                  <YStack gap="$md">
+                    {jobs.map((job) => (
+                      <ExpandableJobCard
+                        key={job.public_id}
+                        job={job}
+                        isExpanded={expandedJobId === job.public_id}
+                        onToggle={() => handleToggleJob(job.public_id)}
+                        onApplicationPress={handleApplicationPress}
+                      />
+                    ))}
+
+                    {/* Load More Jobs */}
+                    {hasNextPage && (
+                      <Button
+                        onPress={() => fetchNextPage()}
+                        disabled={isFetchingNextPage}
+                        bg="rgba(255,255,255,0.7)"
+                        borderRadius="$md"
+                        py="$sm"
+                        mt="$sm"
+                        borderWidth={1}
+                        borderColor="$borderColor"
+                      >
+                        {isFetchingNextPage ? (
+                          <XStack
+                            alignItems="center"
+                            gap="$sm"
+                          >
+                            <Spinner
+                              size="small"
+                              color="$primary"
+                            />
+                            <Text
+                              color="$colorSubtle"
+                              fontSize="$3"
+                            >
+                              Loading...
+                            </Text>
+                          </XStack>
+                        ) : (
+                          <Text
+                            color="$primary"
+                            fontSize="$3"
+                            fontWeight="500"
+                          >
+                            Load more jobs
+                          </Text>
+                        )}
+                      </Button>
+                    )}
+                  </YStack>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Direct Offers Section Header */}
+                <YStack
+                  gap="$xs"
+                  mb="$xs"
+                  py="$xl"
+                >
+                  <Text
+                    fontSize="$6"
+                    fontWeight="bold"
+                    color="$color"
+                  >
+                    Direct Offers
+                  </Text>
+                  <Text
+                    fontSize="$3"
+                    color="$colorSubtle"
+                  >
+                    Private job offers sent directly to handymen
+                  </Text>
+                </YStack>
+
+                {/* Offers Loading State */}
+                {offersLoading ? (
+                  <YStack
+                    py="$xl"
+                    alignItems="center"
+                    gap="$md"
+                  >
+                    <Spinner
+                      size="large"
+                      color="$primary"
+                    />
+                    <Text
+                      color="$colorSubtle"
+                      fontSize="$3"
+                    >
+                      Loading your offers...
+                    </Text>
+                  </YStack>
+                ) : offersError ? (
+                  <YStack
+                    py="$xl"
+                    alignItems="center"
+                    bg="rgba(255,255,255,0.7)"
+                    borderRadius={20}
+                    gap="$sm"
+                  >
+                    <Briefcase
+                      size={40}
+                      color="$error"
+                    />
+                    <Text
+                      color="$error"
+                      fontSize="$4"
+                      fontWeight="500"
+                    >
+                      Failed to load offers
+                    </Text>
+                    <Text
+                      color="$colorSubtle"
+                      fontSize="$2"
+                      textAlign="center"
+                    >
+                      Please try again later
+                    </Text>
+                  </YStack>
+                ) : offers.length === 0 ? (
+                  <YStack
+                    py="$2xl"
+                    alignItems="center"
+                    bg="rgba(255,255,255,0.7)"
+                    borderRadius={20}
+                    gap="$md"
+                    px="$lg"
+                  >
+                    <YStack
+                      width={80}
+                      height={80}
+                      borderRadius="$full"
+                      bg="rgba(12,154,92,0.1)"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Briefcase
+                        size={36}
+                        color="$primary"
+                      />
+                    </YStack>
+                    <Text
+                      color="$color"
+                      fontSize="$5"
+                      fontWeight="600"
+                    >
+                      No Direct Offers Yet
+                    </Text>
+                    <Text
+                      color="$colorSubtle"
+                      fontSize="$3"
+                      textAlign="center"
+                    >
+                      Send direct offers to handymen you'd like to work with from their profile
+                      page.
+                    </Text>
+                  </YStack>
+                ) : (
+                  <YStack gap="$md">
+                    {offers.map((offer) => (
+                      <DirectOfferCard
+                        key={offer.public_id}
+                        offer={offer}
+                        variant="homeowner"
+                        onPress={() => handleOfferPress(offer.public_id)}
+                      />
+                    ))}
+
+                    {/* Load More Offers */}
+                    {hasMoreOffers && (
+                      <Button
+                        onPress={() => fetchMoreOffers()}
+                        disabled={isFetchingMoreOffers}
+                        bg="rgba(255,255,255,0.7)"
+                        borderRadius="$md"
+                        py="$sm"
+                        mt="$sm"
+                        borderWidth={1}
+                        borderColor="$borderColor"
+                      >
+                        {isFetchingMoreOffers ? (
+                          <XStack
+                            alignItems="center"
+                            gap="$sm"
+                          >
+                            <Spinner
+                              size="small"
+                              color="$primary"
+                            />
+                            <Text
+                              color="$colorSubtle"
+                              fontSize="$3"
+                            >
+                              Loading...
+                            </Text>
+                          </XStack>
+                        ) : (
+                          <Text
+                            color="$primary"
+                            fontSize="$3"
+                            fontWeight="500"
+                          >
+                            Load more offers
+                          </Text>
+                        )}
+                      </Button>
+                    )}
+                  </YStack>
+                )}
+              </>
             )}
           </YStack>
         </ScrollView>

@@ -83,7 +83,6 @@ export function useHomeownerJob(publicId: string) {
 interface NearbyHandymenParams {
   latitude?: number
   longitude?: number
-  radius_km?: number
   category?: string
   search?: string
   enabled?: boolean
@@ -91,12 +90,10 @@ interface NearbyHandymenParams {
 
 /**
  * Hook to fetch nearby handymen for homeowners.
- * Requires latitude and longitude to be provided.
+ * Latitude and longitude are optional - if not provided, returns all handymen sorted by popularity.
  */
 export function useNearbyHandymen(params?: NearbyHandymenParams) {
-  // Only fetch when latitude and longitude are available
-  const hasLocation = !!(params?.latitude && params?.longitude)
-  const isEnabled = params?.enabled !== false && hasLocation
+  const isEnabled = params?.enabled !== false
 
   return useInfiniteQuery({
     queryKey: ['homeowner', 'handymen', 'nearby', params],
@@ -105,7 +102,6 @@ export function useNearbyHandymen(params?: NearbyHandymenParams) {
         const searchParams = new URLSearchParams()
         if (params?.latitude) searchParams.set('latitude', params.latitude.toString())
         if (params?.longitude) searchParams.set('longitude', params.longitude.toString())
-        if (params?.radius_km) searchParams.set('radius_km', params.radius_km.toString())
         if (params?.category) searchParams.set('category', params.category)
         if (params?.search) searchParams.set('search', params.search)
         searchParams.set('page', pageParam.toString())
@@ -384,6 +380,7 @@ export function useRejectApplication() {
 export * from './useCreateJob'
 export * from './useUpdateJob'
 export * from './useDeleteJob'
+export * from './useDirectOffers'
 
 // ========== Ongoing Job Hooks ==========
 

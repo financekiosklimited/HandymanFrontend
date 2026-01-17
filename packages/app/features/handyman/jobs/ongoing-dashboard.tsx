@@ -68,6 +68,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import { colors } from '@my/config'
 import * as Location from 'expo-location'
 import * as ImagePicker from 'expo-image-picker'
 import {
@@ -196,7 +197,7 @@ function ProfessionalReviewDisplay({ review }: { review: HomeownerReview | null 
       >
         <Award
           size={60}
-          color="$warning"
+          color={colors.warning as any}
         />
       </View>
 
@@ -2765,7 +2766,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                   icon={
                     <Award
                       size={18}
-                      color="$warning"
+                      color={colors.warning as any}
                     />
                   }
                   value={report_stats.approved_reports}
@@ -3430,7 +3431,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                     >
                       <Award
                         size={20}
-                        color="$warning"
+                        color={colors.warning as any}
                       />
                       <Text
                         fontSize="$4"

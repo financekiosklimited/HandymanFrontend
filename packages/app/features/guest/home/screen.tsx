@@ -124,7 +124,6 @@ export function GuestHomeScreen() {
     ...(location && {
       latitude: location.latitude,
       longitude: location.longitude,
-      radius_km: 6378,
     }),
   })
 

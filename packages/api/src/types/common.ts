@@ -78,6 +78,11 @@ export type NotificationType =
   | 'job_completion_rejected'
   | 'job_dispute_opened'
   | 'job_dispute_resolved'
+  | 'direct_offer_received'
+  | 'direct_offer_accepted'
+  | 'direct_offer_rejected'
+  | 'direct_offer_cancelled'
+  | 'direct_offer_expired'
 
 export interface Notification {
   public_id: string

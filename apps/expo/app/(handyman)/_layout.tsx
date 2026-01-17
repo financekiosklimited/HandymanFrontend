@@ -37,6 +37,7 @@ export default function HandymanLayout() {
   // Note: usePathname() returns just the path without route groups, e.g. "/updates" not "/(handyman)/updates"
   const getActiveRoute = () => {
     if (pathname === '/updates' || pathname.startsWith('/updates/')) return '/(handyman)/updates'
+    if (pathname === '/jobs' || pathname.startsWith('/jobs/')) return '/(handyman)/jobs'
     if (pathname === '/my-jobs' || pathname.startsWith('/my-jobs/')) return '/(handyman)/my-jobs'
     if (pathname === '/profile' || pathname.startsWith('/profile/')) return '/(handyman)/profile'
     if (pathname === '/' || pathname === '') return '/(handyman)/'
@@ -47,6 +48,7 @@ export default function HandymanLayout() {
   const shouldShowBottomNav = () => {
     // Hide on detail/nested screens
     if (pathname.startsWith('/jobs/')) return false
+    if (pathname.startsWith('/direct-offers')) return false
     if (pathname.startsWith('/bookmarks')) return false
     if (pathname.startsWith('/messages')) return false
     return true

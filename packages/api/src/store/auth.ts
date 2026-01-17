@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { Platform } from 'react-native'
-import { queryClient } from 'app/provider'
+import { queryClient } from 'app/provider/query-client'
 import type { Role, NextAction } from '../types/auth'
 
 // Cross-platform storage adapter

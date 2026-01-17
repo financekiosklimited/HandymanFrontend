@@ -24,7 +24,18 @@ import type {
   JobReimbursement,
   CreateReimbursementRequest,
   UpdateReimbursementRequest,
+  HandymanAssignedJob,
+  HandymanAssignedJobStatus,
 } from '../../types/handyman'
+
+// Re-export direct offer hooks
+export {
+  useHandymanDirectOffers,
+  useHandymanDirectOffer,
+  useAcceptDirectOffer,
+  useRejectDirectOffer,
+  useHandymanPendingOffersCount,
+} from './useDirectOffers'
 
 interface HandymanJobsForYouParams {
   category?: string
@@ -140,6 +151,58 @@ export function useHandymanMyJobs(params?: HandymanMyJobsParams) {
         }
       } catch (error) {
         console.error('Error fetching my jobs:', error)
+        throw error
+      }
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.hasNext) {
+        return lastPage.page + 1
+      }
+      return undefined
+    },
+    retry: 1,
+  })
+}
+
+interface HandymanAssignedJobsParams {
+  status?: HandymanAssignedJobStatus
+  date_from?: string
+  date_to?: string
+  search?: string
+  page_size?: number
+}
+
+/**
+ * Hook to fetch handyman's assigned jobs (approved applications + accepted direct offers).
+ * Uses GET /handyman/jobs/ endpoint.
+ */
+export function useHandymanAssignedJobs(params?: HandymanAssignedJobsParams) {
+  return useInfiniteQuery({
+    queryKey: ['handyman', 'assigned-jobs', params],
+    queryFn: async ({ pageParam = 1 }) => {
+      try {
+        const searchParams = new URLSearchParams()
+        if (params?.status) searchParams.set('status', params.status)
+        if (params?.date_from) searchParams.set('date_from', params.date_from)
+        if (params?.date_to) searchParams.set('date_to', params.date_to)
+        if (params?.search) searchParams.set('search', params.search)
+        if (params?.page_size) searchParams.set('page_size', params.page_size.toString())
+        searchParams.set('page', pageParam.toString())
+
+        const url = `handyman/jobs/?${searchParams.toString()}`
+        const response = await apiClient
+          .get(url)
+          .json<PaginatedArrayResponse<HandymanAssignedJob>>()
+
+        return {
+          results: response.data || [],
+          page: response.meta?.pagination?.page || 1,
+          hasNext: response.meta?.pagination?.has_next || false,
+          totalCount: response.meta?.pagination?.total_count || 0,
+        }
+      } catch (error) {
+        console.error('Error fetching assigned jobs:', error)
         throw error
       }
     },

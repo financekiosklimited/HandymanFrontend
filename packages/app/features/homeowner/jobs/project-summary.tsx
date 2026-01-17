@@ -30,6 +30,7 @@ import {
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import { colors } from '@my/config'
 import { Alert } from 'react-native'
 
 interface ProjectSummaryScreenProps {
@@ -716,7 +717,7 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                 >
                   <AlertCircle
                     size={20}
-                    color="$warning"
+                    color={colors.warning as any}
                   />
                   <Text
                     fontSize="$4"

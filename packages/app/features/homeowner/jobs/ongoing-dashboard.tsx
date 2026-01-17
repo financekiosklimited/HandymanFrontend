@@ -55,6 +55,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import { colors } from '@my/config'
 import {
   Modal,
   Pressable,
@@ -2601,7 +2602,7 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
                 icon={
                   <Award
                     size={18}
-                    color="$warning"
+                    color={colors.warning as any}
                   />
                 }
                 value={report_stats.approved_reports}
@@ -2937,7 +2938,7 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
                 >
                   <Award
                     size={20}
-                    color="$warning"
+                    color={colors.warning as any}
                   />
                   <Text
                     fontSize="$4"

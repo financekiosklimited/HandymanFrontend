@@ -9,6 +9,78 @@ export type HandymanJobStatus =
   | 'pending_completion'
   | 'completed'
   | 'cancelled'
+  | 'disputed'
+
+// ========== Handyman Assigned Jobs Types (GET /handyman/jobs/) ==========
+
+// Valid status values for filtering assigned jobs
+export type HandymanAssignedJobStatus =
+  | 'in_progress'
+  | 'pending_completion'
+  | 'completed'
+  | 'disputed'
+
+// Homeowner info in assigned job
+export interface HandymanAssignedJobHomeowner {
+  public_id: string
+  display_name: string | null
+  avatar_url: string | null
+  rating: number | null
+  review_count: number
+}
+
+// Task in assigned job
+export interface HandymanAssignedJobTask {
+  public_id: string
+  title: string
+  description: string
+  order: number
+  is_completed: boolean
+  completed_at: string | null
+}
+
+// Task progress in assigned job
+export interface HandymanAssignedJobTaskProgress {
+  total: number
+  completed: number
+  percentage: number
+}
+
+// Assigned job item from GET /handyman/jobs/
+export interface HandymanAssignedJob {
+  public_id: string
+  title: string
+  description: string
+  estimated_budget: number
+  category: {
+    public_id: string
+    name: string
+    slug: string
+    description: string
+    icon: string
+  } | null
+  city: {
+    public_id: string
+    name: string
+    province: string
+    province_code: string
+    slug: string
+  } | null
+  address: string
+  postal_code: string
+  latitude: number | null
+  longitude: number | null
+  status: HandymanAssignedJobStatus
+  status_at: string
+  tasks: HandymanAssignedJobTask[]
+  attachments: Attachment[]
+  homeowner: HandymanAssignedJobHomeowner
+  task_progress: HandymanAssignedJobTaskProgress
+  completion_requested_at: string | null
+  completed_at: string | null
+  created_at: string
+  updated_at: string
+}
 
 // Job from "for-you" endpoint for handyman to browse
 export interface HandymanJobForYou {

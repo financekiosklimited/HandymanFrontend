@@ -138,11 +138,8 @@ export function HomeownerHomeScreen() {
     hasNextPage: hasMoreHandymen,
     isFetchingNextPage: isFetchingMoreHandymen,
   } = useNearbyHandymen({
-    ...(location && {
-      latitude: location.latitude,
-      longitude: location.longitude,
-      radius_km: 50,
-    }),
+    latitude: location?.latitude,
+    longitude: location?.longitude,
   })
 
   // Flatten paginated data

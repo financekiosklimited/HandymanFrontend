@@ -107,6 +107,8 @@ export default function HomeownerLayout() {
     if (pathname.startsWith('/jobs/add')) return false
     // Hide on edit job listing
     if (pathname.startsWith('/jobs/edit')) return false
+    // Hide on direct offers screens
+    if (pathname.startsWith('/direct-offers')) return false
     // Hide on detail/nested screens (but not jobs list)
     if (pathname.match(/^\/jobs\/[^/]+$/) && pathname !== '/jobs/add') return false
     if (pathname.startsWith('/handymen/')) return false

@@ -31,7 +31,7 @@ import {
 } from '@tamagui/lucide-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import { applicationStatusColors, type ApplicationStatus } from '@my/config'
+import { applicationStatusColors, type ApplicationStatus, colors } from '@my/config'
 import { useToastController } from '@tamagui/toast'
 
 function getStatusConfig(status: HomeownerApplicationStatus) {
@@ -385,8 +385,8 @@ export function ApplicationDetailScreen() {
                     >
                       <Star
                         size={14}
-                        color="$warning"
-                        fill="$warning"
+                        color={colors.warning as any}
+                        fill={colors.warning as any}
                       />
                       <Text
                         fontSize="$3"

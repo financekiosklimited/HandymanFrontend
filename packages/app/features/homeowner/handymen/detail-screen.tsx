@@ -13,6 +13,7 @@ import {
   Award,
   User,
   MessageCircle,
+  Briefcase,
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -38,6 +39,20 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
     })
     if (handyman.avatar_url) params.append('avatar', handyman.avatar_url)
     router.push(`/(homeowner)/messages/new?${params.toString()}`)
+  }
+
+  // Send direct offer handler
+  const handleSendDirectOffer = () => {
+    if (!handymanId || !handyman) return
+    const params = new URLSearchParams({
+      handymanId,
+      handymanName: handyman.display_name,
+    })
+    if (handyman.avatar_url) params.append('handymanAvatar', handyman.avatar_url)
+    if (handyman.rating) params.append('handymanRating', handyman.rating.toString())
+    if (handyman.total_reviews)
+      params.append('handymanReviewCount', handyman.total_reviews.toString())
+    router.push(`/(homeowner)/direct-offers/create?${params.toString()}`)
   }
 
   if (isLoading) {
@@ -260,45 +275,79 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
               )}
             </YStack>
 
-            {/* Chat Button */}
-            <Button
-              bg="$primary"
-              borderRadius={16}
-              py="$md"
+            {/* Action Buttons */}
+            <YStack
+              gap="$sm"
               mb="$lg"
-              onPress={handleStartChat}
-              disabled={isChatLoading}
-              pressStyle={{ opacity: 0.8 }}
-              shadowColor="$primary"
-              shadowOffset={{ width: 0, height: 4 }}
-              shadowOpacity={0.3}
-              shadowRadius={8}
             >
-              <XStack
-                alignItems="center"
-                justifyContent="center"
-                gap="$sm"
+              {/* Send Direct Offer Button */}
+              <Button
+                bg="$primary"
+                borderRadius={16}
+                py="$md"
+                onPress={handleSendDirectOffer}
+                pressStyle={{ opacity: 0.8 }}
+                shadowColor="$primary"
+                shadowOffset={{ width: 0, height: 4 }}
+                shadowOpacity={0.3}
+                shadowRadius={8}
               >
-                {isChatLoading ? (
-                  <Spinner
-                    size="small"
-                    color="white"
-                  />
-                ) : (
-                  <MessageCircle
-                    size={22}
-                    color="white"
-                  />
-                )}
-                <Text
-                  color="white"
-                  fontSize="$4"
-                  fontWeight="600"
+                <XStack
+                  alignItems="center"
+                  justifyContent="center"
+                  gap="$sm"
                 >
-                  {isChatLoading ? 'Starting chat...' : 'Chat with Handyman'}
-                </Text>
-              </XStack>
-            </Button>
+                  <Briefcase
+                    size={20}
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontSize="$4"
+                    fontWeight="600"
+                  >
+                    Send Direct Offer
+                  </Text>
+                </XStack>
+              </Button>
+
+              {/* Chat Button */}
+              <Button
+                bg="$backgroundMuted"
+                borderRadius={16}
+                py="$md"
+                borderWidth={1}
+                borderColor="$borderColor"
+                onPress={handleStartChat}
+                disabled={isChatLoading}
+                pressStyle={{ opacity: 0.8 }}
+              >
+                <XStack
+                  alignItems="center"
+                  justifyContent="center"
+                  gap="$sm"
+                >
+                  {isChatLoading ? (
+                    <Spinner
+                      size="small"
+                      color="$primary"
+                    />
+                  ) : (
+                    <MessageCircle
+                      size={22}
+                      color="$primary"
+                    />
+                  )}
+                  <Text
+                    color="$color"
+                    fontSize="$4"
+                    fontWeight="600"
+                  >
+                    {isChatLoading ? 'Starting chat...' : 'Chat with Handyman'}
+                  </Text>
+                </XStack>
+              </Button>
+            </YStack>
 
             {/* Quick Stats */}
             <XStack

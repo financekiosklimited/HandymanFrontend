@@ -1,19 +1,25 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { RefreshControl } from 'react-native'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image } from '@my/ui'
-import { GradientBackground } from '@my/ui'
-import { useHandymanApplications } from '@my/api'
+import { GradientBackground, DirectOfferCard } from '@my/ui'
+import {
+  useHandymanApplications,
+  useHandymanDirectOffers,
+  useHandymanPendingOffersCount,
+  useHandymanAssignedJobs,
+} from '@my/api'
 import { ArrowLeft, Briefcase, MapPin, ChevronRight, Clock, Play } from '@tamagui/lucide-icons'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import type { ApplicationStatus, JobApplication } from '@my/api'
+import type { ApplicationStatus, JobApplication, HandymanAssignedJob } from '@my/api'
 import {
   applicationStatusColors,
   type ApplicationStatus as ConfigApplicationStatus,
 } from '@my/config'
 
-type TabType = 'applicants' | 'active'
+type TabType = 'applicants' | 'active' | 'offers'
 
 const getStatusColor = (status: ApplicationStatus) => {
   return (
@@ -165,13 +171,12 @@ function ApplicationCard({ application, onPress }: ApplicationCardProps) {
 }
 
 interface ActiveJobCardProps {
-  application: JobApplication
+  job: HandymanAssignedJob
   onPress: () => void
 }
 
-function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
-  const job = application.job
-  const attachments = 'attachments' in job ? job.attachments : undefined
+function ActiveJobCard({ job, onPress }: ActiveJobCardProps) {
+  const attachments = job.attachments
   const firstAttachment = attachments?.[0]
   const isVideoAttachment = firstAttachment?.file_type === 'video'
   const isImageAttachment = firstAttachment?.file_type === 'image'
@@ -180,6 +185,24 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
     : isImageAttachment
       ? firstAttachment?.file_url
       : undefined
+
+  // Get status display info
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'in_progress':
+        return { label: 'In Progress', bg: '$successBackground', color: '$success' }
+      case 'pending_completion':
+        return { label: 'Pending Completion', bg: '$warningBackground', color: '$warning' }
+      case 'completed':
+        return { label: 'Completed', bg: '$primaryBackground', color: '$primary' }
+      case 'disputed':
+        return { label: 'Disputed', bg: '$errorBackground', color: '$error' }
+      default:
+        return { label: 'Active', bg: '$successBackground', color: '$success' }
+    }
+  }
+
+  const statusInfo = getStatusInfo(job.status)
 
   return (
     <Button
@@ -309,7 +332,7 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
             mt="$xs"
           >
             <XStack
-              bg="$successBackground"
+              bg={statusInfo.bg as any}
               px="$sm"
               py={4}
               borderRadius="$full"
@@ -318,15 +341,15 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
             >
               <Clock
                 size={12}
-                color="$success"
+                color={statusInfo.color as any}
               />
               <Text
                 fontSize={11}
                 fontWeight="600"
-                color="$success"
+                color={statusInfo.color as any}
                 textTransform="uppercase"
               >
-                {job.status === 'in_progress' ? 'In Progress' : 'Active'}
+                {statusInfo.label}
               </Text>
             </XStack>
 
@@ -338,6 +361,35 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
               ${job.estimated_budget}
             </Text>
           </XStack>
+
+          {/* Task Progress */}
+          {job.task_progress && job.task_progress.total > 0 && (
+            <XStack
+              alignItems="center"
+              gap="$xs"
+            >
+              <View
+                flex={1}
+                height={4}
+                bg="$borderColor"
+                borderRadius="$full"
+                overflow="hidden"
+              >
+                <View
+                  width={`${job.task_progress.percentage}%`}
+                  height="100%"
+                  bg="$primary"
+                  borderRadius="$full"
+                />
+              </View>
+              <Text
+                fontSize="$1"
+                color="$colorSubtle"
+              >
+                {job.task_progress.completed}/{job.task_progress.total}
+              </Text>
+            </XStack>
+          )}
 
           {/* Action Button */}
           <Button
@@ -377,7 +429,16 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
 export function HandymanJobsScreen() {
   const router = useRouter()
   const insets = useSafeArea()
+  const { tab } = useLocalSearchParams<{ tab?: string }>()
   const [activeTab, setActiveTab] = useState<TabType>('applicants')
+  const [refreshing, setRefreshing] = useState(false)
+
+  // Set initial tab from query param
+  useEffect(() => {
+    if (tab === 'offers' || tab === 'active' || tab === 'applicants') {
+      setActiveTab(tab)
+    }
+  }, [tab])
 
   // Fetch pending/all applications for "Job Applicants" tab
   const {
@@ -387,6 +448,7 @@ export function HandymanJobsScreen() {
     fetchNextPage: fetchMoreApplications,
     hasNextPage: hasMoreApplications,
     isFetchingNextPage: isFetchingMoreApplications,
+    refetch: refetchApplications,
   } = useHandymanApplications()
 
   // Fetch approved applications for "Active Jobs" tab
@@ -397,7 +459,39 @@ export function HandymanJobsScreen() {
     fetchNextPage: fetchMoreActiveJobs,
     hasNextPage: hasMoreActiveJobs,
     isFetchingNextPage: isFetchingMoreActiveJobs,
-  } = useHandymanApplications({ status: 'approved' })
+    refetch: refetchActiveJobs,
+  } = useHandymanAssignedJobs()
+
+  // Fetch direct offers for "Direct Offers" tab
+  const {
+    data: offersData,
+    isLoading: offersLoading,
+    error: offersError,
+    fetchNextPage: fetchMoreOffers,
+    hasNextPage: hasMoreOffers,
+    isFetchingNextPage: isFetchingMoreOffers,
+    refetch: refetchOffers,
+  } = useHandymanDirectOffers()
+
+  // Get pending offers count for tab badge
+  const { data: pendingOffersCount = 0, refetch: refetchPendingCount } =
+    useHandymanPendingOffersCount()
+
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      if (activeTab === 'applicants') {
+        await refetchApplications()
+      } else if (activeTab === 'active') {
+        await refetchActiveJobs()
+      } else {
+        await Promise.all([refetchOffers(), refetchPendingCount()])
+      }
+    } finally {
+      setRefreshing(false)
+    }
+  }, [activeTab, refetchApplications, refetchActiveJobs, refetchOffers, refetchPendingCount])
 
   // Flatten paginated data
   const allApplications = useMemo(() => {
@@ -413,6 +507,10 @@ export function HandymanJobsScreen() {
     return activeJobsData?.pages.flatMap((page) => page.results) || []
   }, [activeJobsData])
 
+  const offers = useMemo(() => {
+    return offersData?.pages.flatMap((page) => page.results) || []
+  }, [offersData])
+
   const handleApplicationPress = (application: JobApplication) => {
     router.push({
       pathname: '/(handyman)/my-jobs/[id]',
@@ -423,18 +521,34 @@ export function HandymanJobsScreen() {
     } as any)
   }
 
-  const handleActiveJobPress = (application: JobApplication) => {
+  const handleActiveJobPress = (job: HandymanAssignedJob) => {
     router.push({
       pathname: '/(handyman)/jobs/ongoing/[id]',
       params: {
-        id: application.job.public_id,
-        applicationId: application.public_id,
+        id: job.public_id,
       },
     } as any)
   }
 
-  const isLoading = activeTab === 'applicants' ? applicationsLoading : activeJobsLoading
-  const error = activeTab === 'applicants' ? applicationsError : activeJobsError
+  const handleOfferPress = (offerId: string) => {
+    router.push({
+      pathname: '/(handyman)/direct-offers/[id]',
+      params: { id: offerId },
+    } as any)
+  }
+
+  const isLoading =
+    activeTab === 'applicants'
+      ? applicationsLoading
+      : activeTab === 'active'
+        ? activeJobsLoading
+        : offersLoading
+  const error =
+    activeTab === 'applicants'
+      ? applicationsError
+      : activeTab === 'active'
+        ? activeJobsError
+        : offersError
 
   return (
     <GradientBackground>
@@ -489,12 +603,12 @@ export function HandymanJobsScreen() {
             onPress={() => setActiveTab('applicants')}
           >
             <Text
-              fontSize="$4"
+              fontSize="$3"
               fontWeight={activeTab === 'applicants' ? '600' : '500'}
               color={activeTab === 'applicants' ? '$primary' : '$colorSubtle'}
               textAlign="center"
             >
-              Job Applicants
+              Applications
             </Text>
           </Button>
           <Button
@@ -507,7 +621,7 @@ export function HandymanJobsScreen() {
             onPress={() => setActiveTab('active')}
           >
             <Text
-              fontSize="$4"
+              fontSize="$3"
               fontWeight={activeTab === 'active' ? '600' : '500'}
               color={activeTab === 'active' ? '$primary' : '$colorSubtle'}
               textAlign="center"
@@ -515,11 +629,62 @@ export function HandymanJobsScreen() {
               Active Jobs
             </Text>
           </Button>
+          <Button
+            unstyled
+            flex={1}
+            pb="$md"
+            borderBottomWidth={3}
+            borderBottomColor={activeTab === 'offers' ? '$primary' : 'transparent'}
+            marginBottom={-1}
+            onPress={() => setActiveTab('offers')}
+          >
+            <XStack
+              alignItems="center"
+              justifyContent="center"
+              gap="$xs"
+            >
+              <Text
+                fontSize="$3"
+                fontWeight={activeTab === 'offers' ? '600' : '500'}
+                color={activeTab === 'offers' ? '$primary' : '$colorSubtle'}
+                textAlign="center"
+              >
+                Offers
+              </Text>
+              {pendingOffersCount > 0 && (
+                <View
+                  bg="$primary"
+                  borderRadius="$full"
+                  minWidth={18}
+                  height={18}
+                  alignItems="center"
+                  justifyContent="center"
+                  px={5}
+                >
+                  <Text
+                    fontSize={10}
+                    fontWeight="700"
+                    color="white"
+                  >
+                    {pendingOffersCount}
+                  </Text>
+                </View>
+              )}
+            </XStack>
+          </Button>
         </XStack>
 
         <ScrollView
           flex={1}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#0C9A5C"
+              colors={['#0C9A5C']}
+            />
+          }
         >
           <YStack
             px="$lg"
@@ -543,7 +708,9 @@ export function HandymanJobsScreen() {
                 >
                   {activeTab === 'applicants'
                     ? 'Loading applications...'
-                    : 'Loading active jobs...'}
+                    : activeTab === 'active'
+                      ? 'Loading active jobs...'
+                      : 'Loading offers...'}
                 </Text>
               </YStack>
             ) : error ? (
@@ -563,7 +730,12 @@ export function HandymanJobsScreen() {
                   fontSize="$4"
                   fontWeight="500"
                 >
-                  Failed to load {activeTab === 'applicants' ? 'applications' : 'jobs'}
+                  Failed to load{' '}
+                  {activeTab === 'applicants'
+                    ? 'applications'
+                    : activeTab === 'active'
+                      ? 'jobs'
+                      : 'offers'}
                 </Text>
                 <Text
                   color="$colorSubtle"
@@ -679,7 +851,98 @@ export function HandymanJobsScreen() {
                 </YStack>
               )
             ) : // Active Jobs Tab Content
-            activeJobs.length === 0 ? (
+            activeTab === 'active' ? (
+              activeJobs.length === 0 ? (
+                <YStack
+                  py="$2xl"
+                  alignItems="center"
+                  bg="rgba(255,255,255,0.7)"
+                  borderRadius={20}
+                  gap="$md"
+                  px="$lg"
+                >
+                  <YStack
+                    width={80}
+                    height={80}
+                    borderRadius="$full"
+                    bg="rgba(12,154,92,0.1)"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Play
+                      size={36}
+                      color="$primary"
+                    />
+                  </YStack>
+                  <Text
+                    color="$color"
+                    fontSize="$5"
+                    fontWeight="600"
+                  >
+                    No Active Jobs
+                  </Text>
+                  <Text
+                    color="$colorSubtle"
+                    fontSize="$3"
+                    textAlign="center"
+                  >
+                    Jobs you've been approved for will appear here. Keep applying to find your next
+                    opportunity!
+                  </Text>
+                </YStack>
+              ) : (
+                <YStack gap="$md">
+                  {activeJobs.map((job) => (
+                    <ActiveJobCard
+                      key={job.public_id}
+                      job={job}
+                      onPress={() => handleActiveJobPress(job)}
+                    />
+                  ))}
+
+                  {/* Load More Button */}
+                  {hasMoreActiveJobs && (
+                    <Button
+                      onPress={() => fetchMoreActiveJobs()}
+                      disabled={isFetchingMoreActiveJobs}
+                      bg="rgba(255,255,255,0.7)"
+                      borderRadius="$md"
+                      py="$sm"
+                      mt="$sm"
+                      borderWidth={1}
+                      borderColor="$borderColor"
+                    >
+                      {isFetchingMoreActiveJobs ? (
+                        <XStack
+                          alignItems="center"
+                          gap="$sm"
+                        >
+                          <Spinner
+                            size="small"
+                            color="$primary"
+                          />
+                          <Text
+                            color="$colorSubtle"
+                            fontSize="$3"
+                          >
+                            Loading...
+                          </Text>
+                        </XStack>
+                      ) : (
+                        <Text
+                          color="$primary"
+                          fontSize="$3"
+                          fontWeight="500"
+                        >
+                          Load more jobs
+                        </Text>
+                      )}
+                    </Button>
+                  )}
+                </YStack>
+              )
+            ) : // Direct Offers Tab Content
+            offers.length === 0 ? (
               <YStack
                 py="$2xl"
                 alignItems="center"
@@ -696,7 +959,7 @@ export function HandymanJobsScreen() {
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Play
+                  <Briefcase
                     size={36}
                     color="$primary"
                   />
@@ -706,32 +969,32 @@ export function HandymanJobsScreen() {
                   fontSize="$5"
                   fontWeight="600"
                 >
-                  No Active Jobs
+                  No Direct Offers
                 </Text>
                 <Text
                   color="$colorSubtle"
                   fontSize="$3"
                   textAlign="center"
                 >
-                  Jobs you've been approved for will appear here. Keep applying to find your next
-                  opportunity!
+                  When homeowners send you private job offers, they'll appear here.
                 </Text>
               </YStack>
             ) : (
               <YStack gap="$md">
-                {activeJobs.map((application) => (
-                  <ActiveJobCard
-                    key={application.public_id}
-                    application={application}
-                    onPress={() => handleActiveJobPress(application)}
+                {offers.map((offer) => (
+                  <DirectOfferCard
+                    key={offer.public_id}
+                    offer={offer}
+                    variant="handyman"
+                    onPress={() => handleOfferPress(offer.public_id)}
                   />
                 ))}
 
                 {/* Load More Button */}
-                {hasMoreActiveJobs && (
+                {hasMoreOffers && (
                   <Button
-                    onPress={() => fetchMoreActiveJobs()}
-                    disabled={isFetchingMoreActiveJobs}
+                    onPress={() => fetchMoreOffers()}
+                    disabled={isFetchingMoreOffers}
                     bg="rgba(255,255,255,0.7)"
                     borderRadius="$md"
                     py="$sm"
@@ -739,7 +1002,7 @@ export function HandymanJobsScreen() {
                     borderWidth={1}
                     borderColor="$borderColor"
                   >
-                    {isFetchingMoreActiveJobs ? (
+                    {isFetchingMoreOffers ? (
                       <XStack
                         alignItems="center"
                         gap="$sm"
@@ -761,7 +1024,7 @@ export function HandymanJobsScreen() {
                         fontSize="$3"
                         fontWeight="500"
                       >
-                        Load more jobs
+                        Load more offers
                       </Text>
                     )}
                   </Button>

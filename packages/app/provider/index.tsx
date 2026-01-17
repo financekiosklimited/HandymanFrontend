@@ -1,5 +1,5 @@
 import { useColorScheme } from 'react-native'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import {
   CustomToast,
   TamaguiProvider,
@@ -9,15 +9,9 @@ import {
   isWeb,
 } from '@my/ui'
 import { ToastViewport } from './ToastViewport'
+import { queryClient } from './query-client'
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-    },
-  },
-})
+export { queryClient } from './query-client'
 
 export function Provider({
   children,

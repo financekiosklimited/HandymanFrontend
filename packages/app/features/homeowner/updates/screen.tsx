@@ -42,6 +42,14 @@ export function HomeownerUpdatesScreen() {
 
     // Navigate based on notification type and data
     const data = notification.data
+    const notificationType = notification.notification_type
+
+    // Handle direct offer notifications - redirect to jobs with offers tab
+    if (notificationType.startsWith('direct_offer_')) {
+      router.push('/(homeowner)/jobs?tab=offers')
+      return
+    }
+
     if (data?.job_id) {
       // Redirect to jobs menu (management) instead of job detail
       router.push('/(homeowner)/jobs')

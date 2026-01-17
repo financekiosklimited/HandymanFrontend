@@ -5,14 +5,11 @@ import type { PaginatedArrayResponse, ApiResponse, GuestHandyman } from '../../t
 interface GuestHandymenParams {
   latitude?: number
   longitude?: number
-  radius_km?: number
   enabled?: boolean
 }
 
 export function useGuestHandymen(params?: GuestHandymenParams) {
-  // Only fetch when latitude and longitude are available
-  const hasLocation = !!(params?.latitude && params?.longitude)
-  const isEnabled = params?.enabled !== false && hasLocation
+  const isEnabled = params?.enabled !== false
 
   return useInfiniteQuery({
     queryKey: ['guest', 'handymen', params],
@@ -21,7 +18,6 @@ export function useGuestHandymen(params?: GuestHandymenParams) {
         const searchParams = new URLSearchParams()
         if (params?.latitude) searchParams.set('latitude', params.latitude.toString())
         if (params?.longitude) searchParams.set('longitude', params.longitude.toString())
-        if (params?.radius_km) searchParams.set('radius_km', params.radius_km.toString())
         searchParams.set('page', pageParam.toString())
 
         const url = `guest/handymen/?${searchParams.toString()}`
