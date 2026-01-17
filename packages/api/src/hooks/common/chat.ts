@@ -1,5 +1,9 @@
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../client'
+
+// Extended timeout for chat operations that may involve conversation creation or large payloads
+export const CHAT_TIMEOUT_MS = 60_000 // 60 seconds
+
 import type {
   ChatConversation,
   ChatMessage,
@@ -82,7 +86,7 @@ export function useConversationList(role: ChatRole) {
     queryKey: chatQueryKeys.conversationList(role),
     queryFn: async (): Promise<GeneralConversationListItem[]> => {
       const response = await apiClient
-        .get(`${role}/conversations/`)
+        .get(`${role}/conversations/`, { timeout: CHAT_TIMEOUT_MS })
         .json<ConversationListResponse>()
       return response.data
     },
@@ -118,7 +122,7 @@ export function useOpenUserChat(role: ChatRole, userId: string, enabled = true) 
     queryKey: chatQueryKeys.userChat(role, userId),
     queryFn: async (): Promise<ChatConversation> => {
       const response = await apiClient
-        .get(`${role}/users/${userId}/chat/`)
+        .get(`${role}/users/${userId}/chat/`, { timeout: CHAT_TIMEOUT_MS })
         .json<ChatConversationResponse>()
       return response.data
     },
@@ -185,7 +189,10 @@ export function useChatMessages(role: ChatRole, conversationId: string | undefin
       }
 
       const response = await apiClient
-        .get(`${role}/conversations/${conversationId}/messages/`, { searchParams: params })
+        .get(`${role}/conversations/${conversationId}/messages/`, {
+          searchParams: params,
+          timeout: CHAT_TIMEOUT_MS,
+        })
         .json<ChatMessagesResponse>()
 
       return {
@@ -257,6 +264,7 @@ export function useSendMessage(role: ChatRole) {
             // Let the browser set the Content-Type with boundary
             'Content-Type': undefined as any,
           },
+          timeout: CHAT_TIMEOUT_MS,
         })
         .json<SendMessageResponse>()
 

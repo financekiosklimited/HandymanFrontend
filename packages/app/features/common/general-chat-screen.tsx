@@ -10,6 +10,7 @@ import {
   useConversationList,
   useOpenUserChat,
   apiClient,
+  CHAT_TIMEOUT_MS,
 } from '@my/api'
 import type { ChatMessage, GeneralConversationListItem, AttachmentUpload } from '@my/api'
 import {
@@ -1017,7 +1018,7 @@ export function GeneralChatScreen({
         setIsCreatingConversation(true)
         try {
           const response = await apiClient
-            .get(`${role}/users/${recipientId}/chat/`)
+            .get(`${role}/users/${recipientId}/chat/`, { timeout: CHAT_TIMEOUT_MS })
             .json<{ data: { public_id: string } }>()
 
           activeConvId = response.data.public_id
