@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../client'
 import type { ApiResponse } from '../../types/common'
 import type { HomeownerJob } from '../../types/homeowner'
+import type { AttachmentUpload } from '../../types/attachment'
 
 export interface TaskInput {
   public_id?: string
@@ -19,8 +20,8 @@ export interface UpdateJobRequest {
   postal_code?: string
   status?: 'draft' | 'open' | 'in_progress'
   tasks?: TaskInput[]
-  images?: { uri: string; name: string; type: string }[]
-  images_to_remove?: string[]
+  attachments?: AttachmentUpload[]
+  attachments_to_remove?: string[]
 }
 
 export interface UpdateJobValidationError {
@@ -34,8 +35,9 @@ export interface UpdateJobValidationError {
 
 /**
  * Hook to update an existing job listing for homeowner.
- * Supports multipart/form-data for image uploads.
+ * Supports multipart/form-data for attachment uploads (images, videos, documents).
  * Supports task CRUD operations via _delete flag.
+ * Uses indexed format: attachments[0].file, attachments[1].file, etc.
  */
 export function useUpdateJob() {
   const queryClient = useQueryClient()
@@ -84,22 +86,33 @@ export function useUpdateJob() {
         })
       }
 
-      // Add new images
-      if (data.images && data.images.length > 0) {
-        data.images.forEach((image) => {
-          // @ts-ignore - React Native FormData accepts uri/name/type object
-          formData.append('images', {
-            uri: image.uri,
-            name: image.name,
-            type: image.type,
-          })
+      // Add new attachments using indexed format
+      if (data.attachments && data.attachments.length > 0) {
+        data.attachments.forEach((attachment, index) => {
+          // Main file
+          // @ts-ignore - React Native FormData accepts RNFile object
+          formData.append(`attachments[${index}].file`, attachment.file)
+
+          // Thumbnail for videos (required)
+          if (attachment.thumbnail) {
+            // @ts-ignore - React Native FormData accepts RNFile object
+            formData.append(`attachments[${index}].thumbnail`, attachment.thumbnail)
+          }
+
+          // Duration for videos (required)
+          if (attachment.duration_seconds !== undefined) {
+            formData.append(
+              `attachments[${index}].duration_seconds`,
+              attachment.duration_seconds.toString()
+            )
+          }
         })
       }
 
-      // Add images to remove
-      if (data.images_to_remove && data.images_to_remove.length > 0) {
-        data.images_to_remove.forEach((imageId, index) => {
-          formData.append(`images_to_remove[${index}]`, imageId)
+      // Add attachments to remove
+      if (data.attachments_to_remove && data.attachments_to_remove.length > 0) {
+        data.attachments_to_remove.forEach((attachmentId, index) => {
+          formData.append(`attachments_to_remove[${index}]`, attachmentId)
         })
       }
 

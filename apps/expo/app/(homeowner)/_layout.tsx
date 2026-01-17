@@ -120,16 +120,13 @@ export default function HomeownerLayout() {
       flex={1}
       backgroundColor="$background"
     >
-      <View
-        flex={1}
-        pb={shouldShowBottomNav()}
-      >
+      <YStack flex={1}>
         <Stack
           screenOptions={{
             headerShown: false,
           }}
         />
-      </View>
+      </YStack>
       {shouldShowBottomNav() && (
         <BottomNav
           activeRoute={getActiveRoute()}

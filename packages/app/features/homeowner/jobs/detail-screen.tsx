@@ -1,7 +1,19 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View, ImageViewer } from '@my/ui'
+import { useState, useRef, useMemo } from 'react'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Image,
+  Spinner,
+  View,
+  ImageViewer,
+  VideoPlayer,
+  DocumentThumbnail,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useHomeownerJob, useDeleteJob } from '@my/api'
 import type { HomeownerJobStatus } from '@my/api'
@@ -19,6 +31,7 @@ import {
   Edit3,
   Trash2,
   Users,
+  Play,
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -51,7 +64,36 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [imageViewerVisible, setImageViewerVisible] = useState(false)
   const [imageViewerIndex, setImageViewerIndex] = useState(0)
+  const [selectedVideo, setSelectedVideo] = useState<{
+    uri: string
+    thumbnail?: string
+  } | null>(null)
   const flatListRef = useRef<FlatList>(null)
+
+  // Type-safe attachment access - must be before any early returns to satisfy Rules of Hooks
+  const attachments = useMemo(() => {
+    if (!job) return []
+    return Array.isArray((job as { attachments?: unknown })?.attachments)
+      ? ((job as { attachments?: unknown[] })?.attachments as Array<{
+          public_id: string
+          file_url: string
+          file_type: 'image' | 'video' | 'document'
+          file_name: string
+          file_size: number
+          thumbnail_url?: string | null
+        }>)
+      : []
+  }, [job])
+
+  const imageAttachments = useMemo(
+    () => attachments.filter((attachment) => attachment.file_type === 'image'),
+    [attachments]
+  )
+  const imageUrls = useMemo(
+    () => imageAttachments.map((attachment) => attachment.file_url),
+    [imageAttachments]
+  )
+  const hasAttachments = attachments.length > 0
 
   // Handle image scroll
   const handleImageScroll = (event: any) => {
@@ -185,7 +227,6 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
     )
   }
 
-  const hasImages = job.images && job.images.length > 0
   const statusColor = jobStatusColors[job.status as JobStatus] || jobStatusColors.draft
 
   return (
@@ -311,8 +352,8 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                 </XStack>
               </YStack>
 
-              {/* Image Slider */}
-              {hasImages && job.images && (
+              {/* Attachment Slider */}
+              {hasAttachments && (
                 <YStack gap="$3">
                   <View
                     height={220}
@@ -322,37 +363,125 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                   >
                     <FlatList
                       ref={flatListRef}
-                      data={job.images}
+                      data={attachments}
                       horizontal
                       pagingEnabled
                       showsHorizontalScrollIndicator={false}
                       onScroll={handleImageScroll}
                       scrollEventThrottle={16}
-                      renderItem={({ item, index }) => (
-                        <Pressable
-                          onPress={() => {
-                            setImageViewerIndex(index)
-                            setImageViewerVisible(true)
-                          }}
-                        >
+                      renderItem={({ item }) => {
+                        if (item.file_type === 'image') {
+                          return (
+                            <Pressable
+                              onPress={() => {
+                                const imageIndex = imageAttachments.findIndex(
+                                  (attachment) => attachment.public_id === item.public_id
+                                )
+                                if (imageIndex >= 0) {
+                                  setImageViewerIndex(imageIndex)
+                                  setImageViewerVisible(true)
+                                }
+                              }}
+                            >
+                              <View
+                                width={IMAGE_WIDTH}
+                                height={220}
+                              >
+                                <Image
+                                  source={{ uri: item.file_url }}
+                                  width="100%"
+                                  height="100%"
+                                  resizeMode="cover"
+                                />
+                              </View>
+                            </Pressable>
+                          )
+                        }
+
+                        if (item.file_type === 'video') {
+                          return (
+                            <Pressable
+                              onPress={() =>
+                                setSelectedVideo({
+                                  uri: item.file_url,
+                                  thumbnail: item.thumbnail_url || undefined,
+                                })
+                              }
+                            >
+                              <View
+                                width={IMAGE_WIDTH}
+                                height={220}
+                                bg="$backgroundMuted"
+                              >
+                                {item.thumbnail_url ? (
+                                  <Image
+                                    source={{ uri: item.thumbnail_url }}
+                                    width="100%"
+                                    height="100%"
+                                    resizeMode="cover"
+                                  />
+                                ) : (
+                                  <View
+                                    flex={1}
+                                    alignItems="center"
+                                    justifyContent="center"
+                                  >
+                                    <Play
+                                      size={48}
+                                      color="$colorMuted"
+                                    />
+                                  </View>
+                                )}
+                                <View
+                                  position="absolute"
+                                  top={0}
+                                  left={0}
+                                  right={0}
+                                  bottom={0}
+                                  alignItems="center"
+                                  justifyContent="center"
+                                >
+                                  <View
+                                    bg="rgba(0,0,0,0.5)"
+                                    borderRadius="$full"
+                                    p="$3"
+                                  >
+                                    <Play
+                                      size={32}
+                                      color="white"
+                                      fill="white"
+                                    />
+                                  </View>
+                                </View>
+                              </View>
+                            </Pressable>
+                          )
+                        }
+
+                        return (
                           <View
                             width={IMAGE_WIDTH}
                             height={220}
+                            alignItems="center"
+                            justifyContent="center"
+                            bg="$backgroundMuted"
                           >
-                            <Image
-                              source={{ uri: item.image }}
-                              width="100%"
-                              height="100%"
-                              resizeMode="cover"
+                            <DocumentThumbnail
+                              fileUrl={item.file_url}
+                              fileName={item.file_name}
+                              fileSize={item.file_size}
+                              width={180}
+                              height={180}
+                              showFileSize={false}
                             />
                           </View>
-                        </Pressable>
-                      )}
+                        )
+                      }}
                       keyExtractor={(item) => item.public_id}
                     />
 
                     {/* Navigation arrows */}
-                    {job.images.length > 1 && (
+                    {attachments.length > 1 && (
                       <>
                         {currentImageIndex > 0 && (
                           <Button
@@ -373,7 +502,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                             />
                           </Button>
                         )}
-                        {currentImageIndex < job.images.length - 1 && (
+                        {currentImageIndex < attachments.length - 1 && (
                           <Button
                             unstyled
                             position="absolute"
@@ -396,7 +525,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                     )}
 
                     {/* Image counter */}
-                    {job.images.length > 1 && (
+                    {attachments.length > 1 && (
                       <View
                         position="absolute"
                         bottom="$3"
@@ -411,19 +540,19 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                           fontSize="$2"
                           fontWeight="500"
                         >
-                          {currentImageIndex + 1} / {job.images.length}
+                          {currentImageIndex + 1} / {attachments.length}
                         </Text>
                       </View>
                     )}
                   </View>
 
                   {/* Pagination dots */}
-                  {job.images.length > 1 && (
+                  {attachments.length > 1 && (
                     <XStack
                       justifyContent="center"
                       gap="$2"
                     >
-                      {job.images.map((_, index) => (
+                      {attachments.map((_, index) => (
                         <View
                           key={index}
                           width={index === currentImageIndex ? 20 : 8}
@@ -947,12 +1076,22 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
         )}
 
         {/* Fullscreen Image Viewer */}
-        {hasImages && job.images && (
+        {imageUrls.length > 0 && (
           <ImageViewer
-            images={job.images.map((img) => img.image)}
+            images={imageUrls}
             initialIndex={imageViewerIndex}
             visible={imageViewerVisible}
             onClose={() => setImageViewerVisible(false)}
+          />
+        )}
+
+        {/* Fullscreen Video Player */}
+        {selectedVideo && (
+          <VideoPlayer
+            uri={selectedVideo.uri}
+            thumbnailUri={selectedVideo.thumbnail}
+            visible={true}
+            onClose={() => setSelectedVideo(null)}
           />
         )}
       </YStack>

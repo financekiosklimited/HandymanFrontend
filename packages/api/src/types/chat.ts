@@ -1,12 +1,12 @@
 // Chat types for Job Chat and General Chat features
 
-import type { RNFile } from './handyman'
+import type { Attachment, AttachmentUpload } from './attachment'
 
 // Sender role for messages
 export type ChatSenderRole = 'homeowner' | 'handyman'
 
-// Message types
-export type ChatMessageType = 'text' | 'image' | 'text_with_image'
+// Message types - updated for attachments
+export type ChatMessageType = 'text' | 'attachment' | 'text_with_attachment'
 
 // Chat conversation status
 export type ChatConversationStatus = 'active'
@@ -14,7 +14,8 @@ export type ChatConversationStatus = 'active'
 // Conversation type
 export type ChatConversationType = 'job' | 'general'
 
-// Chat image attachment
+// Legacy ChatImage type - kept for backwards compatibility during migration
+/** @deprecated Use Attachment instead */
 export interface ChatImage {
   public_id: string
   image_url: string
@@ -22,13 +23,13 @@ export interface ChatImage {
   order: number
 }
 
-// Single chat message
+// Single chat message - updated to use attachments
 export interface ChatMessage {
   public_id: string
   sender_role: ChatSenderRole
   message_type: ChatMessageType
   content: string | null
-  images: ChatImage[]
+  attachments: Attachment[]
   is_read: boolean
   read_at: string | null
   created_at: string
@@ -144,5 +145,5 @@ export interface ChatUnreadCountResponse {
 // Request types
 export interface SendMessageRequest {
   content?: string
-  images?: RNFile[]
+  attachments?: AttachmentUpload[]
 }

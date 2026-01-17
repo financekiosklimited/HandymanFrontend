@@ -231,6 +231,7 @@ export function useHandymanApplications(params?: HandymanApplicationsParams) {
 
 /**
  * Hook to apply for a job with proposal data.
+ * Uses indexed format: attachments[0].file, attachments[1].file, etc.
  */
 export function useApplyForJob() {
   const queryClient = useQueryClient()
@@ -247,9 +248,24 @@ export function useApplyForJob() {
       if (data.materials && data.materials.length > 0) {
         formData.append('materials', JSON.stringify(data.materials))
       }
-      if (data.attachments) {
-        data.attachments.forEach((file) => {
-          formData.append('attachments', file as any)
+      // Add attachments using indexed format
+      if (data.attachments && data.attachments.length > 0) {
+        data.attachments.forEach((attachment, index) => {
+          // Main file
+          formData.append(`attachments[${index}].file`, attachment.file as any)
+
+          // Thumbnail for videos (required)
+          if (attachment.thumbnail) {
+            formData.append(`attachments[${index}].thumbnail`, attachment.thumbnail as any)
+          }
+
+          // Duration for videos (required)
+          if (attachment.duration_seconds !== undefined) {
+            formData.append(
+              `attachments[${index}].duration_seconds`,
+              attachment.duration_seconds.toString()
+            )
+          }
         })
       }
 
@@ -272,6 +288,7 @@ export function useApplyForJob() {
 
 /**
  * Hook to edit a pending job application.
+ * Uses indexed format: attachments[0].file, attachments[1].file, etc.
  */
 export function useEditApplication() {
   const queryClient = useQueryClient()
@@ -294,9 +311,30 @@ export function useEditApplication() {
       if (data.materials !== undefined) {
         formData.append('materials', JSON.stringify(data.materials))
       }
-      if (data.attachments) {
-        data.attachments.forEach((file) => {
-          formData.append('attachments', file as any)
+      // Add attachments using indexed format
+      if (data.attachments && data.attachments.length > 0) {
+        data.attachments.forEach((attachment, index) => {
+          // Main file
+          formData.append(`attachments[${index}].file`, attachment.file as any)
+
+          // Thumbnail for videos (required)
+          if (attachment.thumbnail) {
+            formData.append(`attachments[${index}].thumbnail`, attachment.thumbnail as any)
+          }
+
+          // Duration for videos (required)
+          if (attachment.duration_seconds !== undefined) {
+            formData.append(
+              `attachments[${index}].duration_seconds`,
+              attachment.duration_seconds.toString()
+            )
+          }
+        })
+      }
+      // Add attachments to remove
+      if (data.attachments_to_remove && data.attachments_to_remove.length > 0) {
+        data.attachments_to_remove.forEach((attachmentId, index) => {
+          formData.append(`attachments_to_remove[${index}]`, attachmentId)
         })
       }
 
@@ -768,6 +806,7 @@ export function useHandymanReimbursement(jobId: string, reimbursementId: string)
 
 /**
  * Hook to create a reimbursement request.
+ * Uses indexed format: attachments[0].file, attachments[1].file, etc.
  */
 export function useCreateReimbursement() {
   const queryClient = useQueryClient()
@@ -781,9 +820,24 @@ export function useCreateReimbursement() {
       if (data.notes) {
         formData.append('notes', data.notes)
       }
+      // Add attachments using indexed format
       if (data.attachments && data.attachments.length > 0) {
-        data.attachments.forEach((file) => {
-          formData.append('attachments', file as any)
+        data.attachments.forEach((attachment, index) => {
+          // Main file
+          formData.append(`attachments[${index}].file`, attachment.file as any)
+
+          // Thumbnail for videos (required)
+          if (attachment.thumbnail) {
+            formData.append(`attachments[${index}].thumbnail`, attachment.thumbnail as any)
+          }
+
+          // Duration for videos (required)
+          if (attachment.duration_seconds !== undefined) {
+            formData.append(
+              `attachments[${index}].duration_seconds`,
+              attachment.duration_seconds.toString()
+            )
+          }
         })
       }
 
@@ -804,6 +858,7 @@ export function useCreateReimbursement() {
 
 /**
  * Hook to update a reimbursement request.
+ * Uses indexed format: attachments[0].file, attachments[1].file, etc.
  */
 export function useUpdateReimbursement() {
   const queryClient = useQueryClient()
@@ -827,14 +882,30 @@ export function useUpdateReimbursement() {
       if (data.notes !== undefined) {
         formData.append('notes', data.notes)
       }
+      // Add attachments using indexed format
       if (data.attachments && data.attachments.length > 0) {
-        data.attachments.forEach((file) => {
-          formData.append('attachments', file as any)
+        data.attachments.forEach((attachment, index) => {
+          // Main file
+          formData.append(`attachments[${index}].file`, attachment.file as any)
+
+          // Thumbnail for videos (required)
+          if (attachment.thumbnail) {
+            formData.append(`attachments[${index}].thumbnail`, attachment.thumbnail as any)
+          }
+
+          // Duration for videos (required)
+          if (attachment.duration_seconds !== undefined) {
+            formData.append(
+              `attachments[${index}].duration_seconds`,
+              attachment.duration_seconds.toString()
+            )
+          }
         })
       }
+      // Add attachments to remove
       if (data.attachments_to_remove && data.attachments_to_remove.length > 0) {
-        data.attachments_to_remove.forEach((id) => {
-          formData.append('attachments_to_remove', id)
+        data.attachments_to_remove.forEach((attachmentId, index) => {
+          formData.append(`attachments_to_remove[${index}]`, attachmentId)
         })
       }
 

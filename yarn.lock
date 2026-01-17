@@ -10838,6 +10838,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-document-picker@npm:~14.0.8":
+  version: 14.0.8
+  resolution: "expo-document-picker@npm:14.0.8"
+  peerDependencies:
+    expo: "*"
+  checksum: 10/6bc2a41a87c840ac13d9bc872f5838e396b90eaeeeddcee19e88ca62614ec57c3517ab1f5725d4efc43470760e9c6b7035e7d35d6c600d246771a0cee93a45b1
+  languageName: node
+  linkType: hard
+
 "expo-eas-client@npm:~1.0.8":
   version: 1.0.8
   resolution: "expo-eas-client@npm:1.0.8"
@@ -11129,6 +11138,26 @@ __metadata:
   bin:
     expo-updates: bin/cli.js
   checksum: 10/c5df01dba1ee8bb22adf9a3bc93312463dc5608639f3f7d45a7e045e3a73a8e58436639f402501c25176e33c8c1961dcece13b774d9176652d1d498278311943
+  languageName: node
+  linkType: hard
+
+"expo-video-thumbnails@npm:~10.0.8":
+  version: 10.0.8
+  resolution: "expo-video-thumbnails@npm:10.0.8"
+  peerDependencies:
+    expo: "*"
+  checksum: 10/8dc5ac7f3f1f0c4f98fa0c10e6916e1d9acff4e321d77c633b976f8e17fff9e351dab8cc3d7fe1d74e9c80b2b24708bcc3c1a11057ae22a86b128456b3517ae1
+  languageName: node
+  linkType: hard
+
+"expo-video@npm:~3.0.15":
+  version: 3.0.15
+  resolution: "expo-video@npm:3.0.15"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/cc5cd7e2971791e1b3056abb76b10ada5393daa390abfdfbad0a2bfee428df54b00672ec6e0746a04ee42c25c2c6db7829c3f29f88fb58d71aca0a0d30b5e5ec
   languageName: node
   linkType: hard
 
@@ -16431,7 +16460,10 @@ __metadata:
     burnt: "npm:^0.13.0"
     check-dependency-version-consistency: "npm:^4.1.0"
     dotenv: "npm:^17.2.3"
+    expo-document-picker: "npm:~14.0.8"
     expo-location: "npm:^19.0.8"
+    expo-video: "npm:~3.0.15"
+    expo-video-thumbnails: "npm:~10.0.8"
     husky: "npm:^9.1.6"
     turbo: "npm:^1.13.4"
     typescript: "npm:~5.8.3"

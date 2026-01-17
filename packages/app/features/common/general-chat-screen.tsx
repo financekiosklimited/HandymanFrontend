@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, Input } from '@my/ui'
-import { GradientBackground } from '@my/ui'
+import { GradientBackground, AttachmentGrid } from '@my/ui'
 import {
   useChatMessages,
   useSendMessage,
@@ -10,29 +10,28 @@ import {
   useConversationList,
   apiClient,
 } from '@my/api'
-import type { ChatMessage, ChatImage, GeneralConversationListItem } from '@my/api'
+import type { ChatMessage, GeneralConversationListItem, AttachmentUpload } from '@my/api'
 import {
   ArrowLeft,
   Send,
-  ImagePlus,
+  Paperclip,
   X,
   CheckCheck,
   Check,
   MessageCircle,
   User,
+  Camera,
+  Image as ImageLucide,
+  Video,
+  Play,
+  Film,
 } from '@tamagui/lucide-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
 import * as ImagePicker from 'expo-image-picker'
-import {
-  FlatList,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  Modal,
-  Dimensions,
-} from 'react-native'
+import * as VideoThumbnails from 'expo-video-thumbnails'
+import { FlatList, Pressable, KeyboardAvoidingView, Platform, Alert } from 'react-native'
 import { useQueryClient } from '@tanstack/react-query'
 
 type ChatRole = 'homeowner' | 'handyman'
@@ -45,10 +44,100 @@ interface GeneralChatScreenProps {
   userRole: ChatRole
 }
 
-interface RNFile {
+// Local attachment state for UI (before upload)
+interface LocalAttachment {
+  id: string
   uri: string
-  type: string
   name: string
+  type: string // MIME type
+  file_type: 'image' | 'video'
+  file_size?: number
+  thumbnail_uri?: string // For videos
+  duration_seconds?: number // For videos
+}
+
+// Generate unique ID for local attachments
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+}
+
+// Generate video thumbnail
+async function generateVideoThumbnail(videoUri: string): Promise<string | undefined> {
+  try {
+    const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+      time: 1000, // 1 second into the video
+      quality: 0.7,
+    })
+    return uri
+  } catch (error) {
+    console.warn('Failed to generate video thumbnail:', error)
+    return undefined
+  }
+}
+
+// Format duration for display
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+// Premium icon button colors (WhatsApp-style)
+const ICON_COLORS = {
+  camera: '#007AFF', // Blue - Take Photo
+  gallery: '#34C759', // Green - Choose from Library
+  recordVideo: '#FF3B30', // Red - Record Video
+  chooseVideo: '#AF52DE', // Purple - Choose Video
+}
+
+// Premium icon button component for chat
+interface ChatIconButtonProps {
+  icon: React.ReactNode
+  label: string
+  color: string
+  onPress: () => void
+  disabled?: boolean
+}
+
+function ChatIconButton({ icon, label, color, onPress, disabled }: ChatIconButtonProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => ({
+        opacity: pressed ? 0.7 : disabled ? 0.4 : 1,
+        alignItems: 'center',
+        gap: 4,
+      })}
+    >
+      <View
+        width={48}
+        height={48}
+        borderRadius={14}
+        alignItems="center"
+        justifyContent="center"
+        style={{
+          backgroundColor: color,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 4,
+          elevation: 3,
+        }}
+      >
+        {icon}
+      </View>
+      <Text
+        fontSize={10}
+        color="$colorSubtle"
+        fontWeight="500"
+        textAlign="center"
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  )
 }
 
 // ========== GeneralChatHeader Component ==========
@@ -155,12 +244,10 @@ function ChatBubble({
   message,
   isSent,
   showTimestamp = true,
-  onImagePress,
 }: {
   message: ChatMessage
   isSent: boolean
   showTimestamp?: boolean
-  onImagePress?: (image: ChatImage) => void
 }) {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
@@ -171,41 +258,28 @@ function ChatBubble({
     })
   }
 
+  // Determine attachment item size based on count
+  const getItemSize = () => {
+    if (!message.attachments || message.attachments.length === 0) return 100
+    if (message.attachments.length === 1) return 200
+    return 100
+  }
+
   return (
     <YStack
       alignSelf={isSent ? 'flex-end' : 'flex-start'}
       maxWidth="80%"
       mb="$sm"
     >
-      {/* Images */}
-      {message.images && message.images.length > 0 && (
-        <XStack
-          flexWrap="wrap"
-          gap="$xs"
-          mb={message.content ? '$xs' : 0}
-        >
-          {message.images.map((img) => (
-            <Pressable
-              key={img.public_id}
-              onPress={() => onImagePress?.(img)}
-            >
-              <View
-                width={message.images.length === 1 ? 200 : 100}
-                height={message.images.length === 1 ? 150 : 100}
-                borderRadius={16}
-                overflow="hidden"
-                bg="$backgroundMuted"
-              >
-                <Image
-                  source={{ uri: img.thumbnail_url || img.image_url }}
-                  width="100%"
-                  height="100%"
-                  resizeMode="cover"
-                />
-              </View>
-            </Pressable>
-          ))}
-        </XStack>
+      {/* Attachments (images/videos) */}
+      {message.attachments && message.attachments.length > 0 && (
+        <View mb={message.content ? '$xs' : 0}>
+          <AttachmentGrid
+            attachments={message.attachments}
+            itemSize={getItemSize()}
+            gap={4}
+          />
+        </View>
       )}
 
       {/* Text Content */}
@@ -267,138 +341,15 @@ function ChatBubble({
   )
 }
 
-// ========== ImageViewerModal Component ==========
-function ImageViewerModal({
-  visible,
-  image,
-  onClose,
-}: {
-  visible: boolean
-  image: ChatImage | null
-  onClose: () => void
-}) {
-  if (!image) return null
-
-  const { width, height } = Dimensions.get('window')
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View
-        flex={1}
-        bg="rgba(0,0,0,0.95)"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Pressable
-          onPress={onClose}
-          style={{
-            position: 'absolute',
-            top: 50,
-            right: 20,
-            zIndex: 10,
-            padding: 12,
-            backgroundColor: 'rgba(255,255,255,0.1)',
-            borderRadius: 20,
-          }}
-        >
-          <X
-            size={24}
-            color="white"
-          />
-        </Pressable>
-
-        <Image
-          source={{ uri: image.image_url }}
-          width={width}
-          height={height * 0.7}
-          resizeMode="contain"
-        />
-      </View>
-    </Modal>
-  )
-}
-
-// ========== PreviewImageModal ==========
-function PreviewImageModal({
-  visible,
-  imageUri,
-  onClose,
-}: {
-  visible: boolean
-  imageUri: string | null
-  onClose: () => void
-}) {
-  if (!imageUri) return null
-
-  const { width, height } = Dimensions.get('window')
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View
-        flex={1}
-        bg="rgba(0,0,0,0.95)"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Pressable
-          onPress={onClose}
-          style={{
-            position: 'absolute',
-            top: 50,
-            right: 20,
-            zIndex: 10,
-            padding: 12,
-            backgroundColor: 'rgba(255,255,255,0.1)',
-            borderRadius: 20,
-          }}
-        >
-          <X
-            size={24}
-            color="white"
-          />
-        </Pressable>
-
-        <Image
-          source={{ uri: imageUri }}
-          width={width}
-          height={height * 0.7}
-          resizeMode="contain"
-        />
-
-        <Text
-          color="white"
-          fontSize="$2"
-          mt="$md"
-          opacity={0.7}
-        >
-          Tap X to close preview
-        </Text>
-      </View>
-    </Modal>
-  )
-}
-
-// ========== ImagePreviewRow Component ==========
-function ImagePreviewRow({
-  images,
+// ========== AttachmentPreviewRow Component ==========
+function AttachmentPreviewRow({
+  attachments,
   onRemove,
-  onPreview,
 }: {
-  images: RNFile[]
-  onRemove: (index: number) => void
-  onPreview: (uri: string) => void
+  attachments: LocalAttachment[]
+  onRemove: (id: string) => void
 }) {
-  if (images.length === 0) return null
+  if (attachments.length === 0) return null
 
   return (
     <XStack
@@ -414,31 +365,96 @@ function ImagePreviewRow({
         showsHorizontalScrollIndicator={false}
       >
         <XStack gap="$sm">
-          {images.map((img, index) => (
+          {attachments.map((attachment) => (
             <View
-              key={index}
+              key={attachment.id}
               position="relative"
             >
-              <Pressable onPress={() => onPreview(img.uri)}>
-                <View
-                  width={64}
-                  height={64}
-                  borderRadius={12}
-                  overflow="hidden"
-                  bg="$backgroundMuted"
-                  borderWidth={2}
-                  borderColor="rgba(12, 154, 92, 0.3)"
-                >
+              <View
+                width={64}
+                height={64}
+                borderRadius={12}
+                overflow="hidden"
+                bg="$backgroundMuted"
+                borderWidth={2}
+                borderColor="rgba(12, 154, 92, 0.3)"
+              >
+                {attachment.file_type === 'image' ? (
                   <Image
-                    source={{ uri: img.uri }}
+                    source={{ uri: attachment.uri }}
                     width={64}
                     height={64}
                     resizeMode="cover"
                   />
-                </View>
-              </Pressable>
+                ) : (
+                  // Video preview with thumbnail
+                  <View
+                    width={64}
+                    height={64}
+                  >
+                    {attachment.thumbnail_uri ? (
+                      <Image
+                        source={{ uri: attachment.thumbnail_uri }}
+                        width={64}
+                        height={64}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View
+                        flex={1}
+                        bg="$backgroundMuted"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Video
+                          size={24}
+                          color="#0C9A5C"
+                        />
+                      </View>
+                    )}
+                    {/* Play icon overlay */}
+                    <View
+                      position="absolute"
+                      top={0}
+                      left={0}
+                      right={0}
+                      bottom={0}
+                      alignItems="center"
+                      justifyContent="center"
+                      bg="rgba(0,0,0,0.3)"
+                    >
+                      <Play
+                        size={20}
+                        color="white"
+                        fill="white"
+                      />
+                    </View>
+                    {/* Duration badge */}
+                    {attachment.duration_seconds !== undefined && (
+                      <View
+                        position="absolute"
+                        bottom={2}
+                        right={2}
+                        bg="rgba(0,0,0,0.7)"
+                        px={4}
+                        py={1}
+                        borderRadius={4}
+                      >
+                        <Text
+                          fontSize={8}
+                          color="white"
+                          fontWeight="600"
+                        >
+                          {formatDuration(attachment.duration_seconds)}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </View>
+              {/* Remove button */}
               <Pressable
-                onPress={() => onRemove(index)}
+                onPress={() => onRemove(attachment.id)}
                 style={{
                   position: 'absolute',
                   top: -6,
@@ -473,51 +489,213 @@ function ChatInput({
   onSend,
   isSending,
 }: {
-  onSend: (content: string, images: RNFile[]) => void
+  onSend: (content: string, attachments: LocalAttachment[]) => void
   isSending: boolean
 }) {
   const [text, setText] = useState('')
-  const [images, setImages] = useState<RNFile[]>([])
-  const [previewUri, setPreviewUri] = useState<string | null>(null)
+  const [attachments, setAttachments] = useState<LocalAttachment[]>([])
+  const [showPicker, setShowPicker] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
   const toast = useToastController()
 
-  const handlePickImage = async () => {
-    if (images.length >= 5) {
-      toast.show('Maximum 5 images allowed', { native: false })
+  const MAX_ATTACHMENTS = 5 // Chat limit
+
+  // Pick images from library
+  const handlePickImages = async () => {
+    if (attachments.length >= MAX_ATTACHMENTS) {
+      toast.show(`Maximum ${MAX_ATTACHMENTS} attachments allowed`, { native: false })
       return
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      selectionLimit: 5 - images.length,
-      quality: 0.8,
-    })
+    setShowPicker(false)
+    setIsProcessing(true)
 
-    if (!result.canceled && result.assets) {
-      const newImages: RNFile[] = result.assets.map((asset) => ({
-        uri: asset.uri,
-        type: asset.mimeType || 'image/jpeg',
-        name: asset.fileName || `image_${Date.now()}.jpg`,
-      }))
-      setImages([...images, ...newImages].slice(0, 5))
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        selectionLimit: MAX_ATTACHMENTS - attachments.length,
+        quality: 0.8,
+      })
+
+      if (!result.canceled && result.assets) {
+        const newAttachments: LocalAttachment[] = result.assets.map((asset) => ({
+          id: generateId(),
+          uri: asset.uri,
+          name: asset.fileName || `image_${Date.now()}.jpg`,
+          type: asset.mimeType || 'image/jpeg',
+          file_type: 'image' as const,
+          file_size: asset.fileSize,
+        }))
+        setAttachments((prev) => [...prev, ...newAttachments].slice(0, MAX_ATTACHMENTS))
+      }
+    } catch (error) {
+      console.error('Error picking images:', error)
+      toast.show('Failed to pick images', { native: false })
+    } finally {
+      setIsProcessing(false)
     }
   }
 
+  // Pick video from library
+  const handlePickVideo = async () => {
+    if (attachments.length >= MAX_ATTACHMENTS) {
+      toast.show(`Maximum ${MAX_ATTACHMENTS} attachments allowed`, { native: false })
+      return
+    }
+
+    setShowPicker(false)
+    setIsProcessing(true)
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['videos'],
+        allowsMultipleSelection: false,
+        quality: 0.8,
+      })
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0]!
+        const thumbnailUri = await generateVideoThumbnail(asset.uri)
+
+        const newAttachment: LocalAttachment = {
+          id: generateId(),
+          uri: asset.uri,
+          name: asset.fileName || `video_${Date.now()}.mp4`,
+          type: asset.mimeType || 'video/mp4',
+          file_type: 'video',
+          file_size: asset.fileSize,
+          thumbnail_uri: thumbnailUri,
+          duration_seconds: asset.duration ? Math.round(asset.duration / 1000) : undefined,
+        }
+        setAttachments((prev) => [...prev, newAttachment])
+      }
+    } catch (error) {
+      console.error('Error picking video:', error)
+      toast.show('Failed to pick video', { native: false })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Take photo with camera
+  const handleTakePhoto = async () => {
+    if (attachments.length >= MAX_ATTACHMENTS) {
+      toast.show(`Maximum ${MAX_ATTACHMENTS} attachments allowed`, { native: false })
+      return
+    }
+
+    setShowPicker(false)
+    setIsProcessing(true)
+
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync()
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Camera permission is required to take photos.')
+        setIsProcessing(false)
+        return
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      })
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0]!
+        const newAttachment: LocalAttachment = {
+          id: generateId(),
+          uri: asset.uri,
+          name: asset.fileName || `photo_${Date.now()}.jpg`,
+          type: asset.mimeType || 'image/jpeg',
+          file_type: 'image',
+          file_size: asset.fileSize,
+        }
+        setAttachments((prev) => [...prev, newAttachment])
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error)
+      toast.show('Failed to take photo', { native: false })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Record video with camera
+  const handleRecordVideo = async () => {
+    if (attachments.length >= MAX_ATTACHMENTS) {
+      toast.show(`Maximum ${MAX_ATTACHMENTS} attachments allowed`, { native: false })
+      return
+    }
+
+    setShowPicker(false)
+    setIsProcessing(true)
+
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync()
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Camera permission is required to record videos.')
+        setIsProcessing(false)
+        return
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['videos'],
+        quality: 0.8,
+        videoMaxDuration: 60, // 60 seconds max
+      })
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0]!
+        const thumbnailUri = await generateVideoThumbnail(asset.uri)
+
+        const newAttachment: LocalAttachment = {
+          id: generateId(),
+          uri: asset.uri,
+          name: asset.fileName || `video_${Date.now()}.mp4`,
+          type: asset.mimeType || 'video/mp4',
+          file_type: 'video',
+          file_size: asset.fileSize,
+          thumbnail_uri: thumbnailUri,
+          duration_seconds: asset.duration ? Math.round(asset.duration / 1000) : undefined,
+        }
+        setAttachments((prev) => [...prev, newAttachment])
+      }
+    } catch (error) {
+      console.error('Error recording video:', error)
+      toast.show('Failed to record video', { native: false })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Toggle attachment picker visibility
+  const togglePicker = useCallback(() => {
+    if (attachments.length >= MAX_ATTACHMENTS) {
+      toast.show(`Maximum ${MAX_ATTACHMENTS} attachments allowed`, { native: false })
+      return
+    }
+    setShowPicker((prev) => !prev)
+  }, [attachments.length, toast])
+
+  // Remove attachment
+  const removeAttachment = (id: string) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id))
+  }
+
+  // Handle send
   const handleSend = () => {
     const trimmedText = text.trim()
-    if (!trimmedText && images.length === 0) return
+    if (!trimmedText && attachments.length === 0) return
 
-    onSend(trimmedText, images)
+    onSend(trimmedText, attachments)
     setText('')
-    setImages([])
+    setAttachments([])
+    setShowPicker(false)
   }
 
-  const removeImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index))
-  }
-
-  const canSend = (text.trim() || images.length > 0) && !isSending
+  const canSend = (text.trim() || attachments.length > 0) && !isSending && !isProcessing
+  const canAddMore = attachments.length < MAX_ATTACHMENTS
 
   return (
     <YStack
@@ -525,10 +703,71 @@ function ChatInput({
       borderTopWidth={1}
       borderTopColor="rgba(0,0,0,0.06)"
     >
-      <ImagePreviewRow
-        images={images}
-        onRemove={removeImage}
-        onPreview={setPreviewUri}
+      {/* Premium Inline Attachment Picker */}
+      {showPicker && (
+        <XStack
+          justifyContent="center"
+          gap="$md"
+          paddingVertical="$md"
+          paddingHorizontal="$lg"
+          bg="rgba(0,0,0,0.02)"
+          borderBottomWidth={1}
+          borderBottomColor="rgba(0,0,0,0.04)"
+        >
+          <ChatIconButton
+            icon={
+              <Camera
+                size={22}
+                color="white"
+              />
+            }
+            label="Camera"
+            color={ICON_COLORS.camera}
+            onPress={handleTakePhoto}
+            disabled={!canAddMore || isProcessing}
+          />
+          <ChatIconButton
+            icon={
+              <ImageLucide
+                size={22}
+                color="white"
+              />
+            }
+            label="Gallery"
+            color={ICON_COLORS.gallery}
+            onPress={handlePickImages}
+            disabled={!canAddMore || isProcessing}
+          />
+          <ChatIconButton
+            icon={
+              <Video
+                size={22}
+                color="white"
+              />
+            }
+            label="Record"
+            color={ICON_COLORS.recordVideo}
+            onPress={handleRecordVideo}
+            disabled={!canAddMore || isProcessing}
+          />
+          <ChatIconButton
+            icon={
+              <Film
+                size={22}
+                color="white"
+              />
+            }
+            label="Video"
+            color={ICON_COLORS.chooseVideo}
+            onPress={handlePickVideo}
+            disabled={!canAddMore || isProcessing}
+          />
+        </XStack>
+      )}
+
+      <AttachmentPreviewRow
+        attachments={attachments}
+        onRemove={removeAttachment}
       />
 
       <XStack
@@ -537,22 +776,40 @@ function ChatInput({
         alignItems="flex-end"
         gap="$sm"
       >
-        {/* Image Picker Button */}
+        {/* Attachment Picker Toggle Button */}
         <Pressable
-          onPress={handlePickImage}
+          onPress={togglePicker}
+          disabled={isProcessing}
           style={({ pressed }) => ({
             width: 44,
             height: 44,
             borderRadius: 22,
-            backgroundColor: pressed ? 'rgba(12,154,92,0.15)' : 'rgba(12,154,92,0.08)',
+            backgroundColor: showPicker
+              ? '#0C9A5C'
+              : pressed
+                ? 'rgba(12,154,92,0.15)'
+                : 'rgba(12,154,92,0.08)',
             alignItems: 'center',
             justifyContent: 'center',
+            opacity: isProcessing ? 0.5 : 1,
           })}
         >
-          <ImagePlus
-            size={22}
-            color="#0C9A5C"
-          />
+          {isProcessing ? (
+            <Spinner
+              size="small"
+              color={showPicker ? 'white' : '#0C9A5C'}
+            />
+          ) : showPicker ? (
+            <X
+              size={22}
+              color="white"
+            />
+          ) : (
+            <Paperclip
+              size={22}
+              color="#0C9A5C"
+            />
+          )}
         </Pressable>
 
         {/* Text Input */}
@@ -614,13 +871,6 @@ function ChatInput({
           )}
         </Pressable>
       </XStack>
-
-      {/* Preview Modal */}
-      <PreviewImageModal
-        visible={!!previewUri}
-        imageUri={previewUri}
-        onClose={() => setPreviewUri(null)}
-      />
     </YStack>
   )
 }
@@ -683,7 +933,6 @@ export function GeneralChatScreen({
   const flatListRef = useRef<FlatList>(null)
 
   const [conversationId, setConversationId] = useState(initialConversationId)
-  const [viewerImage, setViewerImage] = useState<ChatImage | null>(null)
   const [isLoadingOlder, setIsLoadingOlder] = useState(false)
   const hasScrolledToEnd = useRef(false)
 
@@ -738,9 +987,9 @@ export function GeneralChatScreen({
   // Use state to prevent double creation
   const [isCreatingConversation, setIsCreatingConversation] = useState(false)
 
-  // Handle send message
+  // Handle send message - convert LocalAttachment to AttachmentUpload
   const handleSend = useCallback(
-    async (content: string, files: RNFile[]) => {
+    async (content: string, localAttachments: LocalAttachment[]) => {
       let activeConvId = conversationId
 
       // If no conversation yet, create it first
@@ -769,10 +1018,37 @@ export function GeneralChatScreen({
       if (!activeConvId) return
 
       try {
+        // Convert LocalAttachment[] to AttachmentUpload[]
+        const attachments: AttachmentUpload[] = localAttachments.map((attachment) => {
+          const file = {
+            uri: attachment.uri,
+            type: attachment.type,
+            name: attachment.name,
+          }
+
+          if (attachment.file_type === 'video') {
+            // Video requires thumbnail and duration
+            return {
+              file,
+              thumbnail: attachment.thumbnail_uri
+                ? {
+                    uri: attachment.thumbnail_uri,
+                    type: 'image/jpeg',
+                    name: `${attachment.name}_thumb.jpg`,
+                  }
+                : undefined,
+              duration_seconds: attachment.duration_seconds,
+            }
+          }
+
+          // Image - just the file
+          return { file }
+        })
+
         await sendMessageMutation.mutateAsync({
           conversationId: activeConvId,
           content: content || undefined,
-          images: files.length > 0 ? files : undefined,
+          attachments: attachments.length > 0 ? attachments : undefined,
         })
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true })
@@ -856,7 +1132,6 @@ export function GeneralChatScreen({
                   <ChatBubble
                     message={item}
                     isSent={item.sender_role === role}
-                    onImagePress={setViewerImage}
                   />
                 )}
                 contentContainerStyle={{
@@ -920,13 +1195,6 @@ export function GeneralChatScreen({
             isSending={sendMessageMutation.isPending || isCreatingConversation}
           />
         </KeyboardAvoidingView>
-
-        {/* Image Viewer Modal */}
-        <ImageViewerModal
-          visible={!!viewerImage}
-          image={viewerImage}
-          onClose={() => setViewerImage(null)}
-        />
       </YStack>
     </GradientBackground>
   )

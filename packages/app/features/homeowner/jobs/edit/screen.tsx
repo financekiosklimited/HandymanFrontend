@@ -18,6 +18,8 @@ import { GradientBackground } from '@my/ui'
 import { useCategories, useCities, useHomeownerJob } from '@my/api'
 import type { Category } from '@my/api'
 import type { City } from '@my/api'
+import type { LocalAttachment, Attachment } from '@my/api'
+import { ATTACHMENT_LIMITS } from '@my/api'
 import { useRouter } from 'expo-router'
 import {
   ArrowLeft,
@@ -27,10 +29,15 @@ import {
   ImagePlus,
   AlertCircle,
   Search,
+  Video,
+  FileText,
+  Play,
+  Camera,
 } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import * as ImagePicker from 'expo-image-picker'
-import { KeyboardAvoidingView, Platform } from 'react-native'
+import * as VideoThumbnails from 'expo-video-thumbnails'
+import { KeyboardAvoidingView, Platform, ActionSheetIOS } from 'react-native'
 
 // Existing task from API
 interface ExistingTask {
@@ -46,17 +53,23 @@ interface NewTask {
   title: string
 }
 
-// Existing image from API
-interface ExistingImage {
-  public_id: string
-  image: string // URL
+// Generate unique ID for local attachments
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
 }
 
-// New image picked locally
-interface NewImage {
-  uri: string
-  name: string
-  type: string
+// Generate video thumbnail
+async function generateVideoThumbnail(videoUri: string): Promise<string | undefined> {
+  try {
+    const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+      time: 1000,
+      quality: 0.7,
+    })
+    return uri
+  } catch (error) {
+    console.warn('Failed to generate video thumbnail:', error)
+    return undefined
+  }
 }
 
 interface FormData {
@@ -125,10 +138,10 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
   const [existingTasks, setExistingTasks] = useState<ExistingTask[]>([])
   const [newTasks, setNewTasks] = useState<NewTask[]>([])
 
-  // Track images separately
-  const [existingImages, setExistingImages] = useState<ExistingImage[]>([])
-  const [newImages, setNewImages] = useState<NewImage[]>([])
-  const [imagesToRemove, setImagesToRemove] = useState<string[]>([])
+  // Track attachments separately
+  const [existingAttachments, setExistingAttachments] = useState<Attachment[]>([])
+  const [newAttachments, setNewAttachments] = useState<LocalAttachment[]>([])
+  const [attachmentsToRemove, setAttachmentsToRemove] = useState<string[]>([])
 
   const [errors, setErrors] = useState<FormErrors | null>(null)
   const [generalError, setGeneralError] = useState<string | null>(null)
@@ -136,6 +149,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
   // Sheet states
   const [categorySheetOpen, setCategorySheetOpen] = useState(false)
   const [citySheetOpen, setCitySheetOpen] = useState(false)
+  const [attachmentPickerOpen, setAttachmentPickerOpen] = useState(false)
   const [newTaskTitle, setNewTaskTitle] = useState('')
 
   // Search states for sheets
@@ -166,14 +180,9 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
         )
       }
 
-      // Set existing images
-      if (job.images) {
-        setExistingImages(
-          job.images.map((i) => ({
-            public_id: i.public_id,
-            image: i.image,
-          }))
-        )
+      // Set existing attachments
+      if (job.attachments) {
+        setExistingAttachments(job.attachments)
       }
     }
   }, [job])
@@ -250,13 +259,15 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
     return [...existing, ...newOnes]
   }, [existingTasks, newTasks])
 
-  // Image management
-  const totalImages = existingImages.length + newImages.length
+  // Attachment management
+  const totalAttachments = existingAttachments.length + newAttachments.length
+  const maxAttachments = ATTACHMENT_LIMITS.job.maxCount
 
+  // Pick images from library
   const pickImages = useCallback(async () => {
-    const remaining = 10 - totalImages
+    const remaining = maxAttachments - totalAttachments
     if (remaining <= 0) {
-      setGeneralError('Maximum 10 images allowed')
+      setGeneralError(`Maximum ${maxAttachments} attachments allowed`)
       return
     }
 
@@ -268,27 +279,177 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
     })
 
     if (!result.canceled && result.assets) {
-      const images: NewImage[] = result.assets.map((asset) => ({
-        uri: asset.uri,
-        name: asset.fileName || `image_${Date.now()}.jpg`,
-        type: asset.mimeType || 'image/jpeg',
+      const attachments: LocalAttachment[] = result.assets.map((asset) => ({
+        id: generateId(),
+        file: {
+          uri: asset.uri,
+          type: asset.mimeType || 'image/jpeg',
+          name: asset.fileName || `image_${Date.now()}.jpg`,
+        },
+        file_type: 'image' as const,
+        file_name: asset.fileName || `image_${Date.now()}.jpg`,
+        file_size: asset.fileSize || 0,
       }))
-      setNewImages((prev) => [...prev, ...images])
+      setNewAttachments((prev) => [...prev, ...attachments])
     }
-  }, [totalImages])
+    setAttachmentPickerOpen(false)
+  }, [totalAttachments, maxAttachments])
 
-  const removeExistingImage = useCallback((publicId: string) => {
-    setExistingImages((prev) => prev.filter((i) => i.public_id !== publicId))
-    setImagesToRemove((prev) => [...prev, publicId])
-  }, [])
+  // Take photo with camera
+  const takePhoto = useCallback(async () => {
+    if (totalAttachments >= maxAttachments) {
+      setGeneralError(`Maximum ${maxAttachments} attachments allowed`)
+      return
+    }
 
-  const removeNewImage = useCallback((index: number) => {
-    setNewImages((prev) => {
-      const updated = [...prev]
-      updated.splice(index, 1)
-      return updated
+    const permission = await ImagePicker.requestCameraPermissionsAsync()
+    if (!permission.granted) {
+      setGeneralError('Camera permission is required to take photos')
+      return
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
     })
+
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0]
+      const newAttachment: LocalAttachment = {
+        id: generateId(),
+        file: {
+          uri: asset.uri,
+          type: asset.mimeType || 'image/jpeg',
+          name: asset.fileName || `photo_${Date.now()}.jpg`,
+        },
+        file_type: 'image',
+        file_name: asset.fileName || `photo_${Date.now()}.jpg`,
+        file_size: asset.fileSize || 0,
+      }
+      setNewAttachments((prev) => [...prev, newAttachment])
+    }
+    setAttachmentPickerOpen(false)
+  }, [totalAttachments, maxAttachments])
+
+  // Pick videos from library
+  const pickVideos = useCallback(async () => {
+    const remaining = maxAttachments - totalAttachments
+    if (remaining <= 0) {
+      setGeneralError(`Maximum ${maxAttachments} attachments allowed`)
+      return
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
+      quality: 0.8,
+    })
+
+    if (!result.canceled && result.assets) {
+      const attachments: LocalAttachment[] = await Promise.all(
+        result.assets.map(async (asset) => {
+          const thumbnailUri = await generateVideoThumbnail(asset.uri)
+          return {
+            id: generateId(),
+            file: {
+              uri: asset.uri,
+              type: asset.mimeType || 'video/mp4',
+              name: asset.fileName || `video_${Date.now()}.mp4`,
+            },
+            file_type: 'video' as const,
+            file_name: asset.fileName || `video_${Date.now()}.mp4`,
+            file_size: asset.fileSize || 0,
+            thumbnail_uri: thumbnailUri,
+            duration_seconds: asset.duration ? Math.round(asset.duration / 1000) : undefined,
+          }
+        })
+      )
+      setNewAttachments((prev) => [...prev, ...attachments])
+    }
+    setAttachmentPickerOpen(false)
+  }, [totalAttachments, maxAttachments])
+
+  // Record video with camera
+  const recordVideo = useCallback(async () => {
+    if (totalAttachments >= maxAttachments) {
+      setGeneralError(`Maximum ${maxAttachments} attachments allowed`)
+      return
+    }
+
+    const permission = await ImagePicker.requestCameraPermissionsAsync()
+    if (!permission.granted) {
+      setGeneralError('Camera permission is required to record videos')
+      return
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['videos'],
+      quality: 0.8,
+      videoMaxDuration: 60,
+    })
+
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0]
+      const thumbnailUri = await generateVideoThumbnail(asset.uri)
+      const newAttachment: LocalAttachment = {
+        id: generateId(),
+        file: {
+          uri: asset.uri,
+          type: asset.mimeType || 'video/mp4',
+          name: asset.fileName || `video_${Date.now()}.mp4`,
+        },
+        file_type: 'video',
+        file_name: asset.fileName || `video_${Date.now()}.mp4`,
+        file_size: asset.fileSize || 0,
+        thumbnail_uri: thumbnailUri,
+        duration_seconds: asset.duration ? Math.round(asset.duration / 1000) : undefined,
+      }
+      setNewAttachments((prev) => [...prev, newAttachment])
+    }
+    setAttachmentPickerOpen(false)
+  }, [totalAttachments, maxAttachments])
+
+  // Remove existing attachment
+  const removeExistingAttachment = useCallback((publicId: string) => {
+    setExistingAttachments((prev) => prev.filter((a) => a.public_id !== publicId))
+    setAttachmentsToRemove((prev) => [...prev, publicId])
   }, [])
+
+  // Remove new attachment
+  const removeNewAttachment = useCallback((attachmentId: string) => {
+    setNewAttachments((prev) => prev.filter((a) => a.id !== attachmentId))
+  }, [])
+
+  // Show attachment picker (ActionSheet on iOS, Sheet on Android)
+  const showAttachmentPicker = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Take Photo', 'Choose Images', 'Record Video', 'Choose Videos'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          switch (buttonIndex) {
+            case 1:
+              takePhoto()
+              break
+            case 2:
+              pickImages()
+              break
+            case 3:
+              recordVideo()
+              break
+            case 4:
+              pickVideos()
+              break
+          }
+        }
+      )
+    } else {
+      setAttachmentPickerOpen(true)
+    }
+  }, [takePhoto, pickImages, recordVideo, pickVideos])
 
   // Validate form and navigate to preview
   const handleContinue = useCallback(async () => {
@@ -339,9 +500,9 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
       cityProvince: selectedCity?.province,
       existingTasks,
       newTasks,
-      existingImages,
-      newImages,
-      imagesToRemove,
+      existingAttachments,
+      newAttachments,
+      attachmentsToRemove,
     }
 
     // Navigate to preview with form data
@@ -357,9 +518,9 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
     selectedCity,
     existingTasks,
     newTasks,
-    existingImages,
-    newImages,
-    imagesToRemove,
+    existingAttachments,
+    newAttachments,
+    attachmentsToRemove,
     jobId,
     router,
   ])
@@ -911,38 +1072,128 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                   </XStack>
                 </YStack>
 
-                {/* Image Upload */}
+                {/* Attachment Upload */}
                 <YStack>
-                  <FieldLabel label={`Images (${totalImages}/10)`} />
+                  <FieldLabel label={`Attachments (${totalAttachments}/${maxAttachments})`} />
+                  <Text
+                    fontSize="$2"
+                    color="$colorSubtle"
+                    mb="$2"
+                  >
+                    Add images, videos, or documents
+                  </Text>
 
-                  {/* Image grid */}
+                  {/* Attachment grid */}
                   <XStack
                     flexWrap="wrap"
                     gap="$3"
                   >
-                    {/* Existing images */}
-                    {existingImages.map((image) => (
+                    {/* Existing attachments */}
+                    {existingAttachments.map((attachment) => (
                       <View
-                        key={image.public_id}
+                        key={attachment.public_id}
                         width={80}
                         height={80}
                         borderRadius="$4"
                         overflow="hidden"
                         position="relative"
+                        bg="$backgroundMuted"
                       >
-                        <Image
-                          source={{ uri: image.image }}
-                          width="100%"
-                          height="100%"
-                          resizeMode="cover"
-                        />
+                        {/* Image */}
+                        {attachment.file_type === 'image' && (
+                          <Image
+                            source={{ uri: attachment.file_url }}
+                            width="100%"
+                            height="100%"
+                            resizeMode="cover"
+                          />
+                        )}
+
+                        {/* Video thumbnail */}
+                        {attachment.file_type === 'video' && (
+                          <>
+                            {attachment.thumbnail_url ? (
+                              <Image
+                                source={{ uri: attachment.thumbnail_url }}
+                                width="100%"
+                                height="100%"
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <View
+                                width="100%"
+                                height="100%"
+                                bg="$borderColor"
+                                alignItems="center"
+                                justifyContent="center"
+                              >
+                                <Video
+                                  size={24}
+                                  color="$colorMuted"
+                                />
+                              </View>
+                            )}
+                            {/* Play icon overlay */}
+                            <View
+                              position="absolute"
+                              top={0}
+                              left={0}
+                              right={0}
+                              bottom={0}
+                              alignItems="center"
+                              justifyContent="center"
+                            >
+                              <View
+                                bg="rgba(0,0,0,0.5)"
+                                borderRadius="$full"
+                                p="$1"
+                              >
+                                <Play
+                                  size={16}
+                                  color="white"
+                                  fill="white"
+                                />
+                              </View>
+                            </View>
+                          </>
+                        )}
+
+                        {/* Document */}
+                        {attachment.file_type === 'document' && (
+                          <View
+                            width="100%"
+                            height="100%"
+                            bg="$borderColor"
+                            alignItems="center"
+                            justifyContent="center"
+                            p="$1"
+                          >
+                            <FileText
+                              size={24}
+                              color="$primary"
+                            />
+                            <Text
+                              fontSize={8}
+                              color="$colorSubtle"
+                              numberOfLines={2}
+                              textAlign="center"
+                              mt="$1"
+                            >
+                              {attachment.file_name.length > 12
+                                ? `${attachment.file_name.slice(0, 10)}...`
+                                : attachment.file_name}
+                            </Text>
+                          </View>
+                        )}
+
+                        {/* Remove button */}
                         <Button
                           unstyled
-                          onPress={() => removeExistingImage(image.public_id)}
+                          onPress={() => removeExistingAttachment(attachment.public_id)}
                           position="absolute"
-                          top={6}
-                          right={6}
-                          bg="$background"
+                          top={4}
+                          right={4}
+                          bg="rgba(0,0,0,0.6)"
                           borderRadius="$full"
                           p={4}
                           pressStyle={{ opacity: 0.8 }}
@@ -955,29 +1206,131 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                       </View>
                     ))}
 
-                    {/* New images */}
-                    {newImages.map((image, index) => (
+                    {/* New attachments */}
+                    {newAttachments.map((attachment) => (
                       <View
-                        key={`new-${index}`}
+                        key={attachment.id}
                         width={80}
                         height={80}
                         borderRadius="$4"
                         overflow="hidden"
                         position="relative"
+                        bg="$backgroundMuted"
                       >
-                        <Image
-                          source={{ uri: image.uri }}
-                          width="100%"
-                          height="100%"
-                          resizeMode="cover"
-                        />
+                        {/* Image */}
+                        {attachment.file_type === 'image' && (
+                          <Image
+                            source={{ uri: attachment.file.uri }}
+                            width="100%"
+                            height="100%"
+                            resizeMode="cover"
+                          />
+                        )}
+
+                        {/* Video thumbnail */}
+                        {attachment.file_type === 'video' && (
+                          <>
+                            {attachment.thumbnail_uri ? (
+                              <Image
+                                source={{ uri: attachment.thumbnail_uri }}
+                                width="100%"
+                                height="100%"
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <View
+                                width="100%"
+                                height="100%"
+                                bg="$borderColor"
+                                alignItems="center"
+                                justifyContent="center"
+                              >
+                                <Video
+                                  size={24}
+                                  color="$colorMuted"
+                                />
+                              </View>
+                            )}
+                            {/* Play icon overlay */}
+                            <View
+                              position="absolute"
+                              top={0}
+                              left={0}
+                              right={0}
+                              bottom={0}
+                              alignItems="center"
+                              justifyContent="center"
+                            >
+                              <View
+                                bg="rgba(0,0,0,0.5)"
+                                borderRadius="$full"
+                                p="$1"
+                              >
+                                <Play
+                                  size={16}
+                                  color="white"
+                                  fill="white"
+                                />
+                              </View>
+                            </View>
+                            {/* Duration badge */}
+                            {attachment.duration_seconds !== undefined && (
+                              <View
+                                position="absolute"
+                                bottom={4}
+                                right={4}
+                                bg="rgba(0,0,0,0.7)"
+                                px="$1"
+                                borderRadius="$1"
+                              >
+                                <Text
+                                  fontSize={9}
+                                  color="white"
+                                >
+                                  {Math.floor(attachment.duration_seconds / 60)}:
+                                  {(attachment.duration_seconds % 60).toString().padStart(2, '0')}
+                                </Text>
+                              </View>
+                            )}
+                          </>
+                        )}
+
+                        {/* Document */}
+                        {attachment.file_type === 'document' && (
+                          <View
+                            width="100%"
+                            height="100%"
+                            bg="$borderColor"
+                            alignItems="center"
+                            justifyContent="center"
+                            p="$1"
+                          >
+                            <FileText
+                              size={24}
+                              color="$primary"
+                            />
+                            <Text
+                              fontSize={8}
+                              color="$colorSubtle"
+                              numberOfLines={2}
+                              textAlign="center"
+                              mt="$1"
+                            >
+                              {attachment.file_name.length > 12
+                                ? `${attachment.file_name.slice(0, 10)}...`
+                                : attachment.file_name}
+                            </Text>
+                          </View>
+                        )}
+
+                        {/* Remove button */}
                         <Button
                           unstyled
-                          onPress={() => removeNewImage(index)}
+                          onPress={() => removeNewAttachment(attachment.id)}
                           position="absolute"
-                          top={6}
-                          right={6}
-                          bg="$background"
+                          top={4}
+                          right={4}
+                          bg="rgba(0,0,0,0.6)"
                           borderRadius="$full"
                           p={4}
                           pressStyle={{ opacity: 0.8 }}
@@ -990,11 +1343,11 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                       </View>
                     ))}
 
-                    {/* Add image button */}
-                    {totalImages < 10 && (
+                    {/* Add attachment button */}
+                    {totalAttachments < maxAttachments && (
                       <Button
                         unstyled
-                        onPress={pickImages}
+                        onPress={showAttachmentPicker}
                         width={80}
                         height={80}
                         bg="white"
@@ -1006,7 +1359,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                         justifyContent="center"
                         pressStyle={{ opacity: 0.7, bg: '$backgroundMuted' }}
                       >
-                        <ImagePlus
+                        <Plus
                           size={24}
                           color="$colorMuted"
                         />
@@ -1314,6 +1667,157 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
               </YStack>
             </Sheet.Frame>
           </Sheet>
+
+          {/* Attachment Picker Sheet (Android only) */}
+          {Platform.OS !== 'ios' && (
+            <Sheet
+              open={attachmentPickerOpen}
+              onOpenChange={setAttachmentPickerOpen}
+              snapPoints={[45]}
+              dismissOnSnapToBottom
+              modal
+            >
+              <Sheet.Overlay
+                animation="lazy"
+                enterStyle={{ opacity: 0 }}
+                exitStyle={{ opacity: 0 }}
+              />
+              <Sheet.Frame
+                borderTopLeftRadius="$6"
+                borderTopRightRadius="$6"
+              >
+                <Sheet.Handle
+                  bg="$colorMuted"
+                  mt="$3"
+                />
+                <YStack
+                  p="$4"
+                  gap="$3"
+                >
+                  <Text
+                    fontSize="$5"
+                    fontWeight="bold"
+                    color="$color"
+                    mb="$2"
+                  >
+                    Add Attachment
+                  </Text>
+
+                  <Button
+                    unstyled
+                    onPress={takePhoto}
+                    bg="white"
+                    borderColor="$borderColorHover"
+                    borderWidth={1}
+                    borderRadius="$4"
+                    px="$4"
+                    py="$3"
+                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                  >
+                    <XStack
+                      alignItems="center"
+                      gap="$3"
+                    >
+                      <Camera
+                        size={22}
+                        color="$primary"
+                      />
+                      <Text
+                        fontSize="$4"
+                        color="$color"
+                      >
+                        Take Photo
+                      </Text>
+                    </XStack>
+                  </Button>
+
+                  <Button
+                    unstyled
+                    onPress={pickImages}
+                    bg="white"
+                    borderColor="$borderColorHover"
+                    borderWidth={1}
+                    borderRadius="$4"
+                    px="$4"
+                    py="$3"
+                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                  >
+                    <XStack
+                      alignItems="center"
+                      gap="$3"
+                    >
+                      <ImagePlus
+                        size={22}
+                        color="$primary"
+                      />
+                      <Text
+                        fontSize="$4"
+                        color="$color"
+                      >
+                        Choose Images
+                      </Text>
+                    </XStack>
+                  </Button>
+
+                  <Button
+                    unstyled
+                    onPress={recordVideo}
+                    bg="white"
+                    borderColor="$borderColorHover"
+                    borderWidth={1}
+                    borderRadius="$4"
+                    px="$4"
+                    py="$3"
+                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                  >
+                    <XStack
+                      alignItems="center"
+                      gap="$3"
+                    >
+                      <Video
+                        size={22}
+                        color="$primary"
+                      />
+                      <Text
+                        fontSize="$4"
+                        color="$color"
+                      >
+                        Record Video
+                      </Text>
+                    </XStack>
+                  </Button>
+
+                  <Button
+                    unstyled
+                    onPress={pickVideos}
+                    bg="white"
+                    borderColor="$borderColorHover"
+                    borderWidth={1}
+                    borderRadius="$4"
+                    px="$4"
+                    py="$3"
+                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                  >
+                    <XStack
+                      alignItems="center"
+                      gap="$3"
+                    >
+                      <Video
+                        size={22}
+                        color="$primary"
+                      />
+                      <Text
+                        fontSize="$4"
+                        color="$color"
+                      >
+                        Choose Videos
+                      </Text>
+                    </XStack>
+                  </Button>
+                </YStack>
+              </Sheet.Frame>
+            </Sheet>
+          )}
         </YStack>
       </KeyboardAvoidingView>
     </GradientBackground>

@@ -1,4 +1,5 @@
 import type { PaginatedArrayResponse, ApiResponse } from './common'
+import type { Attachment } from './attachment'
 
 // Guest endpoints types
 export interface GuestJob {
@@ -30,10 +31,7 @@ export interface GuestJob {
     avatar_url: string | null
   } | null
   distance_km: number | null
-  images?: Array<{
-    public_id: string
-    image: string
-  }>
+  attachments?: Attachment[]
   tasks?: Array<{
     public_id: string
     title: string

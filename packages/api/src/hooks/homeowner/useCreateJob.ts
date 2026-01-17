@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../client'
 import type { ApiResponse } from '../../types/common'
 import type { HomeownerJob } from '../../types/homeowner'
+import type { AttachmentUpload } from '../../types/attachment'
 
 export interface JobTask {
   title: string
@@ -19,7 +20,7 @@ export interface CreateJobRequest {
   longitude?: number
   status?: 'draft' | 'open'
   tasks?: JobTask[]
-  images?: { uri: string; name: string; type: string }[]
+  attachments?: AttachmentUpload[]
 }
 
 export interface CreateJobValidationError {
@@ -33,7 +34,8 @@ export interface CreateJobValidationError {
 
 /**
  * Hook to create a new job listing for homeowner.
- * Supports multipart/form-data for image uploads.
+ * Supports multipart/form-data for attachment uploads (images, videos, documents).
+ * Uses indexed format: attachments[0].file, attachments[1].file, etc.
  */
 export function useCreateJob() {
   const queryClient = useQueryClient()
@@ -73,15 +75,26 @@ export function useCreateJob() {
         })
       }
 
-      // Add images
-      if (data.images && data.images.length > 0) {
-        data.images.forEach((image) => {
-          // @ts-ignore - React Native FormData accepts uri/name/type object
-          formData.append('images', {
-            uri: image.uri,
-            name: image.name,
-            type: image.type,
-          })
+      // Add attachments using indexed format
+      if (data.attachments && data.attachments.length > 0) {
+        data.attachments.forEach((attachment, index) => {
+          // Main file
+          // @ts-ignore - React Native FormData accepts RNFile object
+          formData.append(`attachments[${index}].file`, attachment.file)
+
+          // Thumbnail for videos (required)
+          if (attachment.thumbnail) {
+            // @ts-ignore - React Native FormData accepts RNFile object
+            formData.append(`attachments[${index}].thumbnail`, attachment.thumbnail)
+          }
+
+          // Duration for videos (required)
+          if (attachment.duration_seconds !== undefined) {
+            formData.append(
+              `attachments[${index}].duration_seconds`,
+              attachment.duration_seconds.toString()
+            )
+          }
         })
       }
 

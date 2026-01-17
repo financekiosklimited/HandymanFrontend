@@ -13,6 +13,7 @@ import type {
   TotalUnreadCountResponse,
 } from '../../types/chat'
 import type { RNFile } from '../../types/handyman'
+import type { AttachmentUpload } from '../../types/attachment'
 
 type ChatRole = 'homeowner' | 'handyman'
 
@@ -206,7 +207,8 @@ export function useChatMessages(role: ChatRole, conversationId: string | undefin
 /**
  * Hook to send a message.
  * POST /{role}/conversations/{conv_id}/messages/
- * Supports multipart/form-data for images.
+ * Supports multipart/form-data for attachments (images/videos).
+ * Uses indexed format: attachments[0].file, attachments[1].file, etc.
  */
 export function useSendMessage(role: ChatRole) {
   const queryClient = useQueryClient()
@@ -215,11 +217,11 @@ export function useSendMessage(role: ChatRole) {
     mutationFn: async ({
       conversationId,
       content,
-      images,
+      attachments,
     }: {
       conversationId: string
       content?: string
-      images?: RNFile[]
+      attachments?: AttachmentUpload[]
     }): Promise<ChatMessage> => {
       const formData = new FormData()
 
@@ -227,9 +229,24 @@ export function useSendMessage(role: ChatRole) {
         formData.append('content', content)
       }
 
-      if (images && images.length > 0) {
-        images.forEach((image) => {
-          formData.append('images', image as any)
+      // Add attachments using indexed format
+      if (attachments && attachments.length > 0) {
+        attachments.forEach((attachment, index) => {
+          // Main file
+          formData.append(`attachments[${index}].file`, attachment.file as any)
+
+          // Thumbnail for videos (required)
+          if (attachment.thumbnail) {
+            formData.append(`attachments[${index}].thumbnail`, attachment.thumbnail as any)
+          }
+
+          // Duration for videos (required)
+          if (attachment.duration_seconds !== undefined) {
+            formData.append(
+              `attachments[${index}].duration_seconds`,
+              attachment.duration_seconds.toString()
+            )
+          }
         })
       }
 

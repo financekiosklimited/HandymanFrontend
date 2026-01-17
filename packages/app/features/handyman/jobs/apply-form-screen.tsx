@@ -1,10 +1,27 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Input, Spinner, TextArea, View } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Input,
+  Spinner,
+  TextArea,
+  View,
+  Image,
+  Sheet,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
-import { useHandymanJobDetail, useApplyForJob, formatErrorMessage } from '@my/api'
-import type { RNFile } from '@my/api'
+import {
+  useHandymanJobDetail,
+  useApplyForJob,
+  formatErrorMessage,
+  ATTACHMENT_LIMITS,
+} from '@my/api'
+import type { LocalAttachment, AttachmentUpload } from '@my/api'
 import { useRouter } from 'expo-router'
 import {
   ArrowLeft,
@@ -18,11 +35,18 @@ import {
   AlertCircle,
   Send,
   Briefcase,
+  Camera,
+  ImagePlus,
+  Video,
+  File,
+  Play,
 } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import * as ImagePicker from 'expo-image-picker'
+import * as DocumentPicker from 'expo-document-picker'
+import * as VideoThumbnails from 'expo-video-thumbnails'
 import { useToastController } from '@tamagui/toast'
-import { KeyboardAvoidingView, Platform } from 'react-native'
+import { KeyboardAvoidingView, Platform, ActionSheetIOS, Pressable } from 'react-native'
 
 interface Material {
   id: string
@@ -31,11 +55,23 @@ interface Material {
   description: string
 }
 
-interface AttachmentFile {
-  id: string
-  uri: string
-  name: string
-  type: string
+// Generate unique ID for local attachments
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+}
+
+// Generate video thumbnail
+async function generateVideoThumbnail(videoUri: string): Promise<string | undefined> {
+  try {
+    const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+      time: 1000,
+      quality: 0.7,
+    })
+    return uri
+  } catch (error) {
+    console.warn('Failed to generate video thumbnail:', error)
+    return undefined
+  }
 }
 
 interface FormData {
@@ -43,7 +79,7 @@ interface FormData {
   estimated_total_price: string
   negotiation_reasoning: string
   materials: Material[]
-  attachments: AttachmentFile[]
+  attachments: LocalAttachment[]
 }
 
 interface ApplyFormScreenProps {
@@ -78,6 +114,7 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [attachmentPickerOpen, setAttachmentPickerOpen] = useState(false)
 
   // New material form
   const [newMaterial, setNewMaterial] = useState({
@@ -88,7 +125,7 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
   // Update form field
   const updateField = useCallback(
-    (field: keyof FormData, value: string | Material[] | AttachmentFile[]) => {
+    (field: keyof FormData, value: string | Material[] | LocalAttachment[]) => {
       setFormData((prev) => ({ ...prev, [field]: value }))
       if (errors[field]) {
         setErrors((prev) => {
@@ -127,39 +164,217 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
     [formData.materials, updateField]
   )
 
-  // Pick attachments (images)
-  const pickAttachments = useCallback(async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsMultipleSelection: true,
-        quality: 0.8,
-      })
+  // Attachment limits
+  const maxAttachments = ATTACHMENT_LIMITS.jobApplication.maxCount
+  const totalAttachments = formData.attachments.length
 
-      if (!result.canceled && result.assets) {
-        const newAttachments: AttachmentFile[] = result.assets.map((asset) => ({
-          id: Date.now().toString() + Math.random().toString(36),
+  // Pick images from library
+  const pickImages = useCallback(async () => {
+    const remaining = maxAttachments - totalAttachments
+    if (remaining <= 0) return
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
+      quality: 0.8,
+    })
+
+    if (!result.canceled && result.assets) {
+      const attachments: LocalAttachment[] = result.assets.map((asset) => ({
+        id: generateId(),
+        file: {
           uri: asset.uri,
-          name: asset.fileName || `attachment_${Date.now()}.jpg`,
           type: asset.mimeType || 'image/jpeg',
-        }))
-        updateField('attachments', [...formData.attachments, ...newAttachments])
-      }
-    } catch (error) {
-      console.error('Error picking attachments:', error)
+          name: asset.fileName || `image_${Date.now()}.jpg`,
+        },
+        file_type: 'image' as const,
+        file_name: asset.fileName || `image_${Date.now()}.jpg`,
+        file_size: asset.fileSize || 0,
+      }))
+      setFormData((prev) => ({ ...prev, attachments: [...prev.attachments, ...attachments] }))
     }
-  }, [formData.attachments, updateField])
+    setAttachmentPickerOpen(false)
+  }, [totalAttachments, maxAttachments])
+
+  // Take photo with camera
+  const takePhoto = useCallback(async () => {
+    if (totalAttachments >= maxAttachments) return
+
+    const permission = await ImagePicker.requestCameraPermissionsAsync()
+    if (!permission.granted) return
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+    })
+
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0]
+      const newAttachment: LocalAttachment = {
+        id: generateId(),
+        file: {
+          uri: asset.uri,
+          type: asset.mimeType || 'image/jpeg',
+          name: asset.fileName || `photo_${Date.now()}.jpg`,
+        },
+        file_type: 'image',
+        file_name: asset.fileName || `photo_${Date.now()}.jpg`,
+        file_size: asset.fileSize || 0,
+      }
+      setFormData((prev) => ({ ...prev, attachments: [...prev.attachments, newAttachment] }))
+    }
+    setAttachmentPickerOpen(false)
+  }, [totalAttachments, maxAttachments])
+
+  // Pick videos from library
+  const pickVideos = useCallback(async () => {
+    const remaining = maxAttachments - totalAttachments
+    if (remaining <= 0) return
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
+      quality: 0.8,
+    })
+
+    if (!result.canceled && result.assets) {
+      const attachments: LocalAttachment[] = await Promise.all(
+        result.assets.map(async (asset) => {
+          const thumbnailUri = await generateVideoThumbnail(asset.uri)
+          return {
+            id: generateId(),
+            file: {
+              uri: asset.uri,
+              type: asset.mimeType || 'video/mp4',
+              name: asset.fileName || `video_${Date.now()}.mp4`,
+            },
+            file_type: 'video' as const,
+            file_name: asset.fileName || `video_${Date.now()}.mp4`,
+            file_size: asset.fileSize || 0,
+            thumbnail_uri: thumbnailUri,
+            duration_seconds: asset.duration ? Math.round(asset.duration / 1000) : undefined,
+          }
+        })
+      )
+      setFormData((prev) => ({ ...prev, attachments: [...prev.attachments, ...attachments] }))
+    }
+    setAttachmentPickerOpen(false)
+  }, [totalAttachments, maxAttachments])
+
+  // Record video with camera
+  const recordVideo = useCallback(async () => {
+    if (totalAttachments >= maxAttachments) return
+
+    const permission = await ImagePicker.requestCameraPermissionsAsync()
+    if (!permission.granted) return
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['videos'],
+      quality: 0.8,
+      videoMaxDuration: 60,
+    })
+
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0]
+      const thumbnailUri = await generateVideoThumbnail(asset.uri)
+      const newAttachment: LocalAttachment = {
+        id: generateId(),
+        file: {
+          uri: asset.uri,
+          type: asset.mimeType || 'video/mp4',
+          name: asset.fileName || `video_${Date.now()}.mp4`,
+        },
+        file_type: 'video',
+        file_name: asset.fileName || `video_${Date.now()}.mp4`,
+        file_size: asset.fileSize || 0,
+        thumbnail_uri: thumbnailUri,
+        duration_seconds: asset.duration ? Math.round(asset.duration / 1000) : undefined,
+      }
+      setFormData((prev) => ({ ...prev, attachments: [...prev.attachments, newAttachment] }))
+    }
+    setAttachmentPickerOpen(false)
+  }, [totalAttachments, maxAttachments])
+
+  // Pick documents
+  const pickDocuments = useCallback(async () => {
+    const remaining = maxAttachments - totalAttachments
+    if (remaining <= 0) return
+
+    const result = await DocumentPicker.getDocumentAsync({
+      type: [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain',
+      ],
+      multiple: true,
+    })
+
+    if (!result.canceled && result.assets) {
+      const attachments: LocalAttachment[] = result.assets.slice(0, remaining).map((asset) => ({
+        id: generateId(),
+        file: {
+          uri: asset.uri,
+          type: asset.mimeType || 'application/octet-stream',
+          name: asset.name,
+        },
+        file_type: 'document' as const,
+        file_name: asset.name,
+        file_size: asset.size || 0,
+      }))
+      setFormData((prev) => ({ ...prev, attachments: [...prev.attachments, ...attachments] }))
+    }
+    setAttachmentPickerOpen(false)
+  }, [totalAttachments, maxAttachments])
 
   // Remove attachment
-  const removeAttachment = useCallback(
-    (id: string) => {
-      updateField(
-        'attachments',
-        formData.attachments.filter((a) => a.id !== id)
+  const removeAttachment = useCallback((id: string) => {
+    setFormData((prev) => ({ ...prev, attachments: prev.attachments.filter((a) => a.id !== id) }))
+  }, [])
+
+  // Show attachment picker (ActionSheet on iOS, Sheet on Android)
+  const showAttachmentPicker = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [
+            'Cancel',
+            'Take Photo',
+            'Choose Images',
+            'Record Video',
+            'Choose Videos',
+            'Choose Documents',
+          ],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          switch (buttonIndex) {
+            case 1:
+              takePhoto()
+              break
+            case 2:
+              pickImages()
+              break
+            case 3:
+              recordVideo()
+              break
+            case 4:
+              pickVideos()
+              break
+            case 5:
+              pickDocuments()
+              break
+          }
+        }
       )
-    },
-    [formData.attachments, updateField]
-  )
+    } else {
+      setAttachmentPickerOpen(true)
+    }
+  }, [takePhoto, pickImages, recordVideo, pickVideos, pickDocuments])
 
   // Validate and submit
   const handleSubmit = useCallback(async () => {
@@ -190,12 +405,28 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
     setIsSubmitting(true)
     try {
-      // Prepare attachments as RNFile format
-      const attachmentFiles: RNFile[] = formData.attachments.map((a) => ({
-        uri: a.uri,
-        type: a.type,
-        name: a.name,
-      }))
+      // Convert LocalAttachment[] to AttachmentUpload[]
+      const attachments: AttachmentUpload[] = formData.attachments.map((attachment) => {
+        const upload: AttachmentUpload = {
+          file: attachment.file,
+        }
+
+        // For videos, include thumbnail and duration
+        if (attachment.file_type === 'video') {
+          if (attachment.thumbnail_uri) {
+            upload.thumbnail = {
+              uri: attachment.thumbnail_uri,
+              type: 'image/jpeg',
+              name: `${attachment.file_name}_thumb.jpg`,
+            }
+          }
+          if (attachment.duration_seconds !== undefined) {
+            upload.duration_seconds = attachment.duration_seconds
+          }
+        }
+
+        return upload
+      })
 
       // Prepare materials
       const materials = formData.materials.map((m) => ({
@@ -210,7 +441,7 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
         estimated_total_price: Number.parseFloat(formData.estimated_total_price),
         negotiation_reasoning: formData.negotiation_reasoning || undefined,
         materials: materials.length > 0 ? materials : undefined,
-        attachments: attachmentFiles.length > 0 ? attachmentFiles : undefined,
+        attachments: attachments.length > 0 ? attachments : undefined,
       })
 
       toast.show('Application Submitted!', {
@@ -763,64 +994,128 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
                   {/* Existing attachments */}
                   {formData.attachments.length > 0 && (
-                    <YStack
+                    <XStack
+                      flexWrap="wrap"
                       gap="$2"
                       mb="$3"
                     >
                       {formData.attachments.map((attachment) => (
-                        <XStack
+                        <View
                           key={attachment.id}
-                          bg="white"
-                          borderColor="$borderColorHover"
-                          borderWidth={1}
-                          borderRadius="$4"
-                          p="$3"
-                          alignItems="center"
-                          gap="$3"
+                          width={80}
+                          height={80}
+                          borderRadius="$3"
+                          overflow="hidden"
+                          position="relative"
                         >
-                          <View
-                            width={36}
-                            height={36}
-                            borderRadius="$2"
-                            bg="$primaryBackground"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Paperclip
-                              size={18}
-                              color="$primary"
+                          {attachment.file_type === 'image' && (
+                            <Image
+                              source={{ uri: attachment.file.uri }}
+                              width="100%"
+                              height="100%"
+                              resizeMode="cover"
                             />
-                          </View>
-                          <Text
-                            flex={1}
-                            fontSize="$3"
-                            color="$color"
-                            numberOfLines={1}
-                          >
-                            {attachment.name}
-                          </Text>
-                          <Button
-                            unstyled
+                          )}
+                          {attachment.file_type === 'video' && (
+                            <View
+                              width="100%"
+                              height="100%"
+                              bg="$borderColor"
+                            >
+                              {attachment.thumbnail_uri ? (
+                                <Image
+                                  source={{ uri: attachment.thumbnail_uri }}
+                                  width="100%"
+                                  height="100%"
+                                  resizeMode="cover"
+                                />
+                              ) : (
+                                <View
+                                  width="100%"
+                                  height="100%"
+                                  alignItems="center"
+                                  justifyContent="center"
+                                >
+                                  <Video
+                                    size={24}
+                                    color="$colorMuted"
+                                  />
+                                </View>
+                              )}
+                              <View
+                                position="absolute"
+                                top={0}
+                                left={0}
+                                right={0}
+                                bottom={0}
+                                alignItems="center"
+                                justifyContent="center"
+                              >
+                                <View
+                                  bg="rgba(0,0,0,0.5)"
+                                  borderRadius="$full"
+                                  p="$1"
+                                >
+                                  <Play
+                                    size={16}
+                                    color="white"
+                                    fill="white"
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          )}
+                          {attachment.file_type === 'document' && (
+                            <View
+                              width="100%"
+                              height="100%"
+                              bg="$borderColor"
+                              alignItems="center"
+                              justifyContent="center"
+                            >
+                              <File
+                                size={24}
+                                color="$primary"
+                              />
+                              <Text
+                                fontSize={8}
+                                color="$colorSubtle"
+                                mt="$1"
+                                numberOfLines={1}
+                                px="$1"
+                              >
+                                {attachment.file_name.split('.').pop()?.toUpperCase()}
+                              </Text>
+                            </View>
+                          )}
+                          {/* Remove button */}
+                          <Pressable
                             onPress={() => removeAttachment(attachment.id)}
-                            p="$1"
-                            hitSlop={8}
-                            pressStyle={{ opacity: 0.7 }}
+                            style={{
+                              position: 'absolute',
+                              top: 4,
+                              right: 4,
+                              backgroundColor: 'rgba(0,0,0,0.6)',
+                              borderRadius: 10,
+                              padding: 2,
+                            }}
                           >
                             <X
-                              size={18}
-                              color="$error"
+                              size={14}
+                              color="white"
                             />
-                          </Button>
-                        </XStack>
+                          </Pressable>
+                        </View>
                       ))}
-                    </YStack>
+                    </XStack>
                   )}
 
                   <Button
-                    onPress={pickAttachments}
+                    onPress={showAttachmentPicker}
+                    disabled={totalAttachments >= maxAttachments}
                     bg="transparent"
                     borderWidth={1}
-                    borderColor="$primary"
+                    borderColor={totalAttachments >= maxAttachments ? '$borderColor' : '$primary'}
                     borderRadius="$lg"
                     py="$3"
                     borderStyle="dashed"
@@ -832,13 +1127,13 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                     >
                       <Plus
                         size={18}
-                        color="$primary"
+                        color={totalAttachments >= maxAttachments ? '$colorMuted' : '$primary'}
                       />
                       <Text
-                        color="$primary"
+                        color={totalAttachments >= maxAttachments ? '$colorMuted' : '$primary'}
                         fontWeight="600"
                       >
-                        Add Attachment
+                        Add Attachment ({totalAttachments}/{maxAttachments})
                       </Text>
                     </XStack>
                   </Button>
@@ -896,6 +1191,156 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
             </Button>
           </YStack>
         </YStack>
+
+        {/* Android Attachment Picker Sheet */}
+        <Sheet
+          modal
+          open={attachmentPickerOpen}
+          onOpenChange={setAttachmentPickerOpen}
+          snapPoints={[320]}
+          dismissOnSnapToBottom
+        >
+          <Sheet.Overlay />
+          <Sheet.Frame
+            bg="$background"
+            borderTopLeftRadius={20}
+            borderTopRightRadius={20}
+          >
+            <Sheet.Handle bg="$borderColorHover" />
+            <YStack
+              p="$4"
+              gap="$3"
+            >
+              <Text
+                fontSize="$5"
+                fontWeight="bold"
+                color="$color"
+              >
+                Add Attachment
+              </Text>
+
+              <Button
+                bg="$backgroundMuted"
+                borderRadius="$4"
+                py="$3"
+                onPress={takePhoto}
+                pressStyle={{ opacity: 0.8 }}
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$3"
+                >
+                  <Camera
+                    size={20}
+                    color="$color"
+                  />
+                  <Text
+                    color="$color"
+                    fontWeight="500"
+                  >
+                    Take Photo
+                  </Text>
+                </XStack>
+              </Button>
+
+              <Button
+                bg="$backgroundMuted"
+                borderRadius="$4"
+                py="$3"
+                onPress={pickImages}
+                pressStyle={{ opacity: 0.8 }}
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$3"
+                >
+                  <ImagePlus
+                    size={20}
+                    color="$color"
+                  />
+                  <Text
+                    color="$color"
+                    fontWeight="500"
+                  >
+                    Choose Images
+                  </Text>
+                </XStack>
+              </Button>
+
+              <Button
+                bg="$backgroundMuted"
+                borderRadius="$4"
+                py="$3"
+                onPress={recordVideo}
+                pressStyle={{ opacity: 0.8 }}
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$3"
+                >
+                  <Video
+                    size={20}
+                    color="$color"
+                  />
+                  <Text
+                    color="$color"
+                    fontWeight="500"
+                  >
+                    Record Video
+                  </Text>
+                </XStack>
+              </Button>
+
+              <Button
+                bg="$backgroundMuted"
+                borderRadius="$4"
+                py="$3"
+                onPress={pickVideos}
+                pressStyle={{ opacity: 0.8 }}
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$3"
+                >
+                  <Video
+                    size={20}
+                    color="$color"
+                  />
+                  <Text
+                    color="$color"
+                    fontWeight="500"
+                  >
+                    Choose Videos
+                  </Text>
+                </XStack>
+              </Button>
+
+              <Button
+                bg="$backgroundMuted"
+                borderRadius="$4"
+                py="$3"
+                onPress={pickDocuments}
+                pressStyle={{ opacity: 0.8 }}
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$3"
+                >
+                  <FileText
+                    size={20}
+                    color="$color"
+                  />
+                  <Text
+                    color="$color"
+                    fontWeight="500"
+                  >
+                    Choose Documents
+                  </Text>
+                </XStack>
+              </Button>
+            </YStack>
+          </Sheet.Frame>
+        </Sheet>
       </KeyboardAvoidingView>
     </GradientBackground>
   )

@@ -13,7 +13,7 @@ import {
   Input,
   TextArea,
 } from '@my/ui'
-import { GradientBackground, ImageViewer } from '@my/ui'
+import { GradientBackground, ImageViewer, AttachmentGrid } from '@my/ui'
 import {
   useJobDashboard,
   useHandymanDailyReports,
@@ -64,7 +64,6 @@ import {
   Hourglass,
   MessageCircle,
   Receipt,
-  ExternalLink,
 } from '@tamagui/lucide-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -1435,35 +1434,19 @@ function ExpandableReportCard({
   )
 }
 
-// Helper function to check if file is an image
-function isImageFile(fileName: string): boolean {
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.heic', '.heif']
-  const lowerFileName = fileName.toLowerCase()
-  return imageExtensions.some((ext) => lowerFileName.endsWith(ext))
-}
-
 // Expandable Reimbursement Card
 function ExpandableReimbursementCard({
   reimbursement,
   index,
   onEdit,
-  onImagePress,
 }: {
   reimbursement: JobReimbursement
   index: number
   onEdit: () => void
-  onImagePress: (images: string[], startIndex: number) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const statusStyle = reimbursementStatusColors[reimbursement.status]
   const canEdit = reimbursement.status === 'pending'
-
-  const handleOpenLink = (url: string) => {
-    Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err))
-  }
-
-  const imageAttachments = reimbursement.attachments.filter((a) => isImageFile(a.file_name))
-  const otherAttachments = reimbursement.attachments.filter((a) => !isImageFile(a.file_name))
 
   return (
     <XStack>
@@ -1641,8 +1624,8 @@ function ExpandableReimbursementCard({
                   </YStack>
                 )}
 
-                {/* Image Attachments */}
-                {imageAttachments.length > 0 && (
+                {/* Attachments */}
+                {reimbursement.attachments.length > 0 && (
                   <YStack gap="$xs">
                     <Text
                       fontSize="$2"
@@ -1651,75 +1634,11 @@ function ExpandableReimbursementCard({
                     >
                       Attachments
                     </Text>
-                    <XStack
-                      flexWrap="wrap"
-                      gap="$sm"
-                    >
-                      {imageAttachments.map((attachment, idx) => (
-                        <Pressable
-                          key={attachment.public_id}
-                          onPress={() =>
-                            onImagePress(
-                              imageAttachments.map((a) => a.file),
-                              idx
-                            )
-                          }
-                        >
-                          <Image
-                            source={{ uri: attachment.file }}
-                            width={60}
-                            height={60}
-                            borderRadius={8}
-                          />
-                        </Pressable>
-                      ))}
-                    </XStack>
-                  </YStack>
-                )}
-
-                {/* Other Attachments (non-image files) */}
-                {otherAttachments.length > 0 && (
-                  <YStack gap="$xs">
-                    {imageAttachments.length === 0 && (
-                      <Text
-                        fontSize="$2"
-                        fontWeight="600"
-                        color="$colorSubtle"
-                      >
-                        Attachments
-                      </Text>
-                    )}
-                    {otherAttachments.map((attachment) => (
-                      <Pressable
-                        key={attachment.public_id}
-                        onPress={() => handleOpenLink(attachment.file)}
-                      >
-                        <XStack
-                          bg="$backgroundMuted"
-                          p="$sm"
-                          borderRadius={8}
-                          alignItems="center"
-                          gap="$sm"
-                        >
-                          <FileText
-                            size={16}
-                            color="$primary"
-                          />
-                          <Text
-                            fontSize="$2"
-                            color="$primary"
-                            flex={1}
-                            numberOfLines={1}
-                          >
-                            {attachment.file_name}
-                          </Text>
-                          <ExternalLink
-                            size={14}
-                            color="$colorSubtle"
-                          />
-                        </XStack>
-                      </Pressable>
-                    ))}
+                    <AttachmentGrid
+                      attachments={reimbursement.attachments}
+                      itemSize={60}
+                      gap={8}
+                    />
                   </YStack>
                 )}
 
@@ -2460,17 +2379,6 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
       params: { jobId, reimbursementId },
     } as any)
 
-  // Reimbursement image viewer state
-  const [reimbursementImages, setReimbursementImages] = useState<string[]>([])
-  const [reimbursementImageIndex, setReimbursementImageIndex] = useState(0)
-  const [showReimbursementViewer, setShowReimbursementViewer] = useState(false)
-
-  const handleReimbursementImagePress = (images: string[], startIndex: number) => {
-    setReimbursementImages(images)
-    setReimbursementImageIndex(startIndex)
-    setShowReimbursementViewer(true)
-  }
-
   const handleRequestCompletion = async () => {
     setIsRequestingCompletion(true)
     try {
@@ -2688,114 +2596,114 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                   borderWidth={1}
                   borderColor="rgba(0,0,0,0.06)"
                 >
-                <YStack gap="$xs">
-                  <Text
-                    fontSize="$5"
-                    fontWeight="700"
-                    color="$color"
-                    numberOfLines={2}
-                  >
-                    {job.title}
-                  </Text>
-                  {job.category && (
-                    <XStack
-                      alignItems="center"
-                      gap="$xs"
+                  <YStack gap="$xs">
+                    <Text
+                      fontSize="$5"
+                      fontWeight="700"
+                      color="$color"
+                      numberOfLines={2}
                     >
-                      <Briefcase
-                        size={12}
-                        color="$primary"
-                      />
-                      <Text
-                        fontSize="$2"
-                        color="$primary"
-                        fontWeight="500"
-                      >
-                        {job.category.name}
-                      </Text>
-                    </XStack>
-                  )}
-                  {job.address && (
-                    <XStack
-                      alignItems="center"
-                      gap="$xs"
-                    >
-                      <MapPin
-                        size={12}
-                        color="$colorSubtle"
-                      />
-                      <Text
-                        fontSize="$2"
-                        color="$colorSubtle"
-                        numberOfLines={1}
-                      >
-                        {job.address}
-                      </Text>
-                    </XStack>
-                  )}
-                </YStack>
-                <XStack
-                  justifyContent="space-between"
-                  alignItems="center"
-                  pt="$sm"
-                  borderTopWidth={1}
-                  borderTopColor="rgba(0,0,0,0.05)"
-                >
-                  <XStack
-                    alignItems="center"
-                    gap="$xs"
-                  >
-                    {job.homeowner.avatar_url ? (
-                      <Image
-                        source={{ uri: job.homeowner.avatar_url }}
-                        width={20}
-                        height={20}
-                        borderRadius={10}
-                      />
-                    ) : (
-                      <View
-                        width={20}
-                        height={20}
-                        borderRadius={10}
-                        bg="$backgroundMuted"
+                      {job.title}
+                    </Text>
+                    {job.category && (
+                      <XStack
                         alignItems="center"
-                        justifyContent="center"
+                        gap="$xs"
                       >
                         <Briefcase
                           size={12}
-                          color="$colorMuted"
+                          color="$primary"
                         />
-                      </View>
+                        <Text
+                          fontSize="$2"
+                          color="$primary"
+                          fontWeight="500"
+                        >
+                          {job.category.name}
+                        </Text>
+                      </XStack>
                     )}
-                    <Text
-                      fontSize="$3"
-                      color="$colorSubtle"
-                    >
-                      {job.homeowner.display_name}
-                    </Text>
-                  </XStack>
+                    {job.address && (
+                      <XStack
+                        alignItems="center"
+                        gap="$xs"
+                      >
+                        <MapPin
+                          size={12}
+                          color="$colorSubtle"
+                        />
+                        <Text
+                          fontSize="$2"
+                          color="$colorSubtle"
+                          numberOfLines={1}
+                        >
+                          {job.address}
+                        </Text>
+                      </XStack>
+                    )}
+                  </YStack>
                   <XStack
+                    justifyContent="space-between"
                     alignItems="center"
-                    gap="$xs"
-                    bg="$primaryBackground"
-                    px="$md"
-                    py="$xs"
-                    borderRadius="$full"
+                    pt="$sm"
+                    borderTopWidth={1}
+                    borderTopColor="rgba(0,0,0,0.05)"
                   >
-                    <DollarSign
-                      size={16}
-                      color="$primary"
-                    />
-                    <Text
-                      fontSize="$4"
-                      fontWeight="800"
-                      color="$primary"
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
                     >
-                      {job.estimated_budget}
-                    </Text>
+                      {job.homeowner.avatar_url ? (
+                        <Image
+                          source={{ uri: job.homeowner.avatar_url }}
+                          width={20}
+                          height={20}
+                          borderRadius={10}
+                        />
+                      ) : (
+                        <View
+                          width={20}
+                          height={20}
+                          borderRadius={10}
+                          bg="$backgroundMuted"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <Briefcase
+                            size={12}
+                            color="$colorMuted"
+                          />
+                        </View>
+                      )}
+                      <Text
+                        fontSize="$3"
+                        color="$colorSubtle"
+                      >
+                        {job.homeowner.display_name}
+                      </Text>
+                    </XStack>
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                      bg="$primaryBackground"
+                      px="$md"
+                      py="$xs"
+                      borderRadius="$full"
+                    >
+                      <DollarSign
+                        size={16}
+                        color="$primary"
+                      />
+                      <Text
+                        fontSize="$4"
+                        fontWeight="800"
+                        color="$primary"
+                      >
+                        {job.estimated_budget}
+                      </Text>
+                    </XStack>
                   </XStack>
-                </XStack>
-              </YStack>
+                </YStack>
               </Pressable>
 
               {job.description && (
@@ -3384,7 +3292,6 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                         reimbursement={reimbursement}
                         index={reimbursements.length - i}
                         onEdit={() => handleEditReimbursement(reimbursement.public_id)}
-                        onImagePress={handleReimbursementImagePress}
                       />
                     ))}
                   </YStack>
@@ -3611,12 +3518,6 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
           visible={viewerItem !== null}
           item={viewerItem}
           onClose={() => setViewerItem(null)}
-        />
-        <ImageViewer
-          images={reimbursementImages}
-          initialIndex={reimbursementImageIndex}
-          visible={showReimbursementViewer}
-          onClose={() => setShowReimbursementViewer(false)}
         />
       </YStack>
     </GradientBackground>
