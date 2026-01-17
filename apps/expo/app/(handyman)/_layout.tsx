@@ -57,10 +57,7 @@ export default function HandymanLayout() {
       flex={1}
       backgroundColor="$background"
     >
-      <YStack
-        flex={1}
-        paddingBottom={shouldShowBottomNav() ? 80 : 0}
-      >
+      <YStack flex={1}>
         <Stack
           screenOptions={{
             headerShown: false,
