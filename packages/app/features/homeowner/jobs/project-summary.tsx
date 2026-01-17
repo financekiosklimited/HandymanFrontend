@@ -17,6 +17,7 @@ import {
   FileText,
   Clock,
   MapPin,
+  Play,
   CheckCircle2,
   XCircle,
   AlertCircle,
@@ -462,7 +463,15 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
     )
   }
 
-  const jobImage = job.images?.[0]?.image
+  const attachments = 'attachments' in job ? job.attachments : undefined
+  const firstAttachment = attachments?.[0]
+  const isVideoAttachment = firstAttachment?.file_type === 'video'
+  const isImageAttachment = firstAttachment?.file_type === 'image'
+  const previewImage = isVideoAttachment
+    ? firstAttachment?.thumbnail_url
+    : isImageAttachment
+      ? firstAttachment?.file_url
+      : undefined
   const isPendingCompletion = job.status === 'pending_completion'
   const isCompleted = job.status === 'completed'
 
@@ -520,14 +529,39 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
               overflow="hidden"
               borderWidth={1}
               borderColor="rgba(0,0,0,0.08)"
+              position="relative"
             >
-              {jobImage && (
+              {previewImage && (
                 <Image
-                  source={{ uri: jobImage }}
+                  source={{ uri: previewImage }}
                   width="100%"
                   height={140}
                   resizeMode="cover"
                 />
+              )}
+
+              {isVideoAttachment && previewImage && (
+                <View
+                  position="absolute"
+                  top={0}
+                  left={0}
+                  right={0}
+                  height={140}
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <View
+                    bg="rgba(0, 0, 0, 0.45)"
+                    borderRadius="$full"
+                    p="$2"
+                  >
+                    <Play
+                      size={20}
+                      color="white"
+                      fill="white"
+                    />
+                  </View>
+                </View>
               )}
               <YStack
                 p="$md"

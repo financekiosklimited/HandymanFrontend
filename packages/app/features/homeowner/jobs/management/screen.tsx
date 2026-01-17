@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
   MapPin,
+  Play,
   Star,
   Users,
   Filter,
@@ -191,7 +192,15 @@ function ExpandableJobCard({
 }: ExpandableJobCardProps) {
   const router = useRouter()
   const statusStyle = jobStatusColors[job.status as JobStatus] || jobStatusColors.draft
-  const jobImage = job.images?.[0]?.image
+  const attachments = 'attachments' in job ? job.attachments : undefined
+  const firstAttachment = attachments?.[0]
+  const isVideoAttachment = firstAttachment?.file_type === 'video'
+  const isImageAttachment = firstAttachment?.file_type === 'image'
+  const previewImage = isVideoAttachment
+    ? firstAttachment?.thumbnail_url
+    : isImageAttachment
+      ? firstAttachment?.file_url
+      : undefined
 
   // Fetch applications for this job when expanded
   const {
@@ -234,10 +243,11 @@ function ExpandableJobCard({
             borderRadius={12}
             bg="$backgroundMuted"
             overflow="hidden"
+            position="relative"
           >
-            {jobImage ? (
+            {previewImage ? (
               <Image
-                source={{ uri: jobImage }}
+                source={{ uri: previewImage }}
                 width={80}
                 height={80}
                 resizeMode="cover"
@@ -248,11 +258,42 @@ function ExpandableJobCard({
                 alignItems="center"
                 justifyContent="center"
               >
-                <Briefcase
-                  size={24}
-                  color="$colorMuted"
-                />
+                {isVideoAttachment ? (
+                  <Play
+                    size={20}
+                    color="$colorMuted"
+                  />
+                ) : (
+                  <Briefcase
+                    size={24}
+                    color="$colorMuted"
+                  />
+                )}
               </YStack>
+            )}
+
+            {isVideoAttachment && previewImage && (
+              <View
+                position="absolute"
+                top={0}
+                left={0}
+                right={0}
+                bottom={0}
+                alignItems="center"
+                justifyContent="center"
+              >
+                <View
+                  bg="rgba(0, 0, 0, 0.45)"
+                  borderRadius="$full"
+                  p="$1"
+                >
+                  <Play
+                    size={16}
+                    color="white"
+                    fill="white"
+                  />
+                </View>
+              </View>
             )}
           </View>
 

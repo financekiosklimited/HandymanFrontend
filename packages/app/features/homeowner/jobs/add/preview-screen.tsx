@@ -1,10 +1,21 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, ImageViewer } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Image,
+  ImageViewer,
+  VideoPlayer,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useCreateJob, formatErrorMessage, formatValidationError } from '@my/api'
-import type { CreateJobValidationError } from '@my/api'
+import type { CreateJobValidationError, LocalAttachment, AttachmentUpload } from '@my/api'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import {
   ArrowLeft,
@@ -21,10 +32,13 @@ import {
   FileText,
   Clock,
   Calendar,
+  Play,
+  Video,
+  File,
 } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { HTTPError } from 'ky'
-import { Dimensions, FlatList, Pressable } from 'react-native'
+import { Dimensions, FlatList, Pressable, Linking } from 'react-native'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const IMAGE_WIDTH = SCREEN_WIDTH - 32
@@ -32,12 +46,6 @@ const IMAGE_WIDTH = SCREEN_WIDTH - 32
 interface JobTask {
   id: string
   title: string
-}
-
-interface ImageAsset {
-  uri: string
-  name: string
-  type: string
 }
 
 interface PreviewData {
@@ -49,7 +57,7 @@ interface PreviewData {
   address: string
   postal_code: string
   tasks: JobTask[]
-  images: ImageAsset[]
+  attachments: LocalAttachment[]
   categoryName?: string
   cityName?: string
   cityProvince?: string
@@ -65,6 +73,10 @@ export function JobPreviewScreen() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [imageViewerVisible, setImageViewerVisible] = useState(false)
   const [imageViewerIndex, setImageViewerIndex] = useState(0)
+  const [selectedVideo, setSelectedVideo] = useState<{
+    uri: string
+    thumbnail?: string
+  } | null>(null)
   const flatListRef = useRef<FlatList>(null)
 
   // Parse form data from params
@@ -135,6 +147,29 @@ export function JobPreviewScreen() {
   const handlePublish = useCallback(async () => {
     setErrorMessage(null)
 
+    // Convert LocalAttachment[] to AttachmentUpload[]
+    const attachments: AttachmentUpload[] = formData.attachments.map((attachment) => {
+      const upload: AttachmentUpload = {
+        file: attachment.file,
+      }
+
+      // For videos, include thumbnail and duration
+      if (attachment.file_type === 'video') {
+        if (attachment.thumbnail_uri) {
+          upload.thumbnail = {
+            uri: attachment.thumbnail_uri,
+            type: 'image/jpeg',
+            name: `${attachment.file_name}_thumb.jpg`,
+          }
+        }
+        if (attachment.duration_seconds !== undefined) {
+          upload.duration_seconds = attachment.duration_seconds
+        }
+      }
+
+      return upload
+    })
+
     const requestData = {
       title: formData.title,
       description: formData.description,
@@ -145,7 +180,7 @@ export function JobPreviewScreen() {
       postal_code: formData.postal_code || undefined,
       status: 'open' as const,
       tasks: formData.tasks.map((t) => ({ title: t.title })),
-      images: formData.images,
+      attachments,
     }
 
     // Debug: Log request payload
@@ -265,8 +300,8 @@ export function JobPreviewScreen() {
               </XStack>
             )}
 
-            {/* Image Gallery */}
-            {formData.images.length > 0 && (
+            {/* Attachment Gallery */}
+            {formData.attachments.length > 0 && (
               <YStack gap="$3">
                 <View
                   height={220}
@@ -276,37 +311,169 @@ export function JobPreviewScreen() {
                 >
                   <FlatList
                     ref={flatListRef}
-                    data={formData.images}
+                    data={formData.attachments}
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
                     onScroll={handleImageScroll}
                     scrollEventThrottle={16}
-                    renderItem={({ item, index }) => (
-                      <Pressable
-                        onPress={() => {
-                          setImageViewerIndex(index)
-                          setImageViewerVisible(true)
-                        }}
-                      >
-                        <View
-                          width={IMAGE_WIDTH}
-                          height={220}
+                    renderItem={({ item, index }) => {
+                      // Image attachment
+                      if (item.file_type === 'image') {
+                        return (
+                          <Pressable
+                            onPress={() => {
+                              setImageViewerIndex(index)
+                              setImageViewerVisible(true)
+                            }}
+                          >
+                            <View
+                              width={IMAGE_WIDTH}
+                              height={220}
+                            >
+                              <Image
+                                source={{ uri: item.file.uri }}
+                                width="100%"
+                                height="100%"
+                                resizeMode="cover"
+                              />
+                            </View>
+                          </Pressable>
+                        )
+                      }
+
+                      // Video attachment
+                      if (item.file_type === 'video') {
+                        return (
+                          <Pressable
+                            onPress={() =>
+                              setSelectedVideo({
+                                uri: item.file.uri,
+                                thumbnail: item.thumbnail_uri || undefined,
+                              })
+                            }
+                          >
+                            <View
+                              width={IMAGE_WIDTH}
+                              height={220}
+                            >
+                              {item.thumbnail_uri ? (
+                                <Image
+                                  source={{ uri: item.thumbnail_uri }}
+                                  width="100%"
+                                  height="100%"
+                                  resizeMode="cover"
+                                />
+                              ) : (
+                                <View
+                                  width="100%"
+                                  height="100%"
+                                  bg="$borderColor"
+                                  alignItems="center"
+                                  justifyContent="center"
+                                >
+                                  <Video
+                                    size={48}
+                                    color="$colorMuted"
+                                  />
+                                </View>
+                              )}
+                              {/* Play icon overlay */}
+                              <View
+                                position="absolute"
+                                top={0}
+                                left={0}
+                                right={0}
+                                bottom={0}
+                                alignItems="center"
+                                justifyContent="center"
+                              >
+                                <View
+                                  bg="rgba(0,0,0,0.5)"
+                                  borderRadius="$full"
+                                  p="$3"
+                                >
+                                  <Play
+                                    size={32}
+                                    color="white"
+                                    fill="white"
+                                  />
+                                </View>
+                              </View>
+                              {/* Duration badge */}
+                              {item.duration_seconds !== undefined && (
+                                <View
+                                  position="absolute"
+                                  bottom="$3"
+                                  left="$3"
+                                  bg="rgba(0,0,0,0.7)"
+                                  px="$2"
+                                  py="$1"
+                                  borderRadius="$2"
+                                >
+                                  <Text
+                                    fontSize="$2"
+                                    color="white"
+                                    fontWeight="500"
+                                  >
+                                    {Math.floor(item.duration_seconds / 60)}:
+                                    {(item.duration_seconds % 60).toString().padStart(2, '0')}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                          </Pressable>
+                        )
+                      }
+
+                      // Document attachment
+                      return (
+                        <Pressable
+                          onPress={() => {
+                            // Open document (if possible)
+                            Linking.openURL(item.file.uri).catch(() => {
+                              // Ignore errors for local files
+                            })
+                          }}
                         >
-                          <Image
-                            source={{ uri: item.uri }}
-                            width="100%"
-                            height="100%"
-                            resizeMode="cover"
-                          />
-                        </View>
-                      </Pressable>
-                    )}
-                    keyExtractor={(_, index) => index.toString()}
+                          <View
+                            width={IMAGE_WIDTH}
+                            height={220}
+                            bg="$borderColor"
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            <File
+                              size={48}
+                              color="$primary"
+                            />
+                            <Text
+                              fontSize="$4"
+                              color="$color"
+                              fontWeight="500"
+                              mt="$3"
+                              px="$4"
+                              textAlign="center"
+                              numberOfLines={2}
+                            >
+                              {item.file_name}
+                            </Text>
+                            <Text
+                              fontSize="$2"
+                              color="$colorSubtle"
+                              mt="$1"
+                            >
+                              Document
+                            </Text>
+                          </View>
+                        </Pressable>
+                      )
+                    }}
+                    keyExtractor={(item) => item.id}
                   />
 
                   {/* Navigation arrows */}
-                  {formData.images.length > 1 && (
+                  {formData.attachments.length > 1 && (
                     <>
                       {currentImageIndex > 0 && (
                         <Button
@@ -327,7 +494,7 @@ export function JobPreviewScreen() {
                           />
                         </Button>
                       )}
-                      {currentImageIndex < formData.images.length - 1 && (
+                      {currentImageIndex < formData.attachments.length - 1 && (
                         <Button
                           unstyled
                           position="absolute"
@@ -349,8 +516,8 @@ export function JobPreviewScreen() {
                     </>
                   )}
 
-                  {/* Image counter */}
-                  {formData.images.length > 1 && (
+                  {/* Attachment counter */}
+                  {formData.attachments.length > 1 && (
                     <View
                       position="absolute"
                       bottom="$3"
@@ -365,19 +532,19 @@ export function JobPreviewScreen() {
                         fontSize="$2"
                         fontWeight="500"
                       >
-                        {currentImageIndex + 1} / {formData.images.length}
+                        {currentImageIndex + 1} / {formData.attachments.length}
                       </Text>
                     </View>
                   )}
                 </View>
 
                 {/* Pagination dots */}
-                {formData.images.length > 1 && (
+                {formData.attachments.length > 1 && (
                   <XStack
                     justifyContent="center"
                     gap="$2"
                   >
-                    {formData.images.map((_, index) => (
+                    {formData.attachments.map((_, index) => (
                       <View
                         key={index}
                         width={index === currentImageIndex ? 20 : 8}
@@ -852,13 +1019,25 @@ export function JobPreviewScreen() {
           </Button>
         </YStack>
 
-        {/* Fullscreen Image Viewer */}
-        {formData.images.length > 0 && (
+        {/* Fullscreen Image Viewer (only for images) */}
+        {formData.attachments.filter((a) => a.file_type === 'image').length > 0 && (
           <ImageViewer
-            images={formData.images.map((img) => img.uri)}
+            images={formData.attachments
+              .filter((a) => a.file_type === 'image')
+              .map((img) => img.file.uri)}
             initialIndex={imageViewerIndex}
             visible={imageViewerVisible}
             onClose={() => setImageViewerVisible(false)}
+          />
+        )}
+
+        {/* Fullscreen Video Player */}
+        {selectedVideo && (
+          <VideoPlayer
+            uri={selectedVideo.uri}
+            thumbnailUri={selectedVideo.thumbnail}
+            visible={true}
+            onClose={() => setSelectedVideo(null)}
           />
         )}
       </YStack>

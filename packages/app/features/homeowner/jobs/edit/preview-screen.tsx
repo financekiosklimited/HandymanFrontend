@@ -1,10 +1,26 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, ImageViewer } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Image,
+  ImageViewer,
+  VideoPlayer,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useUpdateJob, formatErrorMessage, formatValidationError } from '@my/api'
-import type { UpdateJobValidationError } from '@my/api'
+import type {
+  UpdateJobValidationError,
+  LocalAttachment,
+  Attachment,
+  AttachmentUpload,
+} from '@my/api'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import {
   ArrowLeft,
@@ -20,10 +36,13 @@ import {
   FileText,
   Clock,
   Calendar,
+  Play,
+  Video,
+  File,
 } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { HTTPError } from 'ky'
-import { Alert, Dimensions, FlatList, Pressable } from 'react-native'
+import { Dimensions, FlatList, Pressable, Linking } from 'react-native'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const IMAGE_WIDTH = SCREEN_WIDTH - 32
@@ -40,17 +59,6 @@ interface NewTask {
   title: string
 }
 
-interface ExistingImage {
-  public_id: string
-  image: string
-}
-
-interface NewImage {
-  uri: string
-  name: string
-  type: string
-}
-
 interface PreviewData {
   jobId: string
   title: string
@@ -65,9 +73,9 @@ interface PreviewData {
   cityProvince?: string
   existingTasks: ExistingTask[]
   newTasks: NewTask[]
-  existingImages: ExistingImage[]
-  newImages: NewImage[]
-  imagesToRemove: string[]
+  existingAttachments: Attachment[]
+  newAttachments: LocalAttachment[]
+  attachmentsToRemove: string[]
 }
 
 export function EditJobPreviewScreen() {
@@ -80,6 +88,10 @@ export function EditJobPreviewScreen() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [imageViewerVisible, setImageViewerVisible] = useState(false)
   const [imageViewerIndex, setImageViewerIndex] = useState(0)
+  const [selectedVideo, setSelectedVideo] = useState<{
+    uri: string
+    thumbnail?: string
+  } | null>(null)
   const flatListRef = useRef<FlatList>(null)
 
   // Parse form data from params
@@ -134,15 +146,19 @@ export function EditJobPreviewScreen() {
     )
   }
 
-  // Combine all images for display
-  const allImages = [
-    ...formData.existingImages.map((img) => ({
+  // Combine all attachments for display
+  const allAttachments = [
+    ...formData.existingAttachments.map((attachment) => ({
       type: 'existing' as const,
-      uri: img.image,
-      public_id: img.public_id,
+      attachment,
     })),
-    ...formData.newImages.map((img, idx) => ({ type: 'new' as const, uri: img.uri, index: idx })),
+    ...formData.newAttachments.map((attachment) => ({
+      type: 'new' as const,
+      attachment,
+    })),
   ]
+
+  const imageAttachments = allAttachments.filter((item) => item.attachment.file_type === 'image')
 
   // Get all visible tasks
   const visibleTasks = [
@@ -179,6 +195,29 @@ export function EditJobPreviewScreen() {
       ...formData.newTasks.map((t) => ({ title: t.title })),
     ]
 
+    // Convert LocalAttachment[] to AttachmentUpload[]
+    const attachments: AttachmentUpload[] = formData.newAttachments.map((attachment) => {
+      const upload: AttachmentUpload = {
+        file: attachment.file,
+      }
+
+      // For videos, include thumbnail and duration
+      if (attachment.file_type === 'video') {
+        if (attachment.thumbnail_uri) {
+          upload.thumbnail = {
+            uri: attachment.thumbnail_uri,
+            type: 'image/jpeg',
+            name: `${attachment.file_name}_thumb.jpg`,
+          }
+        }
+        if (attachment.duration_seconds !== undefined) {
+          upload.duration_seconds = attachment.duration_seconds
+        }
+      }
+
+      return upload
+    })
+
     const requestData = {
       title: formData.title,
       description: formData.description,
@@ -188,8 +227,8 @@ export function EditJobPreviewScreen() {
       address: formData.address,
       postal_code: formData.postal_code || undefined,
       tasks,
-      images: formData.newImages,
-      images_to_remove: formData.imagesToRemove,
+      attachments,
+      attachments_to_remove: formData.attachmentsToRemove,
     }
 
     // Debug: Log request payload
@@ -311,8 +350,8 @@ export function EditJobPreviewScreen() {
               </XStack>
             )}
 
-            {/* Image Gallery */}
-            {allImages.length > 0 && (
+            {/* Attachment Gallery */}
+            {allAttachments.length > 0 && (
               <YStack gap="$3">
                 <View
                   height={220}
@@ -322,39 +361,221 @@ export function EditJobPreviewScreen() {
                 >
                   <FlatList
                     ref={flatListRef}
-                    data={allImages}
+                    data={allAttachments}
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
                     onScroll={handleImageScroll}
                     scrollEventThrottle={16}
-                    renderItem={({ item, index }) => (
-                      <Pressable
-                        onPress={() => {
-                          setImageViewerIndex(index)
-                          setImageViewerVisible(true)
-                        }}
-                      >
-                        <View
-                          width={IMAGE_WIDTH}
-                          height={220}
+                    renderItem={({ item, index }) => {
+                      const attachment = item.attachment
+                      const fileType =
+                        item.type === 'existing'
+                          ? (attachment as Attachment).file_type
+                          : (attachment as LocalAttachment).file_type
+
+                      // Image attachment
+                      if (fileType === 'image') {
+                        const imageUri =
+                          item.type === 'existing'
+                            ? (attachment as Attachment).file_url
+                            : (attachment as LocalAttachment).file.uri
+                        return (
+                          <Pressable
+                            onPress={() => {
+                              // Find index within image-only attachments for ImageViewer
+                              const imageIndex = imageAttachments.findIndex((img) => {
+                                if (item.type === 'existing' && img.type === 'existing') {
+                                  return (
+                                    (img.attachment as Attachment).public_id ===
+                                    (attachment as Attachment).public_id
+                                  )
+                                }
+                                if (item.type === 'new' && img.type === 'new') {
+                                  return (
+                                    (img.attachment as LocalAttachment).id ===
+                                    (attachment as LocalAttachment).id
+                                  )
+                                }
+                                return false
+                              })
+                              if (imageIndex >= 0) {
+                                setImageViewerIndex(imageIndex)
+                                setImageViewerVisible(true)
+                              }
+                            }}
+                          >
+                            <View
+                              width={IMAGE_WIDTH}
+                              height={220}
+                            >
+                              <Image
+                                source={{ uri: imageUri }}
+                                width="100%"
+                                height="100%"
+                                resizeMode="cover"
+                              />
+                            </View>
+                          </Pressable>
+                        )
+                      }
+
+                      // Video attachment
+                      if (fileType === 'video') {
+                        const thumbnailUri =
+                          item.type === 'existing'
+                            ? (attachment as Attachment).thumbnail_url
+                            : (attachment as LocalAttachment).thumbnail_uri
+                        const duration =
+                          item.type === 'existing'
+                            ? (attachment as Attachment).duration_seconds
+                            : (attachment as LocalAttachment).duration_seconds
+                        const videoUri =
+                          item.type === 'existing'
+                            ? (attachment as Attachment).file_url
+                            : (attachment as LocalAttachment).file.uri
+                        return (
+                          <Pressable
+                            onPress={() =>
+                              setSelectedVideo({
+                                uri: videoUri,
+                                thumbnail: thumbnailUri || undefined,
+                              })
+                            }
+                          >
+                            <View
+                              width={IMAGE_WIDTH}
+                              height={220}
+                            >
+                              {thumbnailUri ? (
+                                <Image
+                                  source={{ uri: thumbnailUri }}
+                                  width="100%"
+                                  height="100%"
+                                  resizeMode="cover"
+                                />
+                              ) : (
+                                <View
+                                  width="100%"
+                                  height="100%"
+                                  bg="$borderColor"
+                                  alignItems="center"
+                                  justifyContent="center"
+                                >
+                                  <Video
+                                    size={48}
+                                    color="$colorMuted"
+                                  />
+                                </View>
+                              )}
+                              {/* Play icon overlay */}
+                              <View
+                                position="absolute"
+                                top={0}
+                                left={0}
+                                right={0}
+                                bottom={0}
+                                alignItems="center"
+                                justifyContent="center"
+                              >
+                                <View
+                                  bg="rgba(0,0,0,0.5)"
+                                  borderRadius="$full"
+                                  p="$3"
+                                >
+                                  <Play
+                                    size={32}
+                                    color="white"
+                                    fill="white"
+                                  />
+                                </View>
+                              </View>
+                              {/* Duration badge */}
+                              {duration !== undefined && duration !== null && (
+                                <View
+                                  position="absolute"
+                                  bottom="$3"
+                                  left="$3"
+                                  bg="rgba(0,0,0,0.7)"
+                                  px="$2"
+                                  py="$1"
+                                  borderRadius="$2"
+                                >
+                                  <Text
+                                    fontSize="$2"
+                                    color="white"
+                                    fontWeight="500"
+                                  >
+                                    {Math.floor(duration / 60)}:
+                                    {(duration % 60).toString().padStart(2, '0')}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                          </Pressable>
+                        )
+                      }
+
+                      // Document attachment
+                      const fileName =
+                        item.type === 'existing'
+                          ? (attachment as Attachment).file_name
+                          : (attachment as LocalAttachment).file_name
+                      const fileUrl =
+                        item.type === 'existing'
+                          ? (attachment as Attachment).file_url
+                          : (attachment as LocalAttachment).file.uri
+                      return (
+                        <Pressable
+                          onPress={() => {
+                            Linking.openURL(fileUrl).catch(() => {
+                              // Ignore errors for local files
+                            })
+                          }}
                         >
-                          <Image
-                            source={{ uri: item.uri }}
-                            width="100%"
-                            height="100%"
-                            resizeMode="cover"
-                          />
-                        </View>
-                      </Pressable>
-                    )}
-                    keyExtractor={(item, index) =>
-                      item.type === 'existing' ? item.public_id : `new-${index}`
-                    }
+                          <View
+                            width={IMAGE_WIDTH}
+                            height={220}
+                            bg="$borderColor"
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            <File
+                              size={48}
+                              color="$primary"
+                            />
+                            <Text
+                              fontSize="$4"
+                              color="$color"
+                              fontWeight="500"
+                              mt="$3"
+                              px="$4"
+                              textAlign="center"
+                              numberOfLines={2}
+                            >
+                              {fileName}
+                            </Text>
+                            <Text
+                              fontSize="$2"
+                              color="$colorSubtle"
+                              mt="$1"
+                            >
+                              Document
+                            </Text>
+                          </View>
+                        </Pressable>
+                      )
+                    }}
+                    keyExtractor={(item, index) => {
+                      if (item.type === 'existing') {
+                        return (item.attachment as Attachment).public_id
+                      }
+                      return (item.attachment as LocalAttachment).id
+                    }}
                   />
 
                   {/* Navigation arrows */}
-                  {allImages.length > 1 && (
+                  {allAttachments.length > 1 && (
                     <>
                       {currentImageIndex > 0 && (
                         <Button
@@ -375,7 +596,7 @@ export function EditJobPreviewScreen() {
                           />
                         </Button>
                       )}
-                      {currentImageIndex < allImages.length - 1 && (
+                      {currentImageIndex < allAttachments.length - 1 && (
                         <Button
                           unstyled
                           position="absolute"
@@ -397,8 +618,8 @@ export function EditJobPreviewScreen() {
                     </>
                   )}
 
-                  {/* Image counter */}
-                  {allImages.length > 1 && (
+                  {/* Attachment counter */}
+                  {allAttachments.length > 1 && (
                     <View
                       position="absolute"
                       bottom="$3"
@@ -413,19 +634,19 @@ export function EditJobPreviewScreen() {
                         fontSize="$2"
                         fontWeight="500"
                       >
-                        {currentImageIndex + 1} / {allImages.length}
+                        {currentImageIndex + 1} / {allAttachments.length}
                       </Text>
                     </View>
                   )}
                 </View>
 
                 {/* Pagination dots */}
-                {allImages.length > 1 && (
+                {allAttachments.length > 1 && (
                   <XStack
                     justifyContent="center"
                     gap="$2"
                   >
-                    {allImages.map((_, index) => (
+                    {allAttachments.map((_, index) => (
                       <View
                         key={index}
                         width={index === currentImageIndex ? 20 : 8}
@@ -900,13 +1121,28 @@ export function EditJobPreviewScreen() {
           </Button>
         </YStack>
 
-        {/* Fullscreen Image Viewer */}
-        {allImages.length > 0 && (
+        {/* Fullscreen Image Viewer (only for images) */}
+        {imageAttachments.length > 0 && (
           <ImageViewer
-            images={allImages.map((img) => img.uri)}
+            images={imageAttachments.map((item) => {
+              if (item.type === 'existing') {
+                return (item.attachment as Attachment).file_url
+              }
+              return (item.attachment as LocalAttachment).file.uri
+            })}
             initialIndex={imageViewerIndex}
             visible={imageViewerVisible}
             onClose={() => setImageViewerVisible(false)}
+          />
+        )}
+
+        {/* Fullscreen Video Player */}
+        {selectedVideo && (
+          <VideoPlayer
+            uri={selectedVideo.uri}
+            thumbnailUri={selectedVideo.thumbnail}
+            visible={true}
+            onClose={() => setSelectedVideo(null)}
           />
         )}
       </YStack>

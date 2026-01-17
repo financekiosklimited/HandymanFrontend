@@ -161,10 +161,10 @@ function ConversationItem({
                 mr="$sm"
                 opacity={hasUnread ? 1 : 0.8}
               >
-                {last_message?.message_type === 'image'
-                  ? '📷 Photo'
-                  : last_message?.message_type === 'text_with_image'
-                    ? `📷 ${truncateMessage(last_message.content ?? null)}`
+                {last_message?.message_type === 'attachment'
+                  ? '📎 Attachment'
+                  : last_message?.message_type === 'text_with_attachment'
+                    ? `📎 ${truncateMessage(last_message.content ?? null)}`
                     : truncateMessage(last_message?.content ?? null)}
               </Text>
 

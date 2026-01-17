@@ -2,7 +2,17 @@
 
 import { useState } from 'react'
 import { Alert } from 'react-native'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Image,
+  AttachmentGrid,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useHomeownerApplicationDetail, useApproveApplication, useRejectApplication } from '@my/api'
 import type { HomeownerApplicationStatus } from '@my/api'
@@ -675,37 +685,11 @@ export function ApplicationDetailScreen() {
                           Attachments ({application.attachments.length})
                         </Text>
                       </XStack>
-                      <YStack gap="$xs">
-                        {application.attachments.map((attachment, index) => (
-                          <XStack
-                            key={attachment.public_id || index}
-                            alignItems="center"
-                            gap="$sm"
-                          >
-                            <View
-                              width={32}
-                              height={32}
-                              borderRadius="$2"
-                              bg="$primaryBackground"
-                              alignItems="center"
-                              justifyContent="center"
-                            >
-                              <Paperclip
-                                size={14}
-                                color="$primary"
-                              />
-                            </View>
-                            <Text
-                              fontSize="$3"
-                              color="$color"
-                              numberOfLines={1}
-                              flex={1}
-                            >
-                              {attachment.file_name || 'Attachment'}
-                            </Text>
-                          </XStack>
-                        ))}
-                      </YStack>
+                      <AttachmentGrid
+                        attachments={application.attachments}
+                        columns={3}
+                        gap={8}
+                      />
                     </YStack>
                   )}
                 </YStack>

@@ -171,7 +171,15 @@ interface ActiveJobCardProps {
 
 function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
   const job = application.job
-  const jobImage = (job as any).images?.[0]?.image
+  const attachments = 'attachments' in job ? job.attachments : undefined
+  const firstAttachment = attachments?.[0]
+  const isVideoAttachment = firstAttachment?.file_type === 'video'
+  const isImageAttachment = firstAttachment?.file_type === 'image'
+  const previewImage = isVideoAttachment
+    ? firstAttachment?.thumbnail_url
+    : isImageAttachment
+      ? firstAttachment?.file_url
+      : undefined
 
   return (
     <Button
@@ -187,9 +195,9 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
     >
       <YStack>
         {/* Image */}
-        {jobImage ? (
+        {previewImage ? (
           <Image
-            source={{ uri: jobImage }}
+            source={{ uri: previewImage }}
             width="100%"
             height={140}
             resizeMode="cover"
@@ -202,11 +210,42 @@ function ActiveJobCard({ application, onPress }: ActiveJobCardProps) {
             alignItems="center"
             justifyContent="center"
           >
-            <Briefcase
-              size={40}
-              color="$primary"
-            />
+            {isVideoAttachment ? (
+              <Play
+                size={32}
+                color="$primary"
+              />
+            ) : (
+              <Briefcase
+                size={40}
+                color="$primary"
+              />
+            )}
           </YStack>
+        )}
+
+        {isVideoAttachment && previewImage && (
+          <View
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            height={140}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <View
+              bg="rgba(0, 0, 0, 0.45)"
+              borderRadius="$full"
+              p="$2"
+            >
+              <Play
+                size={22}
+                color="white"
+                fill="white"
+              />
+            </View>
+          </View>
         )}
 
         {/* Content */}

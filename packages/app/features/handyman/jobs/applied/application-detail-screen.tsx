@@ -1,8 +1,20 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { Alert, Pressable } from 'react-native'
-import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View, ImageViewer } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Image,
+  Spinner,
+  View,
+  ImageViewer,
+  AttachmentGrid,
+  VideoPlayer,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import {
   useHandymanJobDetail,
@@ -25,6 +37,7 @@ import {
   ChevronRight,
   Package,
   Paperclip,
+  Play,
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -66,7 +79,35 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [imageViewerVisible, setImageViewerVisible] = useState(false)
   const [imageViewerIndex, setImageViewerIndex] = useState(0)
+  const [selectedVideo, setSelectedVideo] = useState<{
+    uri: string
+    thumbnail?: string
+  } | null>(null)
   const flatListRef = useRef<FlatList>(null)
+
+  // Type-safe attachment access - must be before any early returns to satisfy Rules of Hooks
+  const attachments = useMemo(() => {
+    if (!job) return []
+    return Array.isArray((job as { attachments?: unknown })?.attachments)
+      ? ((job as { attachments?: unknown[] })?.attachments as Array<{
+          public_id: string
+          file_url: string
+          file_type: 'image' | 'video' | 'document'
+          file_name: string
+          file_size: number
+          thumbnail_url?: string | null
+        }>)
+      : []
+  }, [job])
+
+  const imageAttachments = useMemo(
+    () => attachments.filter((attachment) => attachment.file_type === 'image'),
+    [attachments]
+  )
+  const imageUrls = useMemo(
+    () => imageAttachments.map((attachment) => attachment.file_url),
+    [imageAttachments]
+  )
 
   const handleImageScroll = (event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x
@@ -194,7 +235,6 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
     )
   }
 
-  const mainImage = job.images?.[0]?.image
   const hasPrice = job.hourly_rate_min || job.estimated_budget
   const applicationStatus = job.my_application?.status || 'pending'
   const statusStyle = getStatusColor(applicationStatus)
@@ -485,37 +525,11 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                               Attachments ({applicationDetails.attachments.length})
                             </Text>
                           </XStack>
-                          <YStack gap="$xs">
-                            {applicationDetails.attachments.map((attachment, index) => (
-                              <XStack
-                                key={attachment.public_id || index}
-                                alignItems="center"
-                                gap="$sm"
-                              >
-                                <View
-                                  width={32}
-                                  height={32}
-                                  borderRadius="$2"
-                                  bg="$primaryBackground"
-                                  alignItems="center"
-                                  justifyContent="center"
-                                >
-                                  <Paperclip
-                                    size={14}
-                                    color="$primary"
-                                  />
-                                </View>
-                                <Text
-                                  fontSize="$3"
-                                  color="$color"
-                                  numberOfLines={1}
-                                  flex={1}
-                                >
-                                  {attachment.file_name || 'Attachment'}
-                                </Text>
-                              </XStack>
-                            ))}
-                          </YStack>
+                          <AttachmentGrid
+                            attachments={applicationDetails.attachments}
+                            itemSize={84}
+                            gap={10}
+                          />
                         </YStack>
                       )}
                   </YStack>
@@ -615,8 +629,8 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                 </XStack>
               </YStack>
 
-              {/* Image Slider */}
-              {job.images && job.images.length > 0 && (
+              {/* Attachment Slider */}
+              {attachments && attachments.length > 0 && (
                 <YStack gap="$3">
                   <View
                     height={220}
@@ -626,37 +640,123 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                   >
                     <FlatList
                       ref={flatListRef}
-                      data={job.images}
+                      data={attachments}
                       horizontal
                       pagingEnabled
                       showsHorizontalScrollIndicator={false}
                       onScroll={handleImageScroll}
                       scrollEventThrottle={16}
-                      renderItem={({ item, index }) => (
-                        <Pressable
-                          onPress={() => {
-                            setImageViewerIndex(index)
-                            setImageViewerVisible(true)
-                          }}
-                        >
+                      renderItem={({ item }) => {
+                        if (item.file_type === 'image') {
+                          return (
+                            <Pressable
+                              onPress={() => {
+                                const imageIndex = imageAttachments.findIndex(
+                                  (attachment) => attachment.public_id === item.public_id
+                                )
+                                if (imageIndex >= 0) {
+                                  setImageViewerIndex(imageIndex)
+                                  setImageViewerVisible(true)
+                                }
+                              }}
+                            >
+                              <View
+                                width={IMAGE_WIDTH}
+                                height={220}
+                              >
+                                <Image
+                                  source={{ uri: item.file_url }}
+                                  width="100%"
+                                  height="100%"
+                                  resizeMode="cover"
+                                />
+                              </View>
+                            </Pressable>
+                          )
+                        }
+
+                        if (item.file_type === 'video') {
+                          return (
+                            <Pressable
+                              onPress={() =>
+                                setSelectedVideo({
+                                  uri: item.file_url,
+                                  thumbnail: item.thumbnail_url || undefined,
+                                })
+                              }
+                            >
+                              <View
+                                width={IMAGE_WIDTH}
+                                height={220}
+                                bg="$backgroundMuted"
+                              >
+                                {item.thumbnail_url ? (
+                                  <Image
+                                    source={{ uri: item.thumbnail_url }}
+                                    width="100%"
+                                    height="100%"
+                                    resizeMode="cover"
+                                  />
+                                ) : (
+                                  <View
+                                    flex={1}
+                                    alignItems="center"
+                                    justifyContent="center"
+                                  >
+                                    <Play
+                                      size={48}
+                                      color="$colorMuted"
+                                    />
+                                  </View>
+                                )}
+                                <View
+                                  position="absolute"
+                                  top={0}
+                                  left={0}
+                                  right={0}
+                                  bottom={0}
+                                  alignItems="center"
+                                  justifyContent="center"
+                                >
+                                  <View
+                                    bg="rgba(0,0,0,0.5)"
+                                    borderRadius="$full"
+                                    p="$3"
+                                  >
+                                    <Play
+                                      size={32}
+                                      color="white"
+                                      fill="white"
+                                    />
+                                  </View>
+                                </View>
+                              </View>
+                            </Pressable>
+                          )
+                        }
+
+                        return (
                           <View
                             width={IMAGE_WIDTH}
                             height={220}
+                            alignItems="center"
+                            justifyContent="center"
+                            bg="$backgroundMuted"
                           >
-                            <Image
-                              source={{ uri: item.image }}
-                              width="100%"
-                              height="100%"
-                              resizeMode="cover"
-                            />
+                            <Text
+                              color="$colorSubtle"
+                              fontSize="$3"
+                            >
+                              Unsupported attachment
+                            </Text>
                           </View>
-                        </Pressable>
-                      )}
+                        )
+                      }}
                       keyExtractor={(item) => item.public_id}
                     />
 
                     {/* Navigation arrows */}
-                    {job.images.length > 1 && (
+                    {attachments.length > 1 && (
                       <>
                         {currentImageIndex > 0 && (
                           <Button
@@ -677,7 +777,7 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                             />
                           </Button>
                         )}
-                        {currentImageIndex < job.images.length - 1 && (
+                        {currentImageIndex < attachments.length - 1 && (
                           <Button
                             unstyled
                             position="absolute"
@@ -700,7 +800,7 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                     )}
 
                     {/* Image counter */}
-                    {job.images.length > 1 && (
+                    {attachments.length > 1 && (
                       <View
                         position="absolute"
                         bottom="$3"
@@ -715,19 +815,19 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                           fontSize="$2"
                           fontWeight="500"
                         >
-                          {currentImageIndex + 1} / {job.images.length}
+                          {currentImageIndex + 1} / {attachments.length}
                         </Text>
                       </View>
                     )}
                   </View>
 
                   {/* Pagination dots */}
-                  {job.images.length > 1 && (
+                  {attachments.length > 1 && (
                     <XStack
                       justifyContent="center"
                       gap="$2"
                     >
-                      {job.images.map((_, index) => (
+                      {attachments.map((_, index) => (
                         <View
                           key={index}
                           width={index === currentImageIndex ? 20 : 8}
@@ -1240,12 +1340,22 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
         </YStack>
 
         {/* Fullscreen Image Viewer */}
-        {job.images && job.images.length > 0 && (
+        {imageUrls.length > 0 && (
           <ImageViewer
-            images={job.images.map((img) => img.image)}
+            images={imageUrls}
             initialIndex={imageViewerIndex}
             visible={imageViewerVisible}
             onClose={() => setImageViewerVisible(false)}
+          />
+        )}
+
+        {/* Fullscreen Video Player */}
+        {selectedVideo && (
+          <VideoPlayer
+            uri={selectedVideo.uri}
+            thumbnailUri={selectedVideo.thumbnail}
+            visible={true}
+            onClose={() => setSelectedVideo(null)}
           />
         )}
       </YStack>
