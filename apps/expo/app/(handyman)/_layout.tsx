@@ -57,16 +57,16 @@ export default function HandymanLayout() {
       flex={1}
       backgroundColor="$background"
     >
-      <View
+      <YStack
         flex={1}
-        pb={shouldShowBottomNav()}
+        paddingBottom={shouldShowBottomNav() ? 80 : 0}
       >
         <Stack
           screenOptions={{
             headerShown: false,
           }}
         />
-      </View>
+      </YStack>
       {shouldShowBottomNav() && (
         <BottomNav
           activeRoute={getActiveRoute()}
