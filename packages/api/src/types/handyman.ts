@@ -416,6 +416,8 @@ export interface DashboardJobInfo {
     rating: number | null
   }
   created_at: string
+  source: 'direct_offer' | 'application'
+  source_id: string | null
 }
 
 export interface DashboardTask {

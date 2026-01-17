@@ -2588,7 +2588,18 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
               )}
 
               {/* Job Card */}
-              <Pressable onPress={() => router.push(`/(handyman)/jobs/${jobId}`)}>
+              <Pressable
+                onPress={() => {
+                  if (job.source === 'direct_offer') {
+                    router.push(`/(handyman)/direct-offers/${jobId}`)
+                  } else if (job.source_id) {
+                    router.push({
+                      pathname: '/(handyman)/my-jobs/[id]',
+                      params: { id: job.source_id },
+                    } as any)
+                  }
+                }}
+              >
                 <YStack
                   bg="rgba(255,255,255,0.98)"
                   borderRadius={24}

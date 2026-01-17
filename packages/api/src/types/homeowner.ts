@@ -209,6 +209,8 @@ export interface HomeownerDashboardJobInfo {
     rating: number | null
   } | null
   created_at: string
+  source: 'direct_offer' | 'application'
+  source_id: string | null
 }
 
 // Review type for handyman
