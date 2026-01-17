@@ -7,6 +7,9 @@
     },
     "android": {
       "package": "com.rif42.solutionbank"
-    }
+    },
+    "plugins": [
+      "expo-video"
+    ]
   }
 }
