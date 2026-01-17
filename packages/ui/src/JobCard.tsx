@@ -1,6 +1,6 @@
 import { YStack, XStack, Text, Image, View } from 'tamagui'
 import type { GuestJob, HomeownerJob, HandymanJobForYou } from '@my/api'
-import { User } from '@tamagui/lucide-icons'
+import { Play, User } from '@tamagui/lucide-icons'
 
 interface JobCardProps {
   job: GuestJob | HomeownerJob | HandymanJobForYou
@@ -21,8 +21,15 @@ export function JobCard({
   statusColor = '$primary',
   statusTextColor = '$backgroundStrong',
 }: JobCardProps) {
-  // Get first image if available
-  const jobImage = job.images?.[0]?.image
+  const attachments = 'attachments' in job ? job.attachments : undefined
+  const firstAttachment = attachments?.[0]
+  const isVideoAttachment = firstAttachment?.file_type === 'video'
+  const isImageAttachment = firstAttachment?.file_type === 'image'
+  const previewImage = isVideoAttachment
+    ? firstAttachment?.thumbnail_url
+    : isImageAttachment
+      ? firstAttachment?.file_url
+      : undefined
 
   // Get homeowner info if available
   const homeowner = 'homeowner' in job ? job.homeowner : null
@@ -46,20 +53,58 @@ export function JobCard({
         justifyContent="center"
         position="relative"
       >
-        {jobImage ? (
+        {previewImage ? (
           <Image
-            source={{ uri: jobImage }}
+            source={{ uri: previewImage }}
             width="100%"
             height="100%"
             resizeMode="cover"
           />
         ) : (
-          <Text
-            fontSize="$2"
-            color="$colorMuted"
+          <View
+            width="100%"
+            height="100%"
+            alignItems="center"
+            justifyContent="center"
           >
-            No image
-          </Text>
+            {isVideoAttachment ? (
+              <Play
+                size={24}
+                color="$colorMuted"
+              />
+            ) : (
+              <Text
+                fontSize="$2"
+                color="$colorMuted"
+              >
+                No image
+              </Text>
+            )}
+          </View>
+        )}
+
+        {isVideoAttachment && previewImage && (
+          <View
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <View
+              bg="rgba(0, 0, 0, 0.5)"
+              borderRadius="$full"
+              p="$2"
+            >
+              <Play
+                size={20}
+                color="white"
+                fill="white"
+              />
+            </View>
+          </View>
         )}
 
         {/* Badges container */}
