@@ -3,7 +3,11 @@
 import { useMemo, useCallback } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
 import { NotificationCard, NotificationEmptyState } from '@my/ui'
-import { useHandymanNotifications, useMarkHandymanNotificationRead } from '@my/api'
+import {
+  useHandymanNotifications,
+  useMarkHandymanNotificationRead,
+  useMarkAllHandymanNotificationsRead,
+} from '@my/api'
 import { ArrowLeft, Bell, MoreHorizontal } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -23,6 +27,7 @@ export function HandymanUpdatesScreen() {
   } = useHandymanNotifications()
 
   const markAsRead = useMarkHandymanNotificationRead()
+  const markAllAsRead = useMarkAllHandymanNotificationsRead()
 
   // Flatten paginated data
   const notifications = useMemo(() => {
@@ -61,12 +66,8 @@ export function HandymanUpdatesScreen() {
 
   const handleClearAll = () => {
     if (unreadCount === 0) return
-    // Mark all unread notifications as read
-    notifications.forEach((n) => {
-      if (!n.is_read) {
-        markAsRead.mutate(n.public_id)
-      }
-    })
+    // Use batch endpoint to mark all as read in a single API call
+    markAllAsRead.mutate()
   }
 
   // Handle scroll to load more

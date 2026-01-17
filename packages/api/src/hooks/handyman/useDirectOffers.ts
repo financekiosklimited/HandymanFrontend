@@ -93,13 +93,16 @@ export function useAcceptDirectOffer() {
       return response.data
     },
     onSuccess: (_, publicId) => {
-      // Invalidate caches
-      queryClient.invalidateQueries({ queryKey: ['handyman', 'direct-offers'] })
-      queryClient.invalidateQueries({ queryKey: ['handyman', 'direct-offers', publicId] })
-      // Also invalidate jobs since accepted offer becomes a job
-      queryClient.invalidateQueries({ queryKey: ['handyman', 'my-jobs'] })
-      queryClient.invalidateQueries({ queryKey: ['handyman', 'assigned-jobs'] })
-      queryClient.invalidateQueries({ queryKey: ['handyman', 'job-detail'] })
+      // Invalidate direct offers caches
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'direct-offers'], exact: true })
+      queryClient.invalidateQueries({
+        queryKey: ['handyman', 'direct-offers', publicId],
+        exact: true,
+      })
+      // Invalidate my-jobs list since accepted offer becomes a job
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'my-jobs'], exact: true })
+      // Note: Removed broad 'assigned-jobs' and 'job-detail' invalidations
+      // as they match too many queries and cause unnecessary refetches
     },
   })
 }

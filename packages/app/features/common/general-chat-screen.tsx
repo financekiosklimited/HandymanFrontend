@@ -7,12 +7,11 @@ import {
   useChatMessages,
   useSendMessage,
   useMarkAsRead,
-  useConversationList,
   useOpenUserChat,
   apiClient,
   CHAT_TIMEOUT_MS,
 } from '@my/api'
-import type { ChatMessage, GeneralConversationListItem, AttachmentUpload } from '@my/api'
+import type { ChatMessage, AttachmentUpload } from '@my/api'
 import {
   ArrowLeft,
   Send,
@@ -43,6 +42,8 @@ interface GeneralChatScreenProps {
   recipientId?: string
   recipientName?: string
   recipientAvatar?: string
+  otherPartyName?: string // Passed from conversation list for existing conversations
+  otherPartyAvatar?: string // Passed from conversation list for existing conversations
   userRole: ChatRole
 }
 
@@ -926,6 +927,8 @@ export function GeneralChatScreen({
   recipientId,
   recipientName,
   recipientAvatar,
+  otherPartyName,
+  otherPartyAvatar,
   userRole: role,
 }: GeneralChatScreenProps) {
   const router = useRouter()
@@ -963,26 +966,13 @@ export function GeneralChatScreen({
     }
   }, [openedChat, conversationId, router])
 
-  // Get conversation list to find this conversation info
-  const { data: conversations } = useConversationList(role)
-
-  const conversation = useMemo(() => {
-    if (!conversationId) return null
-    return conversations?.find((c) => c.public_id === conversationId)
-  }, [conversations, conversationId])
-
+  // Other party info - prefer route params, fallback to recipient props (for new chats)
   const otherPartyInfo = useMemo(() => {
-    if (conversation) {
-      return {
-        display_name: conversation.other_party.display_name,
-        avatar_url: conversation.other_party.avatar_url,
-      }
-    }
     return {
-      display_name: recipientName || 'Chat',
-      avatar_url: recipientAvatar || null,
+      display_name: otherPartyName || recipientName || 'Chat',
+      avatar_url: otherPartyAvatar || recipientAvatar || null,
     }
-  }, [conversation, recipientName, recipientAvatar])
+  }, [otherPartyName, otherPartyAvatar, recipientName, recipientAvatar])
 
   // API Hooks
   const {
@@ -1098,10 +1088,11 @@ export function GeneralChatScreen({
   // Mark as read when screen opens
   useFocusEffect(
     useCallback(() => {
-      if (conversationId) {
+      if (conversationId && !markAsReadMutation.isPending) {
         markAsReadMutation.mutate(conversationId)
       }
-    }, [conversationId, markAsReadMutation])
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [conversationId])
   )
 
   // Handle loading older messages

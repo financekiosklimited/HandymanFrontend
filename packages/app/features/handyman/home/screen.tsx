@@ -152,10 +152,9 @@ export function HandymanHomeScreen() {
     return jobsData?.pages.flatMap((page) => page.results) || []
   }, [jobsData])
 
-  // Refetch when tab changes
-  useEffect(() => {
-    refetchJobs()
-  }, [activeTab, refetchJobs])
+  // Note: Removed redundant useEffect that called refetchJobs on activeTab change
+  // React Query automatically refetches when jobsParams (which includes activeTab) changes
+  // via the queryKey: ['handyman', 'jobs', 'for-you', params]
 
   // Fetch profile to get display name
   const { data: profile } = useHandymanProfile()

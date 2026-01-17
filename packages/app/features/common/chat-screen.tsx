@@ -1131,9 +1131,10 @@ export function ChatScreen({ jobId, chatRole }: ChatScreenProps) {
   // Mark as read when screen opens
   useFocusEffect(
     useCallback(() => {
-      if (conversation?.public_id) {
+      if (conversation?.public_id && !markAsReadMutation.isPending) {
         markAsReadMutation.mutate(conversation.public_id)
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [conversation?.public_id])
   )
 
@@ -1183,7 +1184,9 @@ export function ChatScreen({ jobId, chatRole }: ChatScreenProps) {
         toast.show('Failed to send message', { native: false })
       }
     },
-    [conversation?.public_id, sendMessageMutation, toast]
+    [conversation?.public_id, toast]
+    // Note: sendMessageMutation excluded from deps to prevent unnecessary callback recreation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   )
 
   // Handle loading older messages (scroll to top)

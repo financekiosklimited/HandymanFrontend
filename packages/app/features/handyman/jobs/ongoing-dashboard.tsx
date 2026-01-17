@@ -2199,7 +2199,8 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
       refetchReports()
       refetchSessions()
       refetchReimbursements()
-    }, [refetch, refetchReports, refetchSessions, refetchReimbursements])
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
   )
 
   // Mutations

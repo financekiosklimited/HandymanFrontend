@@ -243,6 +243,28 @@ export function useMarkHomeownerNotificationRead() {
 }
 
 /**
+ * Hook to mark all notifications as read.
+ * Uses the batch endpoint for efficiency.
+ */
+export function useMarkAllHomeownerNotificationsRead() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient
+        .post('homeowner/notifications/read-all/')
+        .json<ApiResponse<{ marked_count: number }>>()
+
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['homeowner', 'unread-count'] })
+    },
+  })
+}
+
+/**
  * Hook to get the number of unread notifications for the homeowner.
  * Uses the dedicated unread-count endpoint for efficiency.
  */

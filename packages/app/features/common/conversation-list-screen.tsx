@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { YStack, XStack, Text, Spinner, View, Image } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useConversationList, useTotalUnreadCount } from '@my/api'
@@ -291,18 +291,34 @@ export function ConversationListScreen({ chatRole }: ConversationListScreenProps
     isRefetching,
   } = useConversationList(chatRole)
 
-  const { data: totalUnread, refetch: refetchUnread } = useTotalUnreadCount(chatRole)
+  const { data: totalUnread } = useTotalUnreadCount(chatRole)
 
-  // Refetch on focus
+  // Track if we've already refetched on this focus to prevent duplicate calls
+  const hasFetchedOnFocus = useRef(false)
+
+  // Refetch on focus - empty deps, use ref to prevent re-running
   useFocusEffect(
     useCallback(() => {
-      refetch()
-      refetchUnread()
-    }, [refetch, refetchUnread])
+      hasFetchedOnFocus.current = false
+      // Small delay to ensure component is fully mounted
+      const timer = setTimeout(() => {
+        if (!hasFetchedOnFocus.current) {
+          hasFetchedOnFocus.current = true
+          refetch()
+        }
+      }, 100)
+      return () => clearTimeout(timer)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
   )
 
-  const handleConversationPress = (conversationId: string) => {
-    router.push(`/(${chatRole})/messages/${conversationId}`)
+  const handleConversationPress = (conversation: GeneralConversationListItem) => {
+    const params = new URLSearchParams()
+    params.set('otherPartyName', conversation.other_party.display_name)
+    if (conversation.other_party.avatar_url) {
+      params.set('otherPartyAvatar', conversation.other_party.avatar_url)
+    }
+    router.push(`/(${chatRole})/messages/${conversation.public_id}?${params.toString()}`)
   }
 
   // Loading state
@@ -470,7 +486,7 @@ export function ConversationListScreen({ chatRole }: ConversationListScreenProps
             renderItem={({ item, index }) => (
               <ConversationItem
                 conversation={item}
-                onPress={() => handleConversationPress(item.public_id)}
+                onPress={() => handleConversationPress(item)}
                 isFirst={index === 0}
                 isLast={index === conversations.length - 1}
               />

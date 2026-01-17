@@ -3,7 +3,11 @@
 import { useMemo, useCallback } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
 import { NotificationCard, NotificationEmptyState } from '@my/ui'
-import { useHomeownerNotifications, useMarkHomeownerNotificationRead } from '@my/api'
+import {
+  useHomeownerNotifications,
+  useMarkHomeownerNotificationRead,
+  useMarkAllHomeownerNotificationsRead,
+} from '@my/api'
 import { ArrowLeft, Bell, MoreHorizontal } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -23,6 +27,7 @@ export function HomeownerUpdatesScreen() {
   } = useHomeownerNotifications()
 
   const markAsRead = useMarkHomeownerNotificationRead()
+  const markAllAsRead = useMarkAllHomeownerNotificationsRead()
 
   // Flatten paginated data
   const notifications = useMemo(() => {
@@ -60,12 +65,8 @@ export function HomeownerUpdatesScreen() {
 
   const handleClearAll = () => {
     if (unreadCount === 0) return
-    // Mark all unread notifications as read
-    notifications.forEach((n) => {
-      if (!n.is_read) {
-        markAsRead.mutate(n.public_id)
-      }
-    })
+    // Use batch endpoint to mark all as read in a single API call
+    markAllAsRead.mutate()
   }
 
   // Handle scroll to load more

@@ -2052,14 +2052,15 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
   const [isApproving, setIsApproving] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
 
-  // Refetch on focus
+  // Refetch on focus - empty deps since focus event itself is the trigger
   useFocusEffect(
     useCallback(() => {
       refetch()
       refetchReports()
       refetchSessions()
       refetchReimbursements()
-    }, [refetch, refetchReports, refetchSessions, refetchReimbursements])
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
   )
 
   // Handlers

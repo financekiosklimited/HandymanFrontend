@@ -513,6 +513,28 @@ export function useMarkHandymanNotificationRead() {
 }
 
 /**
+ * Hook to mark all notifications as read.
+ * Uses the batch endpoint for efficiency.
+ */
+export function useMarkAllHandymanNotificationsRead() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient
+        .post('handyman/notifications/read-all/')
+        .json<ApiResponse<{ marked_count: number }>>()
+
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['handyman', 'unread-count'] })
+    },
+  })
+}
+
+/**
  * Hook to get the number of unread notifications for the handyman.
  * Uses the dedicated unread-count endpoint for efficiency.
  */

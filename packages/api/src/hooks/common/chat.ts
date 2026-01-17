@@ -70,8 +70,8 @@ export function useJobChatUnreadCount(role: ChatRole, jobId: string, enabled = t
       return response.data.unread_count
     },
     enabled: !!jobId && enabled,
-    staleTime: 1000 * 30, // 30 seconds
-    refetchInterval: 1000 * 60, // Refetch every minute for badge updates
+    staleTime: 1000 * 120, // 2 minutes - match refetchInterval to prevent unnecessary refetches
+    refetchInterval: 1000 * 120, // Refetch every 2 minutes for badge updates
   })
 }
 
@@ -81,7 +81,7 @@ export function useJobChatUnreadCount(role: ChatRole, jobId: string, enabled = t
  * Hook to list all general conversations.
  * GET /{role}/conversations/
  */
-export function useConversationList(role: ChatRole) {
+export function useConversationList(role: ChatRole, enabled = true) {
   return useQuery({
     queryKey: chatQueryKeys.conversationList(role),
     queryFn: async (): Promise<GeneralConversationListItem[]> => {
@@ -90,7 +90,8 @@ export function useConversationList(role: ChatRole) {
         .json<ConversationListResponse>()
       return response.data
     },
-    staleTime: 1000 * 30, // 30 seconds
+    enabled,
+    staleTime: 1000 * 60, // 1 minute
   })
 }
 
@@ -108,8 +109,8 @@ export function useTotalUnreadCount(role: ChatRole, enabled = true) {
       return response.data.unread_count
     },
     enabled,
-    staleTime: 1000 * 30, // 30 seconds
-    refetchInterval: 1000 * 60, // Refetch every minute for badge updates
+    staleTime: 1000 * 120, // 2 minutes - match refetchInterval to prevent unnecessary refetches
+    refetchInterval: 1000 * 120, // Refetch every 2 minutes for badge updates
   })
 }
 
@@ -297,16 +298,19 @@ export function useMarkAsRead(role: ChatRole) {
         .json<MarkAsReadResponse>()
       return response.data.messages_read
     },
-    onSuccess: (_, conversationId) => {
-      // Invalidate unread counts
-      queryClient.invalidateQueries({
-        predicate: (query) =>
-          query.queryKey[0] === 'chat' &&
-          (query.queryKey[1] === 'unread' ||
-            query.queryKey[1] === 'totalUnread' ||
-            query.queryKey[1] === 'list') &&
-          query.queryKey[2] === role,
-      })
+    onSuccess: (messagesRead) => {
+      // Only invalidate if messages were actually marked as read
+      // This prevents unnecessary refetches when there are no unread messages
+      if (messagesRead > 0) {
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey[0] === 'chat' &&
+            (query.queryKey[1] === 'unread' ||
+              query.queryKey[1] === 'totalUnread' ||
+              query.queryKey[1] === 'list') &&
+            query.queryKey[2] === role,
+        })
+      }
     },
   })
 }
