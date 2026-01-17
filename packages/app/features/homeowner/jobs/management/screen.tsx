@@ -16,6 +16,7 @@ import {
   Users,
   Filter,
   Eye,
+  FileText,
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -343,87 +344,98 @@ function ExpandableJobCard({
                 {job.estimated_budget}
               </Text>
               <XStack
-                gap="$xs"
-                alignItems="center"
+                bg={statusStyle.bg as any}
+                px="$sm"
+                py={4}
+                borderRadius="$full"
               >
-                <XStack
-                  bg={statusStyle.bg as any}
-                  px="$sm"
-                  py={4}
-                  borderRadius="$full"
+                <Text
+                  fontSize={11}
+                  fontWeight="600"
+                  color={statusStyle.text as any}
+                  textTransform="uppercase"
                 >
-                  <Text
-                    fontSize={11}
-                    fontWeight="600"
-                    color={statusStyle.text as any}
-                    textTransform="uppercase"
-                  >
-                    {statusLabels[job.status] || job.status}
-                  </Text>
-                </XStack>
-                {/* Report Button - Show for ongoing/completed jobs */}
-                {['in_progress', 'pending_completion', 'completed'].includes(job.status) && (
-                  <Button
-                    unstyled
-                    onPress={(e) => {
-                      e.stopPropagation()
-                      router.push({
-                        pathname: '/(homeowner)/jobs/ongoing/[id]',
-                        params: { id: job.public_id },
-                      } as any)
-                    }}
-                    bg="$primary"
-                    borderRadius="$full"
-                    px="$sm"
-                    py={4}
-                    pressStyle={{ opacity: 0.8 }}
-                  >
-                    <XStack
-                      gap="$xs"
-                      alignItems="center"
-                    >
-                      <Text
-                        fontSize={11}
-                        fontWeight="600"
-                        color="white"
-                      >
-                        REPORT
-                      </Text>
-                    </XStack>
-                  </Button>
-                )}
-                <Button
-                  unstyled
-                  onPress={(e) => {
-                    e.stopPropagation()
-                    router.push(`/(homeowner)/jobs/${job.public_id}`)
-                  }}
-                  bg="rgba(0,0,0,0.05)"
-                  borderRadius="$full"
-                  px="$sm"
-                  py={4}
-                  pressStyle={{ opacity: 0.7 }}
-                >
-                  <XStack
-                    gap="$xs"
-                    alignItems="center"
-                  >
-                    <Eye
-                      size={12}
-                      color="$colorSubtle"
-                    />
-                    <Text
-                      fontSize={11}
-                      fontWeight="600"
-                      color="$colorSubtle"
-                    >
-                      DETAILS
-                    </Text>
-                  </XStack>
-                </Button>
+                  {statusLabels[job.status] || job.status}
+                </Text>
               </XStack>
             </XStack>
           </YStack>
+        </XStack>
+
+        {/* Action Buttons - Side by side at bottom */}
+        <XStack
+          mt="$sm"
+          pt="$sm"
+          borderTopWidth={1}
+          borderTopColor="rgba(0,0,0,0.05)"
+          gap="$sm"
+        >
+          <Button
+            unstyled
+            flex={1}
+            onPress={(e) => {
+              e.stopPropagation()
+              router.push(`/(homeowner)/jobs/${job.public_id}`)
+            }}
+            bg="rgba(0,0,0,0.05)"
+            borderRadius="$md"
+            py="$sm"
+            pressStyle={{ opacity: 0.7 }}
+          >
+            <XStack
+              gap="$xs"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <Eye
+                size={14}
+                color="$colorSubtle"
+              />
+              <Text
+                fontSize={13}
+                fontWeight="600"
+                color="$colorSubtle"
+              >
+                DETAILS
+              </Text>
+            </XStack>
+          </Button>
+          {/* Report Button - Show for ongoing/completed jobs */}
+          {['in_progress', 'pending_completion', 'completed'].includes(job.status) && (
+            <Button
+              unstyled
+              flex={1}
+              onPress={(e) => {
+                e.stopPropagation()
+                router.push({
+                  pathname: '/(homeowner)/jobs/ongoing/[id]',
+                  params: { id: job.public_id },
+                } as any)
+              }}
+              bg="$primary"
+              borderRadius="$md"
+              py="$sm"
+              pressStyle={{ opacity: 0.8 }}
+            >
+              <XStack
+                gap="$xs"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <FileText
+                  size={14}
+                  color="white"
+                />
+                <Text
+                  fontSize={13}
+                  fontWeight="600"
+                  color="white"
+                >
+                  REPORT
+                </Text>
+              </XStack>
+            </Button>
+          )}
         </XStack>
 
         {/* Expand indicator */}
