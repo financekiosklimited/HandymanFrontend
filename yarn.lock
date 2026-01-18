@@ -3253,6 +3253,7 @@ __metadata:
     "@tamagui/build": "npm:^1.143.1"
     "@tamagui/lucide-icons": "npm:^1.143.1"
     "@tamagui/toast": "npm:^1.143.1"
+    expo-image-manipulator: "npm:^14.0.8"
     expo-linear-gradient: "npm:~15.0.8"
     expo-router: "npm:~6.0.21"
     react-native-gesture-handler: "npm:^2.30.0"
@@ -10719,6 +10720,7 @@ __metadata:
     expo-dev-client: "npm:~6.0.20"
     expo-device: "npm:^8.0.10"
     expo-font: "npm:~14.0.10"
+    expo-image-manipulator: "npm:^14.0.8"
     expo-image-picker: "npm:~17.0.2"
     expo-linear-gradient: "npm:~15.0.8"
     expo-linking: "npm:~8.0.11"
@@ -10883,6 +10885,17 @@ __metadata:
   peerDependencies:
     expo: "*"
   checksum: 10/896b4df1208ec071888acac0a8673ee4a67afcc8e06061de26fd189feed3369959ab9254314d51f303bcfc8f6289fd04ca9bec616007333d3dcb2e6d0618a2fe
+  languageName: node
+  linkType: hard
+
+"expo-image-manipulator@npm:^14.0.8":
+  version: 14.0.8
+  resolution: "expo-image-manipulator@npm:14.0.8"
+  dependencies:
+    expo-image-loader: "npm:~6.0.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 10/655c8d1f8420df0d70357f68a92769eee5c8ee8691fbd3aede0e3f2645fe03b61ed257b0a7944e588f70ebd46582cc134947f74c80af9aed53b15a305957092a
   languageName: node
   linkType: hard
 

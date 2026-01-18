@@ -37,6 +37,7 @@ import { useToastController } from '@tamagui/toast'
 import * as ImagePicker from 'expo-image-picker'
 import * as DocumentPicker from 'expo-document-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
+import * as ImageManipulator from 'expo-image-manipulator'
 import { Modal, Pressable, Platform, ActionSheetIOS } from 'react-native'
 import {
   useHandymanReimbursement,
@@ -56,14 +57,23 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
 }
 
-// Generate video thumbnail
+// Generate and compress video thumbnail to ensure it's under 500KB
 async function generateVideoThumbnail(videoUri: string): Promise<string | undefined> {
   try {
+    // Generate thumbnail from video
     const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
       time: 1000,
-      quality: 0.7,
+      quality: 1, // High quality first, we'll compress with ImageManipulator
     })
-    return uri
+
+    // Compress the thumbnail to ensure it's under 500KB
+    // Resize to max 720p width and compress with JPEG quality 0.6
+    const compressed = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 720 } }], {
+      compress: 0.6,
+      format: ImageManipulator.SaveFormat.JPEG,
+    })
+
+    return compressed.uri
   } catch (error) {
     console.warn('Failed to generate video thumbnail:', error)
     return undefined

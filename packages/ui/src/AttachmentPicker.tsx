@@ -7,6 +7,7 @@ import { Camera, Image as ImageIcon, Video, FileText, Plus, Film } from '@tamagu
 import * as ImagePicker from 'expo-image-picker'
 import * as DocumentPicker from 'expo-document-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
+import * as ImageManipulator from 'expo-image-manipulator'
 
 // Attachment file type
 type AttachmentFileType = 'image' | 'video' | 'document'
@@ -75,14 +76,23 @@ interface AttachmentPickerProps {
   inline?: boolean
 }
 
-// Generate video thumbnail - exported utility
+// Generate and compress video thumbnail to ensure it's under 500KB
 async function generateVideoThumbnail(videoUri: string): Promise<string | undefined> {
   try {
+    // Generate thumbnail from video
     const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
       time: 1000, // 1 second into the video
-      quality: 0.7,
+      quality: 1, // High quality first, we'll compress with ImageManipulator
     })
-    return uri
+
+    // Compress the thumbnail to ensure it's under 500KB
+    // Resize to max 720p width and compress with JPEG quality 0.6
+    const compressed = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 720 } }], {
+      compress: 0.6,
+      format: ImageManipulator.SaveFormat.JPEG,
+    })
+
+    return compressed.uri
   } catch (error) {
     console.warn('Failed to generate video thumbnail:', error)
     return undefined

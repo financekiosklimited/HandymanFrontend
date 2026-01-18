@@ -28,6 +28,7 @@ import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
 import * as ImagePicker from 'expo-image-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
+import * as ImageManipulator from 'expo-image-manipulator'
 import { FlatList, Pressable, KeyboardAvoidingView, Platform, Alert } from 'react-native'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -55,14 +56,23 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
 }
 
-// Generate video thumbnail
+// Generate and compress video thumbnail to ensure it's under 500KB
 async function generateVideoThumbnail(videoUri: string): Promise<string | undefined> {
   try {
+    // Generate thumbnail from video
     const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
       time: 1000, // 1 second into the video
-      quality: 0.7,
+      quality: 1, // High quality first, we'll compress with ImageManipulator
     })
-    return uri
+
+    // Compress the thumbnail to ensure it's under 500KB
+    // Resize to max 720p width and compress with JPEG quality 0.6
+    const compressed = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 720 } }], {
+      compress: 0.6,
+      format: ImageManipulator.SaveFormat.JPEG,
+    })
+
+    return compressed.uri
   } catch (error) {
     console.warn('Failed to generate video thumbnail:', error)
     return undefined
@@ -140,11 +150,13 @@ function ChatHeader({
   chatRole,
   onBack,
   isReadOnly,
+  onProfilePress,
 }: {
   conversation: ChatConversation
   chatRole: ChatRole
   onBack: () => void
   isReadOnly: boolean
+  onProfilePress?: () => void
 }) {
   const otherParty = chatRole === 'homeowner' ? conversation.handyman : conversation.homeowner
   const otherPartyLabel = chatRole === 'homeowner' ? 'Handyman' : 'Homeowner'
@@ -184,6 +196,74 @@ function ChatHeader({
     })
   }
 
+  const ProfileContent = (
+    <XStack
+      alignItems="center"
+      gap="$sm"
+      flex={1}
+    >
+      {/* Avatar */}
+      <View
+        width={48}
+        height={48}
+        borderRadius={24}
+        bg="$primaryBackground"
+        overflow="hidden"
+        alignItems="center"
+        justifyContent="center"
+        borderWidth={2}
+        borderColor="rgba(12, 154, 92, 0.2)"
+      >
+        {otherParty.avatar_url ? (
+          <Image
+            source={{ uri: otherParty.avatar_url }}
+            width={48}
+            height={48}
+            resizeMode="cover"
+          />
+        ) : (
+          <Text
+            fontSize="$5"
+            fontWeight="700"
+            color="$primary"
+          >
+            {otherParty.display_name.charAt(0).toUpperCase()}
+          </Text>
+        )}
+      </View>
+
+      {/* Name and Role */}
+      <YStack
+        flex={1}
+        gap={2}
+      >
+        <Text
+          fontSize="$4"
+          fontWeight="700"
+          color="$color"
+          numberOfLines={1}
+        >
+          {otherParty.display_name}
+        </Text>
+        <XStack
+          alignItems="center"
+          gap="$xs"
+        >
+          <User
+            size={12}
+            color="#6B7280"
+          />
+          <Text
+            fontSize="$2"
+            color="$colorSubtle"
+          >
+            {otherPartyLabel}
+          </Text>
+        </XStack>
+      </YStack>
+    </XStack>
+  )
+
   return (
     <YStack
       bg="rgba(255,255,255,0.98)"
@@ -211,65 +291,19 @@ function ChatHeader({
           />
         </Pressable>
 
-        {/* Avatar */}
-        <View
-          width={48}
-          height={48}
-          borderRadius={24}
-          bg="$primaryBackground"
-          overflow="hidden"
-          alignItems="center"
-          justifyContent="center"
-          borderWidth={2}
-          borderColor="rgba(12, 154, 92, 0.2)"
-        >
-          {otherParty.avatar_url ? (
-            <Image
-              source={{ uri: otherParty.avatar_url }}
-              width={48}
-              height={48}
-              resizeMode="cover"
-            />
-          ) : (
-            <Text
-              fontSize="$5"
-              fontWeight="700"
-              color="$primary"
-            >
-              {otherParty.display_name.charAt(0).toUpperCase()}
-            </Text>
-          )}
-        </View>
-
-        {/* Name and Role */}
-        <YStack
-          flex={1}
-          gap={2}
-        >
-          <Text
-            fontSize="$4"
-            fontWeight="700"
-            color="$color"
-            numberOfLines={1}
+        {onProfilePress ? (
+          <Pressable
+            onPress={onProfilePress}
+            style={({ pressed }) => ({
+              flex: 1,
+              opacity: pressed ? 0.7 : 1,
+            })}
           >
-            {otherParty.display_name}
-          </Text>
-          <XStack
-            alignItems="center"
-            gap="$xs"
-          >
-            <User
-              size={12}
-              color="#6B7280"
-            />
-            <Text
-              fontSize="$2"
-              color="$colorSubtle"
-            >
-              {otherPartyLabel}
-            </Text>
-          </XStack>
-        </YStack>
+            {ProfileContent}
+          </Pressable>
+        ) : (
+          ProfileContent
+        )}
 
         {/* Status Badge */}
         {statusBadge && (
@@ -1197,6 +1231,13 @@ export function ChatScreen({ jobId, chatRole }: ChatScreenProps) {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
+  // Handle profile press - navigate to handyman profile (only for homeowner)
+  const handleProfilePress = useCallback(() => {
+    if (chatRole === 'homeowner' && conversation?.handyman?.public_id) {
+      router.push(`/(homeowner)/handymen/${conversation.handyman.public_id}`)
+    }
+  }, [chatRole, conversation?.handyman?.public_id, router])
+
   // Loading state - using GradientBackground as wrapper like other screens
   if (conversationLoading || (messagesLoading && !messagesData)) {
     return (
@@ -1279,6 +1320,7 @@ export function ChatScreen({ jobId, chatRole }: ChatScreenProps) {
             chatRole={chatRole}
             onBack={() => router.back()}
             isReadOnly={isReadOnly}
+            onProfilePress={chatRole === 'homeowner' ? handleProfilePress : undefined}
           />
 
           {/* Messages List */}

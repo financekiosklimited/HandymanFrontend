@@ -21,6 +21,7 @@
     "@my/config": "0.0.1",
     "@tamagui/lucide-icons": "^1.143.1",
     "@tamagui/toast": "^1.143.1",
+    "expo-image-manipulator": "^14.0.8",
     "expo-linear-gradient": "~15.0.8",
     "expo-router": "~6.0.21",
     "react-native-gesture-handler": "^2.30.0",

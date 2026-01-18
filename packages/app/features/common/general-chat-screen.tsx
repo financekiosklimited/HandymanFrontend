@@ -32,6 +32,7 @@ import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
 import * as ImagePicker from 'expo-image-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
+import * as ImageManipulator from 'expo-image-manipulator'
 import { FlatList, Pressable, KeyboardAvoidingView, Platform, Alert } from 'react-native'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -42,6 +43,7 @@ interface GeneralChatScreenProps {
   recipientId?: string
   recipientName?: string
   recipientAvatar?: string
+  otherPartyId?: string // Passed from conversation list for existing conversations
   otherPartyName?: string // Passed from conversation list for existing conversations
   otherPartyAvatar?: string // Passed from conversation list for existing conversations
   userRole: ChatRole
@@ -64,14 +66,23 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
 }
 
-// Generate video thumbnail
+// Generate and compress video thumbnail to ensure it's under 500KB
 async function generateVideoThumbnail(videoUri: string): Promise<string | undefined> {
   try {
+    // Generate thumbnail from video
     const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
       time: 1000, // 1 second into the video
-      quality: 0.7,
+      quality: 1, // High quality first, we'll compress with ImageManipulator
     })
-    return uri
+
+    // Compress the thumbnail to ensure it's under 500KB
+    // Resize to max 720p width and compress with JPEG quality 0.6
+    const compressed = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 720 } }], {
+      compress: 0.6,
+      format: ImageManipulator.SaveFormat.JPEG,
+    })
+
+    return compressed.uri
   } catch (error) {
     console.warn('Failed to generate video thumbnail:', error)
     return undefined
@@ -148,37 +159,21 @@ function GeneralChatHeader({
   otherParty,
   role,
   onBack,
+  onProfilePress,
 }: {
   otherParty: { display_name: string; avatar_url: string | null }
   role: ChatRole
   onBack: () => void
+  onProfilePress?: () => void
 }) {
   const otherPartyLabel = role === 'homeowner' ? 'Handyman' : 'Homeowner'
 
-  return (
+  const ProfileContent = (
     <XStack
-      bg="rgba(255,255,255,0.98)"
-      px="$md"
-      py="$sm"
       alignItems="center"
       gap="$md"
-      borderBottomWidth={1}
-      borderBottomColor="rgba(0,0,0,0.06)"
-      shadowColor="black"
-      shadowOffset={{ width: 0, height: 2 }}
-      shadowOpacity={0.03}
-      shadowRadius={8}
+      flex={1}
     >
-      <Pressable
-        onPress={onBack}
-        style={{ padding: 8 }}
-      >
-        <ArrowLeft
-          size={24}
-          color="#1F2937"
-        />
-      </Pressable>
-
       {/* Avatar */}
       <View
         width={48}
@@ -238,6 +233,46 @@ function GeneralChatHeader({
           </Text>
         </XStack>
       </YStack>
+    </XStack>
+  )
+
+  return (
+    <XStack
+      bg="rgba(255,255,255,0.98)"
+      px="$md"
+      py="$sm"
+      alignItems="center"
+      gap="$md"
+      borderBottomWidth={1}
+      borderBottomColor="rgba(0,0,0,0.06)"
+      shadowColor="black"
+      shadowOffset={{ width: 0, height: 2 }}
+      shadowOpacity={0.03}
+      shadowRadius={8}
+    >
+      <Pressable
+        onPress={onBack}
+        style={{ padding: 8 }}
+      >
+        <ArrowLeft
+          size={24}
+          color="#1F2937"
+        />
+      </Pressable>
+
+      {onProfilePress ? (
+        <Pressable
+          onPress={onProfilePress}
+          style={({ pressed }) => ({
+            flex: 1,
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          {ProfileContent}
+        </Pressable>
+      ) : (
+        ProfileContent
+      )}
     </XStack>
   )
 }
@@ -927,6 +962,7 @@ export function GeneralChatScreen({
   recipientId,
   recipientName,
   recipientAvatar,
+  otherPartyId,
   otherPartyName,
   otherPartyAvatar,
   userRole: role,
@@ -1103,6 +1139,14 @@ export function GeneralChatScreen({
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
+  // Handle profile press - navigate to handyman profile (only for homeowner)
+  const handleProfilePress = useCallback(() => {
+    const handymanId = otherPartyId || recipientId
+    if (role === 'homeowner' && handymanId) {
+      router.push(`/(homeowner)/handymen/${handymanId}`)
+    }
+  }, [role, otherPartyId, recipientId, router])
+
   return (
     <GradientBackground>
       <YStack
@@ -1119,6 +1163,9 @@ export function GeneralChatScreen({
             otherParty={otherPartyInfo}
             role={role}
             onBack={() => router.back()}
+            onProfilePress={
+              role === 'homeowner' && (otherPartyId || recipientId) ? handleProfilePress : undefined
+            }
           />
 
           {/* Messages List */}

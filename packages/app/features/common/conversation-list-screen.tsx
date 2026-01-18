@@ -314,6 +314,7 @@ export function ConversationListScreen({ chatRole }: ConversationListScreenProps
 
   const handleConversationPress = (conversation: GeneralConversationListItem) => {
     const params = new URLSearchParams()
+    params.set('otherPartyId', conversation.other_party.public_id)
     params.set('otherPartyName', conversation.other_party.display_name)
     if (conversation.other_party.avatar_url) {
       params.set('otherPartyAvatar', conversation.other_party.avatar_url)
