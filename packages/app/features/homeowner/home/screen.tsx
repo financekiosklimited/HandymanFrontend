@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { Alert } from 'react-native'
 import { jobStatusColors, type JobStatus } from '@my/config'
+import { useDebounce } from 'app/hooks'
 
 const statusLabels: Record<HomeownerJobStatus, string> = {
   draft: 'Draft',
@@ -84,6 +85,9 @@ export function HomeownerHomeScreen() {
   } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
 
+  // Debounce search query for handymen API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 400)
+
   // Request location permission and get current location
   useEffect(() => {
     async function getLocation() {
@@ -138,6 +142,7 @@ export function HomeownerHomeScreen() {
     hasNextPage: hasMoreHandymen,
     isFetchingNextPage: isFetchingMoreHandymen,
   } = useNearbyHandymen({
+    search: debouncedSearchQuery || undefined,
     latitude: location?.latitude,
     longitude: location?.longitude,
   })

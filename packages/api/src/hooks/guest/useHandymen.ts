@@ -5,6 +5,7 @@ import type { PaginatedArrayResponse, ApiResponse, GuestHandyman } from '../../t
 interface GuestHandymenParams {
   latitude?: number
   longitude?: number
+  search?: string
   enabled?: boolean
 }
 
@@ -18,6 +19,7 @@ export function useGuestHandymen(params?: GuestHandymenParams) {
         const searchParams = new URLSearchParams()
         if (params?.latitude) searchParams.set('latitude', params.latitude.toString())
         if (params?.longitude) searchParams.set('longitude', params.longitude.toString())
+        if (params?.search) searchParams.set('search', params.search)
         searchParams.set('page', pageParam.toString())
 
         const url = `guest/handymen/?${searchParams.toString()}`

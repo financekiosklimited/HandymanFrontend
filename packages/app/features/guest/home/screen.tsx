@@ -16,6 +16,7 @@ import {
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useDebounce } from 'app/hooks'
 
 export function GuestHomeScreen() {
   const router = useRouter()
@@ -28,6 +29,9 @@ export function GuestHomeScreen() {
     longitude: number
   } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+
+  // Debounce search query for handymen API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 400)
 
   // Fetch categories and cities for filters
   const { data: categories, isLoading: categoriesLoading } = useCategories()
@@ -121,6 +125,7 @@ export function GuestHomeScreen() {
     hasNextPage: hasMoreHandymen,
     isFetchingNextPage: isFetchingMoreHandymen,
   } = useGuestHandymen({
+    search: debouncedSearchQuery || undefined,
     ...(location && {
       latitude: location.latitude,
       longitude: location.longitude,

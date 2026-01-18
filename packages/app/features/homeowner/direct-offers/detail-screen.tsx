@@ -36,6 +36,7 @@ import {
   User,
   Play,
   AlertCircle,
+  MessageCircle,
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -363,68 +364,109 @@ export function HomeownerDirectOfferDetailScreen({
                 gap="$3"
                 alignItems="center"
               >
-                {offer.target_handyman.avatar_url ? (
-                  <Image
-                    source={{ uri: offer.target_handyman.avatar_url }}
-                    width={56}
-                    height={56}
-                    borderRadius={28}
-                  />
-                ) : (
-                  <View
-                    width={56}
-                    height={56}
-                    borderRadius={28}
-                    bg="$backgroundMuted"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <User
-                      size={24}
-                      color="$colorMuted"
-                    />
-                  </View>
-                )}
-                <YStack
-                  flex={1}
-                  gap={2}
+                <Pressable
+                  onPress={() =>
+                    router.push(`/(homeowner)/handymen/${offer.target_handyman.public_id}`)
+                  }
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}
                 >
-                  <Text
-                    fontSize="$4"
-                    fontWeight="600"
-                    color="$color"
-                  >
-                    {offer.target_handyman.display_name}
-                  </Text>
-                  {offer.target_handyman.job_title && (
-                    <Text
-                      fontSize="$2"
-                      color="$colorSubtle"
-                    >
-                      {offer.target_handyman.job_title}
-                    </Text>
-                  )}
-                  {offer.target_handyman.rating > 0 && (
-                    <XStack
+                  {offer.target_handyman.avatar_url ? (
+                    <Image
+                      source={{ uri: offer.target_handyman.avatar_url }}
+                      width={56}
+                      height={56}
+                      borderRadius={28}
+                    />
+                  ) : (
+                    <View
+                      width={56}
+                      height={56}
+                      borderRadius={28}
+                      bg="$backgroundMuted"
                       alignItems="center"
-                      gap={4}
+                      justifyContent="center"
                     >
-                      <Text
-                        fontSize={12}
-                        color="$accent"
-                      >
-                        ★
-                      </Text>
+                      <User
+                        size={24}
+                        color="$colorMuted"
+                      />
+                    </View>
+                  )}
+                  <YStack
+                    flex={1}
+                    gap={2}
+                  >
+                    <Text
+                      fontSize="$4"
+                      fontWeight="600"
+                      color="$color"
+                    >
+                      {offer.target_handyman.display_name}
+                    </Text>
+                    {offer.target_handyman.job_title && (
                       <Text
                         fontSize="$2"
                         color="$colorSubtle"
                       >
-                        {offer.target_handyman.rating.toFixed(1)} (
-                        {offer.target_handyman.review_count} reviews)
+                        {offer.target_handyman.job_title}
                       </Text>
-                    </XStack>
-                  )}
-                </YStack>
+                    )}
+                    {offer.target_handyman.rating > 0 && (
+                      <XStack
+                        alignItems="center"
+                        gap={4}
+                      >
+                        <Text
+                          fontSize={12}
+                          color="$accent"
+                        >
+                          ★
+                        </Text>
+                        <Text
+                          fontSize="$2"
+                          color="$colorSubtle"
+                        >
+                          {offer.target_handyman.rating.toFixed(1)} (
+                          {offer.target_handyman.review_count} reviews)
+                        </Text>
+                      </XStack>
+                    )}
+                  </YStack>
+                </Pressable>
+                {/* Chat Button */}
+                <Button
+                  bg="$primary"
+                  borderRadius={12}
+                  px="$md"
+                  py="$sm"
+                  onPress={() => {
+                    const params = new URLSearchParams({
+                      userId: offer.target_handyman.public_id,
+                      name: offer.target_handyman.display_name,
+                    })
+                    if (offer.target_handyman.avatar_url)
+                      params.append('avatar', offer.target_handyman.avatar_url)
+                    router.push(`/(homeowner)/messages/new?${params.toString()}`)
+                  }}
+                  pressStyle={{ opacity: 0.8 }}
+                >
+                  <XStack
+                    alignItems="center"
+                    gap="$xs"
+                  >
+                    <MessageCircle
+                      size={16}
+                      color="white"
+                    />
+                    <Text
+                      color="white"
+                      fontSize="$3"
+                      fontWeight="500"
+                    >
+                      Chat
+                    </Text>
+                  </XStack>
+                </Button>
               </XStack>
             </YStack>
 

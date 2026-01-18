@@ -37,6 +37,7 @@ import {
   Play,
   AlertCircle,
   Star,
+  MessageCircle,
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -355,6 +356,40 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
                     </XStack>
                   )}
                 </YStack>
+                {/* Chat Button */}
+                <Button
+                  bg="$primary"
+                  borderRadius={12}
+                  px="$md"
+                  py="$sm"
+                  onPress={() => {
+                    const params = new URLSearchParams({
+                      userId: offer.homeowner.public_id,
+                      name: offer.homeowner.display_name,
+                    })
+                    if (offer.homeowner.avatar_url)
+                      params.append('avatar', offer.homeowner.avatar_url)
+                    router.push(`/(handyman)/messages/new?${params.toString()}`)
+                  }}
+                  pressStyle={{ opacity: 0.8 }}
+                >
+                  <XStack
+                    alignItems="center"
+                    gap="$xs"
+                  >
+                    <MessageCircle
+                      size={16}
+                      color="white"
+                    />
+                    <Text
+                      color="white"
+                      fontSize="$3"
+                      fontWeight="500"
+                    >
+                      Chat
+                    </Text>
+                  </XStack>
+                </Button>
               </XStack>
             </YStack>
 

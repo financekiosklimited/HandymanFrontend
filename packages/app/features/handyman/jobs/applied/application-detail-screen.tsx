@@ -38,6 +38,7 @@ import {
   Package,
   Paperclip,
   Play,
+  MessageCircle,
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -1117,6 +1118,41 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                       Homeowner
                     </Text>
                   </YStack>
+                  {/* Chat Button */}
+                  <Button
+                    bg="$primary"
+                    borderRadius={12}
+                    px="$md"
+                    py="$sm"
+                    onPress={() => {
+                      if (!job.homeowner) return
+                      const params = new URLSearchParams({
+                        userId: job.homeowner.public_id,
+                        name: job.homeowner.display_name,
+                      })
+                      if (job.homeowner.avatar_url)
+                        params.append('avatar', job.homeowner.avatar_url)
+                      router.push(`/(handyman)/messages/new?${params.toString()}`)
+                    }}
+                    pressStyle={{ opacity: 0.8 }}
+                  >
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                    >
+                      <MessageCircle
+                        size={16}
+                        color="white"
+                      />
+                      <Text
+                        color="white"
+                        fontSize="$3"
+                        fontWeight="500"
+                      >
+                        Chat
+                      </Text>
+                    </XStack>
+                  </Button>
                 </XStack>
               </YStack>
             )}

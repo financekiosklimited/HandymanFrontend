@@ -7,6 +7,7 @@ import { BottomNav, GradientBackground, HandymanCard, JobCard, SearchBar } from 
 import { useGuestHandymen, useGuestJobs } from '@my/api'
 import { Bookmark, Briefcase, Menu, MessageCircle, Plus, Users } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useDebounce } from 'app/hooks'
 
 function normalizeExpoRouteToNextPath(route: string) {
   // Expo Router uses route groups like "/(guest)/jobs/123" which aren't valid URL paths for Next.
@@ -22,6 +23,9 @@ export function GuestHomeScreen() {
     longitude: number
   } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+
+  // Debounce search query for handymen API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 400)
 
   // Request location permission and get current location (Web)
   useEffect(() => {
@@ -73,6 +77,7 @@ export function GuestHomeScreen() {
     hasNextPage: hasMoreHandymen,
     isFetchingNextPage: isFetchingMoreHandymen,
   } = useGuestHandymen({
+    search: debouncedSearchQuery || undefined,
     ...(location && {
       latitude: location.latitude,
       longitude: location.longitude,
