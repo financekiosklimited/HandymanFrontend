@@ -10719,6 +10719,7 @@ __metadata:
     expo-constants: "npm:~18.0.12"
     expo-dev-client: "npm:~6.0.20"
     expo-device: "npm:^8.0.10"
+    expo-document-picker: "npm:~14.0.8"
     expo-font: "npm:~14.0.10"
     expo-image-manipulator: "npm:^14.0.8"
     expo-image-picker: "npm:~17.0.2"
@@ -10730,6 +10731,8 @@ __metadata:
     expo-splash-screen: "npm:~31.0.13"
     expo-status-bar: "npm:~3.0.9"
     expo-updates: "npm:~29.0.15"
+    expo-video: "npm:~2.2.2"
+    expo-video-thumbnails: "npm:~10.0.8"
     metro-minify-terser: "npm:^0.82.0"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
@@ -11160,6 +11163,17 @@ __metadata:
   peerDependencies:
     expo: "*"
   checksum: 10/8dc5ac7f3f1f0c4f98fa0c10e6916e1d9acff4e321d77c633b976f8e17fff9e351dab8cc3d7fe1d74e9c80b2b24708bcc3c1a11057ae22a86b128456b3517ae1
+  languageName: node
+  linkType: hard
+
+"expo-video@npm:~2.2.2":
+  version: 2.2.2
+  resolution: "expo-video@npm:2.2.2"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/beea00a83445d1e78b056a28da04717e56d867c0b2be34a82eb8f2e385e314aed99ba984c98ea1daa596e67af314711a1ba67e6107992f29eb460734208e0630
   languageName: node
   linkType: hard
 

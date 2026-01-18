@@ -28,6 +28,7 @@ import {
   DollarSign,
   Package,
   Paperclip,
+  ChevronRight,
 } from '@tamagui/lucide-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -246,6 +247,10 @@ export function ApplicationDetailScreen() {
   const StatusIcon = statusConfig.icon
   const isPending = application.status === 'pending'
 
+  const handleViewHandymanProfile = () => {
+    router.push(`/(homeowner)/handymen/${handyman.public_id}`)
+  }
+
   return (
     <GradientBackground>
       <YStack
@@ -324,10 +329,13 @@ export function ApplicationDetailScreen() {
               borderWidth={1}
               borderColor="rgba(0,0,0,0.05)"
             >
-              {/* Avatar & Name */}
+              {/* Avatar & Name - Clickable */}
               <XStack
                 gap="$md"
                 alignItems="center"
+                onPress={handleViewHandymanProfile}
+                pressStyle={{ opacity: 0.7 }}
+                cursor="pointer"
               >
                 <View
                   width={72}
@@ -359,13 +367,22 @@ export function ApplicationDetailScreen() {
                   flex={1}
                   gap={4}
                 >
-                  <Text
-                    fontSize="$6"
-                    fontWeight="bold"
-                    color="$color"
+                  <XStack
+                    alignItems="center"
+                    gap="$xs"
                   >
-                    {handyman.display_name}
-                  </Text>
+                    <Text
+                      fontSize="$6"
+                      fontWeight="bold"
+                      color="$color"
+                    >
+                      {handyman.display_name}
+                    </Text>
+                    <ChevronRight
+                      size={18}
+                      color="$primary"
+                    />
+                  </XStack>
                   {handyman.job_title && (
                     <Text
                       fontSize="$3"
@@ -405,6 +422,14 @@ export function ApplicationDetailScreen() {
                       )}
                     </XStack>
                   </XStack>
+                  <Text
+                    fontSize="$2"
+                    color="$primary"
+                    fontWeight="500"
+                    mt="$xs"
+                  >
+                    View Profile
+                  </Text>
                 </YStack>
               </XStack>
 

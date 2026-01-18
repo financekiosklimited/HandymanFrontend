@@ -1037,16 +1037,23 @@ export function CreateReimbursementScreen() {
           modal
           open={attachmentPickerOpen}
           onOpenChange={setAttachmentPickerOpen}
-          snapPoints={[320]}
+          snapPointsMode="fit"
           dismissOnSnapToBottom
         >
-          <Sheet.Overlay />
+          <Sheet.Overlay
+            animation="lazy"
+            enterStyle={{ opacity: 0 }}
+            exitStyle={{ opacity: 0 }}
+          />
           <Sheet.Frame
-            bg="$background"
-            borderTopLeftRadius={20}
-            borderTopRightRadius={20}
+            borderTopLeftRadius="$6"
+            borderTopRightRadius="$6"
+            pb="$6"
           >
-            <Sheet.Handle bg="$borderColorHover" />
+            <Sheet.Handle
+              bg="$colorMuted"
+              mt="$3"
+            />
             <YStack
               p="$4"
               gap="$3"
@@ -1055,28 +1062,33 @@ export function CreateReimbursementScreen() {
                 fontSize="$5"
                 fontWeight="bold"
                 color="$color"
+                mb="$2"
               >
                 Add Attachment
               </Text>
 
               <Button
-                bg="$backgroundMuted"
-                borderRadius="$4"
-                py="$3"
+                unstyled
                 onPress={takePhoto}
-                pressStyle={{ opacity: 0.8 }}
+                bg="white"
+                borderColor="$borderColorHover"
+                borderWidth={1}
+                borderRadius="$4"
+                px="$4"
+                py="$3"
+                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
               >
                 <XStack
                   alignItems="center"
                   gap="$3"
                 >
                   <Camera
-                    size={20}
-                    color="$color"
+                    size={22}
+                    color="$primary"
                   />
                   <Text
+                    fontSize="$4"
                     color="$color"
-                    fontWeight="500"
                   >
                     Take Photo
                   </Text>
@@ -1084,23 +1096,27 @@ export function CreateReimbursementScreen() {
               </Button>
 
               <Button
-                bg="$backgroundMuted"
-                borderRadius="$4"
-                py="$3"
+                unstyled
                 onPress={pickImages}
-                pressStyle={{ opacity: 0.8 }}
+                bg="white"
+                borderColor="$borderColorHover"
+                borderWidth={1}
+                borderRadius="$4"
+                px="$4"
+                py="$3"
+                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
               >
                 <XStack
                   alignItems="center"
                   gap="$3"
                 >
                   <ImagePlus
-                    size={20}
-                    color="$color"
+                    size={22}
+                    color="$primary"
                   />
                   <Text
+                    fontSize="$4"
                     color="$color"
-                    fontWeight="500"
                   >
                     Choose Images
                   </Text>
@@ -1108,23 +1124,27 @@ export function CreateReimbursementScreen() {
               </Button>
 
               <Button
-                bg="$backgroundMuted"
-                borderRadius="$4"
-                py="$3"
+                unstyled
                 onPress={recordVideo}
-                pressStyle={{ opacity: 0.8 }}
+                bg="white"
+                borderColor="$borderColorHover"
+                borderWidth={1}
+                borderRadius="$4"
+                px="$4"
+                py="$3"
+                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
               >
                 <XStack
                   alignItems="center"
                   gap="$3"
                 >
                   <Video
-                    size={20}
-                    color="$color"
+                    size={22}
+                    color="$primary"
                   />
                   <Text
+                    fontSize="$4"
                     color="$color"
-                    fontWeight="500"
                   >
                     Record Video
                   </Text>
@@ -1132,23 +1152,27 @@ export function CreateReimbursementScreen() {
               </Button>
 
               <Button
-                bg="$backgroundMuted"
-                borderRadius="$4"
-                py="$3"
+                unstyled
                 onPress={pickVideos}
-                pressStyle={{ opacity: 0.8 }}
+                bg="white"
+                borderColor="$borderColorHover"
+                borderWidth={1}
+                borderRadius="$4"
+                px="$4"
+                py="$3"
+                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
               >
                 <XStack
                   alignItems="center"
                   gap="$3"
                 >
                   <Video
-                    size={20}
-                    color="$color"
+                    size={22}
+                    color="$primary"
                   />
                   <Text
+                    fontSize="$4"
                     color="$color"
-                    fontWeight="500"
                   >
                     Choose Videos
                   </Text>
@@ -1156,23 +1180,27 @@ export function CreateReimbursementScreen() {
               </Button>
 
               <Button
-                bg="$backgroundMuted"
-                borderRadius="$4"
-                py="$3"
+                unstyled
                 onPress={pickDocuments}
-                pressStyle={{ opacity: 0.8 }}
+                bg="white"
+                borderColor="$borderColorHover"
+                borderWidth={1}
+                borderRadius="$4"
+                px="$4"
+                py="$3"
+                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
               >
                 <XStack
                   alignItems="center"
                   gap="$3"
                 >
                   <FileText
-                    size={20}
-                    color="$color"
+                    size={22}
+                    color="$primary"
                   />
                   <Text
+                    fontSize="$4"
                     color="$color"
-                    fontWeight="500"
                   >
                     Choose Documents
                   </Text>

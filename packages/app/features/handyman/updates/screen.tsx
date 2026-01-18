@@ -56,11 +56,11 @@ export function HandymanUpdatesScreen() {
     }
 
     if (data?.job_id) {
-      // Redirect to jobs menu (dashboard) instead of job detail
-      router.push('/(handyman)/my-jobs')
+      // Redirect to jobs page with tabs (active tab for job updates)
+      router.push('/(handyman)/jobs?tab=active')
     } else if (data?.application_id) {
-      // Redirect to jobs menu (dashboard) instead of application detail
-      router.push('/(handyman)/my-jobs')
+      // Redirect to jobs page with tabs (applicants tab for application updates)
+      router.push('/(handyman)/jobs?tab=applicants')
     }
   }
 

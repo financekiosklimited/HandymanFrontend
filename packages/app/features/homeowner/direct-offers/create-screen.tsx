@@ -1616,7 +1616,7 @@ export function CreateDirectOfferScreen() {
             <Sheet
               open={attachmentPickerOpen}
               onOpenChange={setAttachmentPickerOpen}
-              snapPoints={[45]}
+              snapPointsMode="fit"
               dismissOnSnapToBottom
               modal
             >
@@ -1628,6 +1628,7 @@ export function CreateDirectOfferScreen() {
               <Sheet.Frame
                 borderTopLeftRadius="$6"
                 borderTopRightRadius="$6"
+                pb="$6"
               >
                 <Sheet.Handle
                   bg="$colorMuted"
