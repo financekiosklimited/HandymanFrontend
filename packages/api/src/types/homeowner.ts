@@ -58,7 +58,7 @@ export interface HomeownerHandyman {
   avatar_url: string | null
   bio: string | null
   rating: number
-  total_reviews: number
+  review_count: number
   hourly_rate?: number | null
   distance_km: number | null
   categories: Array<{
@@ -100,7 +100,7 @@ export interface ApplicationHandymanProfile {
   rating: number
   hourly_rate: number | null
   bio?: string | null
-  total_reviews?: number
+  review_count?: number
   job_title?: string | null
   categories?: Array<{
     public_id: string
@@ -213,13 +213,38 @@ export interface HomeownerDashboardJobInfo {
   source_id: string | null
 }
 
-// Review type for handyman
+// Review type for handyman (user's own review)
 export interface HandymanReview {
   public_id: string
   rating: number
   comment: string | null
   created_at: string
   updated_at: string
+}
+
+// Review item from reviews list endpoint (with censored reviewer info)
+export interface HandymanReviewItem {
+  public_id: string
+  reviewer_avatar_url: string | null
+  reviewer_display_name: string | null // Censored name like "J*** D**"
+  rating: number
+  comment: string | null
+  created_at: string
+}
+
+// Rating distribution stats (from meta)
+export interface RatingDistribution {
+  '5': number
+  '4': number
+  '3': number
+  '2': number
+  '1': number
+}
+
+export interface RatingStats {
+  average: number
+  total_count: number
+  distribution?: RatingDistribution
 }
 
 export interface CreateHandymanReviewRequest {

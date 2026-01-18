@@ -71,8 +71,8 @@ export function HandymanCard({ handyman, onPress }: HandymanCardProps) {
             color="$colorSubtle"
           >
             {handyman.rating > 0
-              ? handyman.total_reviews != null
-                ? `${handyman.rating.toFixed(1)} (${handyman.total_reviews})`
+              ? handyman.review_count != null
+                ? `${handyman.rating.toFixed(1)} (${handyman.review_count})`
                 : handyman.rating.toFixed(1)
               : 'No reviews'}
           </Text>

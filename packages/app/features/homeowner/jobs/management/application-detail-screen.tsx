@@ -395,12 +395,12 @@ export function ApplicationDetailScreen() {
                       >
                         {handyman.rating?.toFixed(1) || 'N/A'}
                       </Text>
-                      {handyman.total_reviews && (
+                      {handyman.review_count && (
                         <Text
                           fontSize="$2"
                           color="$colorSubtle"
                         >
-                          ({handyman.total_reviews} reviews)
+                          ({handyman.review_count} reviews)
                         </Text>
                       )}
                     </XStack>

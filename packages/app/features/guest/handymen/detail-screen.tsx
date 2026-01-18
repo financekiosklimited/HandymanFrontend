@@ -3,7 +3,16 @@
 import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useGuestHandyman, formatErrorMessage } from '@my/api'
-import { ArrowLeft, MapPin, Star, DollarSign, Award, User } from '@tamagui/lucide-icons'
+import {
+  ArrowLeft,
+  MapPin,
+  Star,
+  DollarSign,
+  Award,
+  User,
+  ChevronRight,
+} from '@tamagui/lucide-icons'
+import { Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 
@@ -204,35 +213,44 @@ export function HandymanDetailScreen({ handymanId }: HandymanDetailScreenProps) 
                 </Text>
               )}
 
-              {/* Rating Badge */}
-              {handyman.rating > 0 && (
-                <XStack
-                  bg="$warningBackground"
-                  px="$lg"
-                  py="$sm"
-                  borderRadius="$full"
-                  alignItems="center"
-                  gap="$xs"
+              {/* Rating Badge - Tappable to see reviews (only show if there are actual reviews) */}
+              {handyman.review_count > 0 && (
+                <Pressable
+                  onPress={() => router.push(`/(guest)/handymen/${handymanId}/reviews`)}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
                 >
-                  <Star
-                    size={18}
-                    fill="#FFB800"
-                    color="#FFB800"
-                  />
-                  <Text
-                    fontSize="$5"
-                    fontWeight="600"
-                    color="$accent"
+                  <XStack
+                    bg="$warningBackground"
+                    px="$lg"
+                    py="$sm"
+                    borderRadius="$full"
+                    alignItems="center"
+                    gap="$xs"
                   >
-                    {Number(handyman.rating).toFixed(1)}
-                  </Text>
-                  <Text
-                    fontSize="$3"
-                    color="$accent"
-                  >
-                    ({handyman.total_reviews} {handyman.total_reviews === 1 ? 'review' : 'reviews'})
-                  </Text>
-                </XStack>
+                    <Star
+                      size={18}
+                      fill="#FFB800"
+                      color="#FFB800"
+                    />
+                    <Text
+                      fontSize="$5"
+                      fontWeight="600"
+                      color="$accent"
+                    >
+                      {Number(handyman.rating).toFixed(1)}
+                    </Text>
+                    <Text
+                      fontSize="$3"
+                      color="$accent"
+                    >
+                      ({handyman.review_count} {handyman.review_count === 1 ? 'review' : 'reviews'})
+                    </Text>
+                    <ChevronRight
+                      size={16}
+                      color="$accent"
+                    />
+                  </XStack>
+                </Pressable>
               )}
             </YStack>
 
@@ -321,7 +339,7 @@ export function HandymanDetailScreen({ handymanId }: HandymanDetailScreenProps) 
                 </YStack>
               )}
 
-              {handyman.total_reviews > 0 && (
+              {handyman.review_count > 0 && (
                 <YStack
                   flex={1}
                   bg="$backgroundMuted"
@@ -350,7 +368,7 @@ export function HandymanDetailScreen({ handymanId }: HandymanDetailScreenProps) 
                     fontWeight="bold"
                     color="$color"
                   >
-                    {handyman.total_reviews}
+                    {handyman.review_count}
                   </Text>
                   <Text
                     fontSize="$2"
@@ -433,72 +451,98 @@ export function HandymanDetailScreen({ handymanId }: HandymanDetailScreenProps) 
               </YStack>
             )}
 
-            {/* Rating Details Card */}
-            {handyman.rating > 0 && (
-              <YStack
-                bg="$backgroundMuted"
-                borderRadius={20}
-                p="$lg"
-                borderWidth={1}
-                borderColor="$borderColor"
+            {/* Rating Details Card - Tappable to see all reviews (only show if there are actual reviews) */}
+            {handyman.review_count > 0 && (
+              <Pressable
+                onPress={() => router.push(`/(guest)/handymen/${handymanId}/reviews`)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
               >
-                <Text
-                  fontSize="$3"
-                  fontWeight="600"
-                  color="$colorSubtle"
-                  mb="$md"
+                <YStack
+                  bg="$backgroundMuted"
+                  borderRadius={20}
+                  p="$lg"
+                  borderWidth={1}
+                  borderColor="$borderColor"
                 >
-                  RATING & REVIEWS
-                </Text>
-                <XStack
-                  alignItems="center"
-                  gap="$lg"
-                >
-                  <YStack alignItems="center">
+                  <XStack
+                    alignItems="center"
+                    justifyContent="space-between"
+                    mb="$md"
+                  >
                     <Text
-                      fontSize={42}
-                      fontWeight="bold"
-                      color="$color"
-                      lineHeight={48}
+                      fontSize="$3"
+                      fontWeight="600"
+                      color="$colorSubtle"
                     >
-                      {Number(handyman.rating).toFixed(1)}
+                      RATING & REVIEWS
                     </Text>
                     <XStack
                       alignItems="center"
                       gap={4}
-                      mt="$xs"
                     >
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          size={18}
-                          fill={star <= Math.round(handyman.rating) ? '#FFB800' : '#D1D1D6'}
-                          color={star <= Math.round(handyman.rating) ? '#FFB800' : '#D1D1D6'}
-                        />
-                      ))}
+                      <Text
+                        fontSize="$2"
+                        color="$primary"
+                        fontWeight="500"
+                      >
+                        See all
+                      </Text>
+                      <ChevronRight
+                        size={14}
+                        color="$primary"
+                      />
                     </XStack>
-                  </YStack>
-                  <YStack
-                    flex={1}
-                    gap="$xs"
+                  </XStack>
+                  <XStack
+                    alignItems="center"
+                    gap="$lg"
                   >
-                    <Text
-                      fontSize="$4"
-                      fontWeight="500"
-                      color="$color"
+                    <YStack alignItems="center">
+                      <Text
+                        fontSize={42}
+                        fontWeight="bold"
+                        color="$color"
+                        lineHeight={48}
+                      >
+                        {Number(handyman.rating).toFixed(1)}
+                      </Text>
+                      <XStack
+                        alignItems="center"
+                        gap={4}
+                        mt="$xs"
+                      >
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={18}
+                            fill={star <= Math.round(handyman.rating) ? '#FFB800' : '#D1D1D6'}
+                            color={star <= Math.round(handyman.rating) ? '#FFB800' : '#D1D1D6'}
+                          />
+                        ))}
+                      </XStack>
+                    </YStack>
+                    <YStack
+                      flex={1}
+                      gap="$xs"
                     >
-                      {handyman.total_reviews} {handyman.total_reviews === 1 ? 'Review' : 'Reviews'}
-                    </Text>
-                    <Text
-                      fontSize="$3"
-                      color="$colorSubtle"
-                      lineHeight={18}
-                    >
-                      Based on verified customer feedback and completed jobs
-                    </Text>
-                  </YStack>
-                </XStack>
-              </YStack>
+                      <Text
+                        fontSize="$4"
+                        fontWeight="500"
+                        color="$color"
+                      >
+                        {handyman.review_count} {handyman.review_count === 1 ? 'Review' : 'Reviews'}
+                      </Text>
+                      <Text
+                        fontSize="$3"
+                        color="$colorSubtle"
+                        lineHeight={18}
+                      >
+                        Based on verified customer feedback and completed jobs
+                      </Text>
+                    </YStack>
+                  </XStack>
+                </YStack>
+              </Pressable>
             )}
           </YStack>
         </ScrollView>

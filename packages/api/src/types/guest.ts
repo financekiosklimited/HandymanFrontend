@@ -45,7 +45,7 @@ export interface GuestHandyman {
   display_name: string
   avatar_url: string | null
   rating: number
-  total_reviews: number
+  review_count: number
   bio: string | null
   distance_km: number | null
   hourly_rate?: number | null
@@ -54,6 +54,20 @@ export interface GuestHandyman {
     name: string
   }>
 }
+
+// Review item from reviews list endpoint (with censored reviewer info)
+// Same structure as homeowner for consistency
+export interface GuestHandymanReviewItem {
+  public_id: string
+  reviewer_avatar_url: string | null
+  reviewer_display_name: string | null // Censored name like "J*** D**"
+  rating: number
+  comment: string | null
+  created_at: string
+}
+
+// Rating stats - re-export from homeowner for consistency
+export type { RatingStats, RatingDistribution } from './homeowner'
 
 // Re-export common types for convenience
 export type { PaginatedArrayResponse, ApiResponse }

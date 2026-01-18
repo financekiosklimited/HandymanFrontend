@@ -149,6 +149,68 @@ export function useHomeownerHandyman(publicId: string) {
   })
 }
 
+// ========== Handyman Reviews Hooks ==========
+
+import type { HandymanReviewItem, RatingStats } from '../../types/homeowner'
+
+interface HandymanReviewsApiResponse {
+  data: HandymanReviewItem[]
+  errors: any
+  message: string
+  meta: {
+    pagination: {
+      page: number
+      page_size: number
+      total_count: number
+      total_pages: number
+      has_next: boolean
+      has_previous: boolean
+    }
+    rating_stats?: RatingStats
+  }
+}
+
+/**
+ * Hook to fetch reviews for a specific handyman.
+ * Returns paginated list of reviews with censored reviewer names.
+ */
+export function useHandymanReviews(publicId: string, options?: { enabled?: boolean }) {
+  const isEnabled = options?.enabled !== false && !!publicId
+
+  return useInfiniteQuery({
+    queryKey: ['homeowner', 'handymen', publicId, 'reviews'],
+    queryFn: async ({ pageParam = 1 }) => {
+      try {
+        const searchParams = new URLSearchParams()
+        searchParams.set('page', pageParam.toString())
+
+        const url = `homeowner/handymen/${publicId}/reviews/?${searchParams.toString()}`
+        const response = await apiClient.get(url).json<HandymanReviewsApiResponse>()
+
+        return {
+          results: response.data || [],
+          page: response.meta?.pagination?.page || 1,
+          hasNext: response.meta?.pagination?.has_next || false,
+          totalCount: response.meta?.pagination?.total_count || 0,
+          ratingStats: response.meta?.rating_stats,
+        }
+      } catch (error) {
+        console.error('Error fetching handyman reviews:', error)
+        throw error
+      }
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.hasNext) {
+        return lastPage.page + 1
+      }
+      return undefined
+    },
+    retry: 1,
+    enabled: isEnabled,
+  })
+}
+
 /**
  * Hook to fetch current homeowner's profile.
  */
