@@ -981,8 +981,9 @@ function UploadPreviewModal({
       onRequestClose={onCancel}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View
@@ -2498,9 +2499,9 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
         </XStack>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1 }}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+          enabled={Platform.OS === 'ios'}
         >
           <ScrollView
             flex={1}
