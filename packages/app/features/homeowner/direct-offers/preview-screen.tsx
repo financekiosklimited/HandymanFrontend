@@ -630,7 +630,7 @@ export function DirectOfferPreviewScreen() {
                       position="absolute"
                       bottom="$3"
                       right="$3"
-                      bg="$background"
+                      bg="rgba(0,0,0,0.6)"
                       px="$2"
                       py="$1"
                       borderRadius="$2"
