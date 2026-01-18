@@ -475,7 +475,7 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
                         position="absolute"
                         bottom="$3"
                         right="$3"
-                        bg="$background"
+                        bg="rgba(0,0,0,0.6)"
                         px="$2"
                         py="$1"
                         borderRadius="$2"
@@ -512,6 +512,124 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
                 </YStack>
               )}
             </YStack>
+
+            {/* Posted By Card - placed below thumbnail */}
+            {job.homeowner && (
+              <YStack
+                bg="$backgroundMuted"
+                borderRadius={20}
+                p="$lg"
+                mb="$lg"
+                borderWidth={1}
+                borderColor="$borderColor"
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                  mb="$md"
+                >
+                  <User
+                    size={18}
+                    color="$primary"
+                  />
+                  <Text
+                    fontSize="$3"
+                    fontWeight="600"
+                    color="$colorSubtle"
+                  >
+                    POSTED BY
+                  </Text>
+                </XStack>
+                <XStack
+                  alignItems="center"
+                  gap="$md"
+                >
+                  {job.homeowner.avatar_url ? (
+                    <Image
+                      source={{ uri: job.homeowner.avatar_url }}
+                      width={48}
+                      height={48}
+                      borderRadius="$full"
+                    />
+                  ) : (
+                    <YStack
+                      width={48}
+                      height={48}
+                      borderRadius="$full"
+                      bg="$primaryBackground"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Text
+                        fontSize="$5"
+                        fontWeight="600"
+                        color="$primary"
+                      >
+                        {job.homeowner.display_name.charAt(0).toUpperCase()}
+                      </Text>
+                    </YStack>
+                  )}
+                  <YStack flex={1}>
+                    <Text
+                      fontSize="$4"
+                      fontWeight="500"
+                      color="$color"
+                    >
+                      {job.homeowner.display_name}
+                    </Text>
+                    <Text
+                      fontSize="$3"
+                      color="$colorSubtle"
+                    >
+                      Homeowner
+                    </Text>
+                  </YStack>
+                  {/* Chat Button */}
+                  <Button
+                    bg="$primary"
+                    borderRadius={12}
+                    px="$md"
+                    py="$sm"
+                    disabled={isChatLoading}
+                    onPress={() => {
+                      if (!job?.homeowner?.public_id) return
+                      const params = new URLSearchParams({
+                        userId: job.homeowner.public_id,
+                        name: job.homeowner.display_name,
+                      })
+                      if (job.homeowner.avatar_url)
+                        params.append('avatar', job.homeowner.avatar_url)
+                      router.push(`/(handyman)/messages/new?${params.toString()}`)
+                    }}
+                    pressStyle={{ opacity: 0.8 }}
+                  >
+                    <XStack
+                      alignItems="center"
+                      gap="$xs"
+                    >
+                      {isChatLoading ? (
+                        <Spinner
+                          size="small"
+                          color="white"
+                        />
+                      ) : (
+                        <MessageCircle
+                          size={16}
+                          color="white"
+                        />
+                      )}
+                      <Text
+                        color="white"
+                        fontSize="$3"
+                        fontWeight="500"
+                      >
+                        {isChatLoading ? 'Opening...' : 'Chat'}
+                      </Text>
+                    </XStack>
+                  </Button>
+                </XStack>
+              </YStack>
+            )}
 
             {/* Description Card */}
             <YStack
@@ -713,124 +831,6 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
                     </YStack>
                   )}
                 </YStack>
-              </YStack>
-            )}
-
-            {/* Posted By Card */}
-            {job.homeowner && (
-              <YStack
-                bg="$backgroundMuted"
-                borderRadius={20}
-                p="$lg"
-                mb="$lg"
-                borderWidth={1}
-                borderColor="$borderColor"
-              >
-                <XStack
-                  alignItems="center"
-                  gap="$2"
-                  mb="$md"
-                >
-                  <User
-                    size={18}
-                    color="$primary"
-                  />
-                  <Text
-                    fontSize="$3"
-                    fontWeight="600"
-                    color="$colorSubtle"
-                  >
-                    POSTED BY
-                  </Text>
-                </XStack>
-                <XStack
-                  alignItems="center"
-                  gap="$md"
-                >
-                  {job.homeowner.avatar_url ? (
-                    <Image
-                      source={{ uri: job.homeowner.avatar_url }}
-                      width={48}
-                      height={48}
-                      borderRadius="$full"
-                    />
-                  ) : (
-                    <YStack
-                      width={48}
-                      height={48}
-                      borderRadius="$full"
-                      bg="$primaryBackground"
-                      alignItems="center"
-                      justifyContent="center"
-                    >
-                      <Text
-                        fontSize="$5"
-                        fontWeight="600"
-                        color="$primary"
-                      >
-                        {job.homeowner.display_name.charAt(0).toUpperCase()}
-                      </Text>
-                    </YStack>
-                  )}
-                  <YStack flex={1}>
-                    <Text
-                      fontSize="$4"
-                      fontWeight="500"
-                      color="$color"
-                    >
-                      {job.homeowner.display_name}
-                    </Text>
-                    <Text
-                      fontSize="$3"
-                      color="$colorSubtle"
-                    >
-                      Homeowner
-                    </Text>
-                  </YStack>
-                  {/* Chat Button */}
-                  <Button
-                    bg="$primary"
-                    borderRadius={12}
-                    px="$md"
-                    py="$sm"
-                    disabled={isChatLoading}
-                    onPress={() => {
-                      if (!job?.homeowner?.public_id) return
-                      const params = new URLSearchParams({
-                        userId: job.homeowner.public_id,
-                        name: job.homeowner.display_name,
-                      })
-                      if (job.homeowner.avatar_url)
-                        params.append('avatar', job.homeowner.avatar_url)
-                      router.push(`/(handyman)/messages/new?${params.toString()}`)
-                    }}
-                    pressStyle={{ opacity: 0.8 }}
-                  >
-                    <XStack
-                      alignItems="center"
-                      gap="$xs"
-                    >
-                      {isChatLoading ? (
-                        <Spinner
-                          size="small"
-                          color="white"
-                        />
-                      ) : (
-                        <MessageCircle
-                          size={16}
-                          color="white"
-                        />
-                      )}
-                      <Text
-                        color="white"
-                        fontSize="$3"
-                        fontWeight="500"
-                      >
-                        {isChatLoading ? 'Opening...' : 'Chat'}
-                      </Text>
-                    </XStack>
-                  </Button>
-                </XStack>
               </YStack>
             )}
 

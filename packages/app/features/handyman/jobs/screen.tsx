@@ -10,7 +10,15 @@ import {
   useHandymanPendingOffersCount,
   useHandymanAssignedJobs,
 } from '@my/api'
-import { ArrowLeft, Briefcase, MapPin, ChevronRight, Clock, Play } from '@tamagui/lucide-icons'
+import {
+  ArrowLeft,
+  Briefcase,
+  MapPin,
+  ChevronRight,
+  Clock,
+  Play,
+  User,
+} from '@tamagui/lucide-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import type { ApplicationStatus, JobApplication, HandymanAssignedJob } from '@my/api'
@@ -176,16 +184,6 @@ interface ActiveJobCardProps {
 }
 
 function ActiveJobCard({ job, onPress }: ActiveJobCardProps) {
-  const attachments = job.attachments
-  const firstAttachment = attachments?.[0]
-  const isVideoAttachment = firstAttachment?.file_type === 'video'
-  const isImageAttachment = firstAttachment?.file_type === 'image'
-  const previewImage = isVideoAttachment
-    ? firstAttachment?.thumbnail_url
-    : isImageAttachment
-      ? firstAttachment?.file_url
-      : undefined
-
   // Get status display info
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -205,224 +203,217 @@ function ActiveJobCard({ job, onPress }: ActiveJobCardProps) {
   const statusInfo = getStatusInfo(job.status)
 
   return (
-    <Button
-      unstyled
-      onPress={onPress}
-      bg="rgba(255,255,255,0.95)"
-      borderRadius={20}
+    <YStack
+      bg="$backgroundStrong"
+      borderRadius="$md"
       overflow="hidden"
-      borderWidth={1}
-      borderColor="rgba(0,0,0,0.08)"
-      pressStyle={{ opacity: 0.9, scale: 0.98 }}
-      animation="quick"
+      p="$md"
+      gap="$sm"
+      onPress={onPress}
+      pressStyle={{ opacity: 0.8 }}
+      cursor="pointer"
     >
-      <YStack>
-        {/* Image */}
-        {previewImage ? (
-          <Image
-            source={{ uri: previewImage }}
-            width="100%"
-            height={140}
-            resizeMode="cover"
-          />
-        ) : (
-          <YStack
-            width="100%"
-            height={140}
-            bg="$primaryBackground"
-            alignItems="center"
-            justifyContent="center"
-          >
-            {isVideoAttachment ? (
-              <Play
-                size={32}
-                color="$primary"
-              />
-            ) : (
-              <Briefcase
-                size={40}
-                color="$primary"
-              />
-            )}
-          </YStack>
-        )}
-
-        {isVideoAttachment && previewImage && (
-          <View
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            height={140}
-            alignItems="center"
-            justifyContent="center"
-          >
-            <View
-              bg="rgba(0, 0, 0, 0.45)"
-              borderRadius="$full"
-              p="$2"
-            >
-              <Play
-                size={22}
-                color="white"
-                fill="white"
-              />
-            </View>
-          </View>
-        )}
-
-        {/* Content */}
-        <YStack
-          p="$md"
-          gap="$sm"
+      {/* Header: Status Badge */}
+      <XStack
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <XStack
+          bg={statusInfo.bg as any}
+          px="$sm"
+          py={4}
+          borderRadius="$full"
+          alignItems="center"
+          gap="$xs"
         >
+          <Clock
+            size={12}
+            color={statusInfo.color as any}
+          />
           <Text
-            fontSize="$4"
-            fontWeight="700"
-            color="$color"
-            numberOfLines={2}
+            fontSize={11}
+            fontWeight="600"
+            color={statusInfo.color as any}
+            textTransform="uppercase"
           >
-            {job.title}
+            {statusInfo.label}
           </Text>
+        </XStack>
+      </XStack>
 
-          {job.category && (
-            <XStack
-              alignItems="center"
-              gap="$xs"
-            >
-              <View
-                width={6}
-                height={6}
-                borderRadius={3}
-                bg="$primary"
-              />
-              <Text
-                fontSize="$2"
-                color="$colorSubtle"
-              >
-                {job.category.name}
-              </Text>
-            </XStack>
-          )}
+      {/* Title */}
+      <Text
+        fontSize="$4"
+        fontWeight="600"
+        color="$color"
+        numberOfLines={2}
+      >
+        {job.title}
+      </Text>
 
-          {/* Location */}
-          {job.city && (
-            <XStack
-              alignItems="center"
-              gap="$xs"
-            >
-              <MapPin
-                size={14}
-                color="$colorSubtle"
-              />
-              <Text
-                fontSize="$2"
-                color="$colorSubtle"
-                numberOfLines={1}
-              >
-                {job.city.name}
-              </Text>
-            </XStack>
-          )}
+      {/* Category */}
+      {job.category && (
+        <XStack
+          alignItems="center"
+          gap="$xs"
+        >
+          <View
+            width={6}
+            height={6}
+            borderRadius={3}
+            bg="$primary"
+          />
+          <Text
+            fontSize="$2"
+            color="$colorSubtle"
+          >
+            {job.category.name}
+          </Text>
+        </XStack>
+      )}
 
-          {/* Job Status Indicator */}
+      {/* Location */}
+      {job.city && (
+        <XStack
+          alignItems="center"
+          gap="$xs"
+        >
+          <MapPin
+            size={14}
+            color="$colorSubtle"
+          />
+          <Text
+            fontSize="$2"
+            color="$colorSubtle"
+            numberOfLines={1}
+          >
+            {job.city.name}
+          </Text>
+        </XStack>
+      )}
+
+      {/* Budget */}
+      <XStack
+        alignItems="center"
+        gap={4}
+      >
+        <Text
+          fontSize="$3"
+          fontWeight="600"
+          color="$primary"
+        >
+          ${job.estimated_budget.toLocaleString()}
+        </Text>
+      </XStack>
+
+      {/* Task Progress Section */}
+      {job.task_progress && job.task_progress.total > 0 && (
+        <YStack gap="$xs">
           <XStack
             alignItems="center"
-            justifyContent="space-between"
-            mt="$xs"
+            gap="$xs"
           >
-            <XStack
-              bg={statusInfo.bg as any}
-              px="$sm"
-              py={4}
+            <View
+              flex={1}
+              height={4}
+              bg="$borderColor"
               borderRadius="$full"
-              alignItems="center"
-              gap="$xs"
-            >
-              <Clock
-                size={12}
-                color={statusInfo.color as any}
-              />
-              <Text
-                fontSize={11}
-                fontWeight="600"
-                color={statusInfo.color as any}
-                textTransform="uppercase"
-              >
-                {statusInfo.label}
-              </Text>
-            </XStack>
-
-            <Text
-              fontSize="$3"
-              fontWeight="700"
-              color="$primary"
-            >
-              ${job.estimated_budget}
-            </Text>
-          </XStack>
-
-          {/* Task Progress */}
-          {job.task_progress && job.task_progress.total > 0 && (
-            <XStack
-              alignItems="center"
-              gap="$xs"
+              overflow="hidden"
             >
               <View
-                flex={1}
-                height={4}
-                bg="$borderColor"
+                width={`${job.task_progress.percentage}%`}
+                height="100%"
+                bg="$primary"
                 borderRadius="$full"
-                overflow="hidden"
-              >
-                <View
-                  width={`${job.task_progress.percentage}%`}
-                  height="100%"
-                  bg="$primary"
-                  borderRadius="$full"
-                />
-              </View>
-              <Text
-                fontSize="$1"
-                color="$colorSubtle"
-              >
-                {job.task_progress.completed}/{job.task_progress.total}
-              </Text>
-            </XStack>
-          )}
+              />
+            </View>
+          </XStack>
+          <Text
+            fontSize="$1"
+            color="$colorSubtle"
+          >
+            {job.task_progress.completed}/{job.task_progress.total} tasks completed
+          </Text>
+        </YStack>
+      )}
 
-          {/* Action Button */}
-          <Button
-            mt="$sm"
-            bg="$primary"
-            borderRadius="$lg"
-            py="$sm"
-            pressStyle={{ opacity: 0.9 }}
-            onPress={(e) => {
-              e.stopPropagation()
-              onPress()
-            }}
+      {/* Homeowner Section */}
+      {job.homeowner && (
+        <XStack
+          alignItems="center"
+          gap="$sm"
+          pt="$sm"
+          borderTopWidth={1}
+          borderTopColor="$borderColor"
+        >
+          {job.homeowner.avatar_url ? (
+            <Image
+              source={{ uri: job.homeowner.avatar_url }}
+              width={32}
+              height={32}
+              borderRadius={16}
+            />
+          ) : (
+            <View
+              width={32}
+              height={32}
+              borderRadius={16}
+              bg="$backgroundMuted"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <User
+                size={16}
+                color="$colorMuted"
+              />
+            </View>
+          )}
+          <YStack
+            flex={1}
+            gap={2}
           >
             <XStack
               alignItems="center"
-              gap="$xs"
+              gap={4}
             >
-              <Play
-                size={14}
-                color="white"
-              />
               <Text
-                color="white"
-                fontWeight="600"
-                fontSize="$3"
+                fontSize={10}
+                color="$colorMuted"
               >
-                View Dashboard
+                Homeowner:
+              </Text>
+              <Text
+                fontSize="$2"
+                fontWeight="500"
+                color="$color"
+                numberOfLines={1}
+              >
+                {job.homeowner.display_name || 'Homeowner'}
               </Text>
             </XStack>
-          </Button>
-        </YStack>
-      </YStack>
-    </Button>
+            {job.homeowner.rating && job.homeowner.rating > 0 && (
+              <XStack
+                alignItems="center"
+                gap={4}
+              >
+                <Text
+                  fontSize={11}
+                  color="$accent"
+                >
+                  ★
+                </Text>
+                <Text
+                  fontSize={10}
+                  color="$colorSubtle"
+                >
+                  {job.homeowner.rating.toFixed(1)} ({job.homeowner.review_count} reviews)
+                </Text>
+              </XStack>
+            )}
+          </YStack>
+        </XStack>
+      )}
+    </YStack>
   )
 }
 
