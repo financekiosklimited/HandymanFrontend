@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
+import { Alert } from 'react-native'
 import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View } from '@my/ui'
 import { GradientBackground } from '@my/ui'
-import { useGuestHandyman, formatErrorMessage, apiClient } from '@my/api'
+import { useGuestHandyman, useHomeownerProfile, formatErrorMessage, apiClient } from '@my/api'
 import type { ChatConversationResponse } from '@my/api'
 import {
   ArrowLeft,
@@ -28,7 +29,9 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
   const insets = useSafeArea()
   const toast = useToastController()
   const { data: handyman, isLoading, error } = useGuestHandyman(handymanId)
+  const { data: profile, refetch: refetchProfile } = useHomeownerProfile()
   const [isChatLoading, setIsChatLoading] = useState(false)
+  const [isCheckingPhone, setIsCheckingPhone] = useState(false)
 
   // Start chat handler - navigates to chat screen without creating conversation yet
   const handleStartChat = () => {
@@ -41,19 +44,67 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
     router.push(`/(homeowner)/messages/new?${params.toString()}`)
   }
 
-  // Send direct offer handler
-  const handleSendDirectOffer = () => {
+  /**
+   * Handle Send Direct Offer button press - check phone verification first
+   */
+  const handleSendDirectOffer = useCallback(async () => {
     if (!handymanId || !handyman) return
-    const params = new URLSearchParams({
-      handymanId,
-      handymanName: handyman.display_name,
-    })
-    if (handyman.avatar_url) params.append('handymanAvatar', handyman.avatar_url)
-    if (handyman.rating) params.append('handymanRating', handyman.rating.toString())
-    if (handyman.total_reviews)
-      params.append('handymanReviewCount', handyman.total_reviews.toString())
-    router.push(`/(homeowner)/direct-offers/create?${params.toString()}`)
-  }
+
+    setIsCheckingPhone(true)
+
+    try {
+      // Refetch profile to get latest phone verification status
+      const { data: freshProfile } = await refetchProfile()
+
+      if (freshProfile?.is_phone_verified) {
+        // Phone verified, proceed to create direct offer
+        const params = new URLSearchParams({
+          handymanId,
+          handymanName: handyman.display_name,
+        })
+        if (handyman.avatar_url) params.append('handymanAvatar', handyman.avatar_url)
+        if (handyman.rating) params.append('handymanRating', handyman.rating.toString())
+        if (handyman.total_reviews)
+          params.append('handymanReviewCount', handyman.total_reviews.toString())
+        router.push(`/(homeowner)/direct-offers/create?${params.toString()}`)
+      } else {
+        // Phone not verified, show alert and redirect
+        Alert.alert(
+          'Phone Verification Required',
+          'Please verify your phone number before sending a direct offer.',
+          [
+            {
+              text: 'Verify Now',
+              onPress: () => router.push('/user/phone/send'),
+            },
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+          ]
+        )
+      }
+    } catch (error) {
+      console.error('Error checking phone verification:', error)
+      // On error, still allow navigation but warn
+      Alert.alert(
+        'Could Not Verify Status',
+        'Unable to check phone verification status. Would you like to verify your phone?',
+        [
+          {
+            text: 'Verify Phone',
+            onPress: () => router.push('/user/phone/send'),
+          },
+          {
+            text: 'Try Again',
+            style: 'cancel',
+          },
+        ]
+      )
+    } finally {
+      setIsCheckingPhone(false)
+    }
+  }, [handymanId, handyman, refetchProfile, router])
 
   if (isLoading) {
     return (
@@ -286,6 +337,7 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                 borderRadius={16}
                 py="$md"
                 onPress={handleSendDirectOffer}
+                disabled={isCheckingPhone}
                 pressStyle={{ opacity: 0.8 }}
                 shadowColor="$primary"
                 shadowOffset={{ width: 0, height: 4 }}
@@ -297,16 +349,23 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                   justifyContent="center"
                   gap="$sm"
                 >
-                  <Briefcase
-                    size={20}
-                    color="white"
-                  />
+                  {isCheckingPhone ? (
+                    <Spinner
+                      size="small"
+                      color="white"
+                    />
+                  ) : (
+                    <Briefcase
+                      size={20}
+                      color="white"
+                    />
+                  )}
                   <Text
                     color="white"
                     fontSize="$4"
                     fontWeight="600"
                   >
-                    Send Direct Offer
+                    {isCheckingPhone ? 'Checking...' : 'Send Direct Offer'}
                   </Text>
                 </XStack>
               </Button>
