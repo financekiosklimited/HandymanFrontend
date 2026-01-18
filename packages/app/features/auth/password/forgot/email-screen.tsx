@@ -82,6 +82,7 @@ export function ForgotPasswordEmailScreen() {
       <YStack
         flex={1}
         pt={insets.top}
+        pb={insets.bottom}
       >
         {/* Header with back button */}
         <XStack

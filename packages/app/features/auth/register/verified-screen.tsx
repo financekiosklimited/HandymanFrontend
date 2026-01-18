@@ -25,6 +25,7 @@ export function RegisterVerifiedScreen() {
       <YStack
         flex={1}
         pt={insets.top}
+        pb={insets.bottom}
       >
         {/* Main content */}
         <YStack
