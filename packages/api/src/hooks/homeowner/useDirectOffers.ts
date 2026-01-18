@@ -116,9 +116,9 @@ export function useCreateDirectOffer() {
       // Add tasks using indexed format
       if (data.tasks && data.tasks.length > 0) {
         data.tasks.forEach((task, index) => {
-          formData.append(`tasks[${index}]title`, task.title)
+          formData.append(`tasks[${index}].title`, task.title)
           if (task.description) {
-            formData.append(`tasks[${index}]description`, task.description)
+            formData.append(`tasks[${index}].description`, task.description)
           }
         })
       }
