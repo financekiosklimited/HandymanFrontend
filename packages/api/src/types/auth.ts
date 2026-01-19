@@ -1,4 +1,4 @@
-// Auth types for SolutionBank API
+// Auth types for HandymanKiosk API
 
 export type Role = 'homeowner' | 'handyman'
 export type NextAction = 'none' | 'verify_email' | 'fill_profile' | 'activate_role'

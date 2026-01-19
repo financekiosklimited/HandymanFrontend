@@ -41,7 +41,7 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
   try {
     // Get the Expo push token
     const pushTokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: 'solutionbank-5feb0', // Firebase project ID
+      projectId: 'handymankiosk', // Firebase project ID
     })
     token = pushTokenData.data
   } catch (error) {

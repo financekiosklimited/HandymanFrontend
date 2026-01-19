@@ -10,7 +10,7 @@ interface SearchBarProps {
 }
 
 export function SearchBar({
-  placeholder = 'Search SolutionBank',
+  placeholder = 'Search HandymanKiosk',
   value,
   onChangeText,
   onFocus,

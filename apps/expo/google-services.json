@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "928367356552",
-    "project_id": "solutionbank-5feb0",
-    "storage_bucket": "solutionbank-5feb0.firebasestorage.app"
+    "project_number": "910528617439",
+    "project_id": "handymankiosk",
+    "storage_bucket": "handymankiosk.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:928367356552:android:51c209fa83fe3027ef0d3d",
+        "mobilesdk_app_id": "1:910528617439:android:b2240b0b86c847ee4cc26a",
         "android_client_info": {
-          "package_name": "com.rif42.solutionbank"
+          "package_name": "com.handymankiosk.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDUQIFHUJdhmX3Qj5g7__icdTNJTnHiyRc"
+          "current_key": "AIzaSyDCfcpp0Fp3gWwwB-SDR8hkChDuEggg1mw"
         }
       ],
       "services": {

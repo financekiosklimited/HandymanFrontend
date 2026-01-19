@@ -188,7 +188,7 @@ export function HandymanHomeScreen() {
           </Button>
 
           <SearchBar
-            placeholder="Search SolutionBank"
+            placeholder="Search HandymanKiosk"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />

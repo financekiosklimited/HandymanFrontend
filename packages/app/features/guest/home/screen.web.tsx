@@ -121,7 +121,7 @@ export function GuestHomeScreen() {
           </Button>
 
           <SearchBar
-            placeholder="Search SolutionBank"
+            placeholder="Search HandymanKiosk"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />

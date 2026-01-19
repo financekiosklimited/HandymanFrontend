@@ -1,4 +1,4 @@
-# SolutionBank Frontend
+# HandymanKiosk Frontend
 
 ## Installation
 

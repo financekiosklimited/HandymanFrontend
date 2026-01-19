@@ -11912,6 +11912,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"handymankiosk@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "handymankiosk@workspace:."
+  dependencies:
+    "@babel/runtime": "npm:^7.24.6"
+    "@biomejs/biome": "npm:^1.9.3"
+    "@tamagui/cli": "npm:^1.143.1"
+    "@tamagui/react-native-svg": "npm:^1.143.1"
+    "@tamagui/react-native-web-lite": "npm:^1.143.1"
+    "@tamagui/toast": "npm:^1.143.1"
+    burnt: "npm:^0.13.0"
+    check-dependency-version-consistency: "npm:^4.1.0"
+    dotenv: "npm:^17.2.3"
+    expo-document-picker: "npm:~14.0.8"
+    expo-location: "npm:^19.0.8"
+    expo-video: "npm:~3.0.15"
+    expo-video-thumbnails: "npm:~10.0.8"
+    husky: "npm:^9.1.6"
+    turbo: "npm:^1.13.4"
+    typescript: "npm:~5.8.3"
+    ultra-runner: "npm:^3.10.5"
+    vitest: "npm:^2.1.1"
+  languageName: unknown
+  linkType: soft
+
 "has-flag@npm:^3.0.0":
   version: 3.0.0
   resolution: "has-flag@npm:3.0.0"
@@ -16473,31 +16498,6 @@ __metadata:
   checksum: 10/c2418807468d1e300038eaea62bd0c9142078b7b8195815a80fd87b196663dc552d9c8d7d7bbf85669b46c0a9bb2c2e5a40da882bf1e1e9bfadf45cdc2512d15
   languageName: node
   linkType: hard
-
-"solutionbank@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "solutionbank@workspace:."
-  dependencies:
-    "@babel/runtime": "npm:^7.24.6"
-    "@biomejs/biome": "npm:^1.9.3"
-    "@tamagui/cli": "npm:^1.143.1"
-    "@tamagui/react-native-svg": "npm:^1.143.1"
-    "@tamagui/react-native-web-lite": "npm:^1.143.1"
-    "@tamagui/toast": "npm:^1.143.1"
-    burnt: "npm:^0.13.0"
-    check-dependency-version-consistency: "npm:^4.1.0"
-    dotenv: "npm:^17.2.3"
-    expo-document-picker: "npm:~14.0.8"
-    expo-location: "npm:^19.0.8"
-    expo-video: "npm:~3.0.15"
-    expo-video-thumbnails: "npm:~10.0.8"
-    husky: "npm:^9.1.6"
-    turbo: "npm:^1.13.4"
-    typescript: "npm:~5.8.3"
-    ultra-runner: "npm:^3.10.5"
-    vitest: "npm:^2.1.1"
-  languageName: unknown
-  linkType: soft
 
 "sonner@npm:^0.3.5":
   version: 0.3.5
