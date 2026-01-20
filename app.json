@@ -13,6 +13,8 @@
     ],
     "ios": {
       "bundleIdentifier": "com.handymankiosk.app"
-    }
+    },
+    "owner": "rif42",
+    "slug": "solutionbank"
   }
 }

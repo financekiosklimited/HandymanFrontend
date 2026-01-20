@@ -36,7 +36,12 @@
       },
       "package": "com.handymankiosk.app",
       "googleServicesFile": "./google-services.json",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
       "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
@@ -67,8 +72,10 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "110ddff7-7c85-4ef9-9240-7d41dd244903"
+        "projectId": "da98b721-2eb2-41b7-a910-ab5303fc39e2"
       }
-    }
+    },
+    "owner": "rif42"
   }
 }
+ 
