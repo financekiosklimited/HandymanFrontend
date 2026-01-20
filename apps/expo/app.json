@@ -19,10 +19,14 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.handymankiosk.app",
+      "appleTeamId": "C6MM65232A",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show nearby jobs and handymen.",
         "UIBackgroundModes": ["remote-notification"]
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
