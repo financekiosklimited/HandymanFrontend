@@ -36,7 +36,7 @@ export function Logo({ size = 'md', showTagline = false }: LogoProps) {
           fontWeight="bold"
           color="$primary"
         >
-          SOLUTION BANK
+          HANDYMANKIOSK
         </Text>
         {showTagline && (
           <Text
