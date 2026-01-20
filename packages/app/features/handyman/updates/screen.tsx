@@ -11,7 +11,7 @@ import {
 import { ArrowLeft, Bell, MoreHorizontal } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import type { Notification } from '@my/api'
+import type { Notification, NotificationType } from '@my/api'
 
 export function HandymanUpdatesScreen() {
   const router = useRouter()
@@ -48,6 +48,20 @@ export function HandymanUpdatesScreen() {
     // Navigate based on notification type and data
     const data = notification.data
     const notificationType = notification.notification_type
+
+    // Handle chat message notifications - redirect to conversation screen
+    if (notificationType === ('chat_message_received' as any)) {
+      if (data?.conversation_id && data?.other_party_id && data?.other_party_name) {
+        const params = new URLSearchParams()
+        params.set('otherPartyId', data.other_party_id)
+        params.set('otherPartyName', data.other_party_name)
+        if (data.other_party_avatar) {
+          params.set('otherPartyAvatar', data.other_party_avatar)
+        }
+        router.push(`/(handyman)/messages/${data.conversation_id}?${params.toString()}`)
+      }
+      return
+    }
 
     // Handle direct offer notifications - redirect to jobs with offers tab
     if (notificationType.startsWith('direct_offer_')) {

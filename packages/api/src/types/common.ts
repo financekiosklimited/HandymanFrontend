@@ -83,6 +83,7 @@ export type NotificationType =
   | 'direct_offer_rejected'
   | 'direct_offer_cancelled'
   | 'direct_offer_expired'
+  | 'chat_message_received'
 
 export interface Notification {
   public_id: string
