@@ -40,18 +40,18 @@
     "@tamagui/toast": "^1.143.1",
     "burnt": "^0.13.0",
     "check-dependency-version-consistency": "^4.1.0",
+    "expo": "~54.0.30",
     "expo-document-picker": "~14.0.8",
     "expo-location": "^19.0.8",
     "expo-video": "~3.0.15",
     "expo-video-thumbnails": "~10.0.8",
     "husky": "^9.1.6",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
     "turbo": "^1.13.4",
     "typescript": "~5.8.3",
     "ultra-runner": "^3.10.5",
-    "vitest": "^2.1.1",
-    "expo": "~54.0.30",
-    "react": "19.1.0",
-    "react-native": "0.81.5"
+    "vitest": "^2.1.1"
   },
   "packageManager": "yarn@4.5.0",
   "engines": {
