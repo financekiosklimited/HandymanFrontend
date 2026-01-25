@@ -598,7 +598,7 @@ export function useStartWorkSession() {
       formData.append('started_at', data.started_at)
       formData.append('start_latitude', data.start_latitude.toFixed(6))
       formData.append('start_longitude', data.start_longitude.toFixed(6))
-      if (data.start_accuracy) formData.append('start_accuracy', data.start_accuracy.toString())
+      if (data.start_accuracy) formData.append('start_accuracy', data.start_accuracy.toFixed(2))
       // React Native FormData requires this specific format for files
       formData.append('start_photo', data.start_photo as any)
 
@@ -645,7 +645,7 @@ export function useStopWorkSession() {
       formData.append('ended_at', data.ended_at)
       formData.append('end_latitude', data.end_latitude.toFixed(6))
       formData.append('end_longitude', data.end_longitude.toFixed(6))
-      if (data.end_accuracy) formData.append('end_accuracy', data.end_accuracy.toString())
+      if (data.end_accuracy) formData.append('end_accuracy', data.end_accuracy.toFixed(2))
       formData.append('end_photo', data.end_photo as any)
 
       const response = await apiClient

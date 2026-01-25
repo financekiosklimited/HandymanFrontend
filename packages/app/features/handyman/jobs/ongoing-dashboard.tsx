@@ -2867,6 +2867,30 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                       </Text>
                     </YStack>
 
+                    {/* Reminder Note */}
+                    <XStack
+                      bg="rgba(59, 130, 246, 0.1)"
+                      borderRadius={12}
+                      p="$sm"
+                      alignItems="center"
+                      gap="$sm"
+                      borderWidth={1}
+                      borderColor="rgba(59, 130, 246, 0.2)"
+                    >
+                      <Camera
+                        size={16}
+                        color="#3B82F6"
+                      />
+                      <Text
+                        flex={1}
+                        fontSize="$2"
+                        color="#3B82F6"
+                        fontWeight="500"
+                      >
+                        Don't forget to take pictures for your work report!
+                      </Text>
+                    </XStack>
+
                     {active_session.media && active_session.media.length > 0 && (
                       <MediaGallery
                         media={active_session.media}
