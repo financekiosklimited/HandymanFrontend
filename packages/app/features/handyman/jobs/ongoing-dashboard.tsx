@@ -2874,6 +2874,8 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                       />
                     )}
 
+                    {/* TEMPORARILY DISABLED - Upload Evidence Section
+                       TODO: Re-enable when needed by uncommenting the section below
                     <YStack
                       gap="$sm"
                       p="$md"
@@ -2936,6 +2938,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                         </Button>
                       </XStack>
                     </YStack>
+                    */}
 
                     <Button
                       bg="$error"
