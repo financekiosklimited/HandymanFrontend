@@ -1192,10 +1192,10 @@ export function ChatScreen({ jobId, chatRole }: ChatScreenProps) {
               file,
               thumbnail: attachment.thumbnail_uri
                 ? {
-                    uri: attachment.thumbnail_uri,
-                    type: 'image/jpeg',
-                    name: `${attachment.name}_thumb.jpg`,
-                  }
+                  uri: attachment.thumbnail_uri,
+                  type: 'image/jpeg',
+                  name: `${attachment.name}_thumb.jpg`,
+                }
                 : undefined,
               duration_seconds: attachment.duration_seconds,
             }
@@ -1245,6 +1245,7 @@ export function ChatScreen({ jobId, chatRole }: ChatScreenProps) {
         <YStack
           flex={1}
           pt={safeArea.top}
+          pb={safeArea.bottom}
           alignItems="center"
           justifyContent="center"
           gap="$md"
