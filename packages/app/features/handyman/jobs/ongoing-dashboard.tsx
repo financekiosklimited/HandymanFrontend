@@ -2887,7 +2887,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                         color="#3B82F6"
                         fontWeight="500"
                       >
-                        Don't forget to take pictures for your work report!
+                        Don't forget to take pictures or videos for your work report!
                       </Text>
                     </XStack>
 
