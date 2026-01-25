@@ -470,7 +470,7 @@ export function HandymanProfileEditScreen() {
                     size="$3"
                     bg={formData.is_active ? '$primary' : '$borderColorHover'}
                   >
-                    <Switch.Thumb animation="quick" />
+                    <Switch.Thumb animation="quick" bg="white" />
                   </Switch>
                 </XStack>
 
@@ -509,7 +509,7 @@ export function HandymanProfileEditScreen() {
                     size="$3"
                     bg={formData.is_available ? '$primary' : '$borderColorHover'}
                   >
-                    <Switch.Thumb animation="quick" />
+                    <Switch.Thumb animation="quick" bg="white" />
                   </Switch>
                 </XStack>
               </YStack>
@@ -578,7 +578,7 @@ export function HandymanProfileEditScreen() {
           <YStack
             px="$5"
             py="$4"
-            pb={insets.bottom + 20}
+            pb={insets.bottom}
             borderTopWidth={1}
             borderTopColor="$borderColor"
           >

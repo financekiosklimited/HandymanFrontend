@@ -957,10 +957,10 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
             bottom={0}
             left={0}
             right={0}
-            bg="$backgroundStrong"
+            bg="$background"
             px="$lg"
             pt="$md"
-            pb={insets.bottom + 16}
+            pb={insets.bottom}
             gap="$sm"
             borderTopWidth={1}
             borderTopColor="$borderColor"
@@ -1054,7 +1054,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
             bg="$backgroundStrong"
             px="$lg"
             pt="$md"
-            pb={insets.bottom + 16}
+            pb={insets.bottom}
             borderTopWidth={1}
             borderTopColor="$borderColor"
           >

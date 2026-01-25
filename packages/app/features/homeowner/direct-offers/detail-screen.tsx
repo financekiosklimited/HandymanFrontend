@@ -1036,7 +1036,7 @@ export function HomeownerDirectOfferDetailScreen({
         {(canCancel || canConvert) && (
           <YStack
             px="$4"
-            pb={insets.bottom + 16}
+            pb={insets.bottom}
             pt="$3"
             borderTopWidth={1}
             borderColor="$borderColor"

@@ -352,7 +352,7 @@ export function HomeownerProfileEditScreen() {
           <YStack
             px="$5"
             py="$4"
-            pb={insets.bottom + 20}
+            pb={insets.bottom}
             borderTopWidth={1}
             borderTopColor="$borderColor"
           >

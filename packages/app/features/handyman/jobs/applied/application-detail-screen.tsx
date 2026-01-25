@@ -1310,7 +1310,7 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
           bg="$backgroundStrong"
           px="$lg"
           pt="$md"
-          pb={insets.bottom + 8}
+          pb={insets.bottom}
           gap="$sm"
           borderTopWidth={1}
           borderTopColor="$borderColor"

@@ -987,7 +987,7 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
           bg="$backgroundStrong"
           px="$lg"
           pt="$md"
-          pb={insets.bottom + 8}
+          pb={insets.bottom}
           gap="$sm"
           borderTopWidth={1}
           borderTopColor="$borderColor"
