@@ -5,6 +5,7 @@ import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, Input }
 import { GradientBackground, AttachmentGrid, ImageViewer } from '@my/ui'
 import { useJobChat, useChatMessages, useSendMessage, useMarkAsRead, chatQueryKeys } from '@my/api'
 import type { ChatMessage, ChatConversation, Attachment, AttachmentUpload } from '@my/api'
+import { isUnsupportedImageFormat } from '@my/api'
 import {
   ArrowLeft,
   Send,
@@ -683,15 +684,35 @@ function ChatInput({
       })
 
       if (!result.canceled && result.assets) {
-        const newAttachments: LocalAttachment[] = result.assets.map((asset) => ({
-          id: generateId(),
-          uri: asset.uri,
-          name: asset.fileName || `image_${Date.now()}.jpg`,
-          type: asset.mimeType || 'image/jpeg',
-          file_type: 'image' as const,
-          file_size: asset.fileSize,
-        }))
-        setAttachments((prev) => [...prev, ...newAttachments].slice(0, MAX_ATTACHMENTS))
+        // Filter out unsupported RAW formats
+        const supportedAssets = result.assets.filter((asset) => {
+          const fileName = asset.fileName || ''
+          if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+            return false
+          }
+          return true
+        })
+
+        // Show alert if some files were filtered out
+        if (supportedAssets.length < result.assets.length) {
+          const rejectedCount = result.assets.length - supportedAssets.length
+          Alert.alert(
+            'Unsupported Format',
+            `${rejectedCount} image(s) were not added because RAW/DNG formats are not supported. Please use JPEG, PNG, or HEIC images.`
+          )
+        }
+
+        if (supportedAssets.length > 0) {
+          const newAttachments: LocalAttachment[] = supportedAssets.map((asset) => ({
+            id: generateId(),
+            uri: asset.uri,
+            name: asset.fileName || `image_${Date.now()}.jpg`,
+            type: asset.mimeType || 'image/jpeg',
+            file_type: 'image' as const,
+            file_size: asset.fileSize,
+          }))
+          setAttachments((prev) => [...prev, ...newAttachments].slice(0, MAX_ATTACHMENTS))
+        }
       }
     } catch (error) {
       console.error('Error picking images:', error)
@@ -767,6 +788,18 @@ function ChatInput({
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0]!
+        const fileName = asset.fileName || ''
+        
+        // Check for unsupported RAW formats
+        if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+          Alert.alert(
+            'Unsupported Format',
+            'RAW/DNG formats are not supported. Please capture photos in JPEG or HEIC format.'
+          )
+          setIsProcessing(false)
+          return
+        }
+
         const newAttachment: LocalAttachment = {
           id: generateId(),
           uri: asset.uri,

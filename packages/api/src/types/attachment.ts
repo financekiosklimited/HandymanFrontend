@@ -35,6 +35,51 @@ export const DOCUMENT_MIME_TYPES = [
   'text/plain',
 ] as const
 
+// Unsupported RAW image formats (DNG, CR2, NEF, ARW, etc.)
+export const UNSUPPORTED_IMAGE_EXTENSIONS = [
+  'dng',   // Adobe Digital Negative
+  'raw',   // Generic RAW
+  'cr2',   // Canon RAW 2
+  'cr3',   // Canon RAW 3
+  'nef',   // Nikon Electronic Format
+  'arw',   // Sony Alpha RAW
+  'orf',   // Olympus RAW Format
+  'rw2',   // Panasonic RAW
+  'pef',   // Pentax Electronic Format
+  'raf',   // Fujifilm RAW
+  'srw',   // Samsung RAW
+] as const
+
+export const UNSUPPORTED_IMAGE_MIME_TYPES = [
+  'image/x-adobe-dng',
+  'image/x-dcraw',
+  'image/x-canon-cr2',
+  'image/x-canon-cr3',
+  'image/x-nikon-nef',
+  'image/x-sony-arw',
+  'image/x-olympus-orf',
+  'image/x-panasonic-rw2',
+  'image/x-pentax-pef',
+  'image/x-fuji-raf',
+  'image/x-samsung-srw',
+] as const
+
+/**
+ * Check if a file is an unsupported RAW image format
+ */
+export function isUnsupportedImageFormat(fileName: string, mimeType?: string): boolean {
+  // Check by extension
+  const ext = fileName.split('.').pop()?.toLowerCase()
+  if (ext && (UNSUPPORTED_IMAGE_EXTENSIONS as readonly string[]).includes(ext)) {
+    return true
+  }
+  // Check by MIME type
+  if (mimeType && UNSUPPORTED_IMAGE_MIME_TYPES.some((t) => mimeType.toLowerCase().includes(t))) {
+    return true
+  }
+  return false
+}
+
 // File extensions for document icons
 export type DocumentExtension =
   | 'pdf'

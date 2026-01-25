@@ -20,6 +20,7 @@ import {
   useApplyForJob,
   formatErrorMessage,
   ATTACHMENT_LIMITS,
+  isUnsupportedImageFormat,
 } from '@my/api'
 import type { LocalAttachment, AttachmentUpload } from '@my/api'
 import { useRouter } from 'expo-router'
@@ -191,18 +192,29 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
     })
 
     if (!result.canceled && result.assets) {
-      const attachments: LocalAttachment[] = result.assets.map((asset) => ({
-        id: generateId(),
-        file: {
-          uri: asset.uri,
-          type: asset.mimeType || 'image/jpeg',
-          name: asset.fileName || `image_${Date.now()}.jpg`,
-        },
-        file_type: 'image' as const,
-        file_name: asset.fileName || `image_${Date.now()}.jpg`,
-        file_size: asset.fileSize || 0,
-      }))
-      setFormData((prev) => ({ ...prev, attachments: [...prev.attachments, ...attachments] }))
+      // Filter out unsupported RAW formats
+      const supportedAssets = result.assets.filter((asset) => {
+        const fileName = asset.fileName || ''
+        if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+          return false
+        }
+        return true
+      })
+
+      if (supportedAssets.length > 0) {
+        const attachments: LocalAttachment[] = supportedAssets.map((asset) => ({
+          id: generateId(),
+          file: {
+            uri: asset.uri,
+            type: asset.mimeType || 'image/jpeg',
+            name: asset.fileName || `image_${Date.now()}.jpg`,
+          },
+          file_type: 'image' as const,
+          file_name: asset.fileName || `image_${Date.now()}.jpg`,
+          file_size: asset.fileSize || 0,
+        }))
+        setFormData((prev) => ({ ...prev, attachments: [...prev.attachments, ...attachments] }))
+      }
     }
     setAttachmentPickerOpen(false)
   }, [totalAttachments, maxAttachments])
@@ -221,6 +233,14 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
 
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0]
+      const fileName = asset.fileName || ''
+      
+      // Check for unsupported RAW formats
+      if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+        setAttachmentPickerOpen(false)
+        return
+      }
+
       const newAttachment: LocalAttachment = {
         id: generateId(),
         file: {

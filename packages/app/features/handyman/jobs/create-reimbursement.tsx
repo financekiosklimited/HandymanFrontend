@@ -38,7 +38,12 @@ import * as DocumentPicker from 'expo-document-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
 import * as ImageManipulator from 'expo-image-manipulator'
 import { Modal, Pressable, Platform, ActionSheetIOS } from 'react-native'
-import { useCreateReimbursement, useReimbursementCategories, ATTACHMENT_LIMITS } from '@my/api'
+import {
+  useCreateReimbursement,
+  useReimbursementCategories,
+  ATTACHMENT_LIMITS,
+  isUnsupportedImageFormat,
+} from '@my/api'
 import type { ReimbursementCategory, LocalAttachment, AttachmentUpload } from '@my/api'
 
 // Generate unique ID for local attachments
@@ -112,18 +117,29 @@ export function CreateReimbursementScreen() {
     })
 
     if (!result.canceled && result.assets) {
-      const newAttachments: LocalAttachment[] = result.assets.map((asset) => ({
-        id: generateId(),
-        file: {
-          uri: asset.uri,
-          type: asset.mimeType || 'image/jpeg',
-          name: asset.fileName || `image_${Date.now()}.jpg`,
-        },
-        file_type: 'image' as const,
-        file_name: asset.fileName || `image_${Date.now()}.jpg`,
-        file_size: asset.fileSize || 0,
-      }))
-      setAttachments((prev) => [...prev, ...newAttachments])
+      // Filter out unsupported RAW formats
+      const supportedAssets = result.assets.filter((asset) => {
+        const fileName = asset.fileName || ''
+        if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+          return false
+        }
+        return true
+      })
+
+      if (supportedAssets.length > 0) {
+        const newAttachments: LocalAttachment[] = supportedAssets.map((asset) => ({
+          id: generateId(),
+          file: {
+            uri: asset.uri,
+            type: asset.mimeType || 'image/jpeg',
+            name: asset.fileName || `image_${Date.now()}.jpg`,
+          },
+          file_type: 'image' as const,
+          file_name: asset.fileName || `image_${Date.now()}.jpg`,
+          file_size: asset.fileSize || 0,
+        }))
+        setAttachments((prev) => [...prev, ...newAttachments])
+      }
     }
     setAttachmentPickerOpen(false)
   }, [totalAttachments, maxAttachments, toast])
@@ -154,6 +170,14 @@ export function CreateReimbursementScreen() {
 
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0]
+      const fileName = asset.fileName || ''
+      
+      // Check for unsupported RAW formats
+      if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+        setAttachmentPickerOpen(false)
+        return
+      }
+
       const newAttachment: LocalAttachment = {
         id: generateId(),
         file: {

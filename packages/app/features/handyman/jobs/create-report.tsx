@@ -3,7 +3,12 @@
 import { useState, useMemo } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, TextArea } from '@my/ui'
 import { GradientBackground } from '@my/ui'
-import { useHandymanJobDetail, useHandymanWorkSessions, useCreateDailyReport } from '@my/api'
+import {
+  useHandymanJobDetail,
+  useHandymanWorkSessions,
+  useCreateDailyReport,
+  isUnsupportedImageFormat,
+} from '@my/api'
 import {
   ArrowLeft,
   Clock,
@@ -94,7 +99,15 @@ export function CreateReportScreen() {
     })
 
     if (!result.canceled) {
-      setPhotos((prev) => [...prev, ...result.assets.map((a) => a.uri)])
+      // Filter out unsupported RAW formats
+      const supportedAssets = result.assets.filter((asset) => {
+        const fileName = asset.fileName || ''
+        if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+          return false
+        }
+        return true
+      })
+      setPhotos((prev) => [...prev, ...supportedAssets.map((a) => a.uri)])
     }
   }
 

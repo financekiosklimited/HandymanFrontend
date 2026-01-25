@@ -19,7 +19,7 @@ import { useCategories, useCities, useCreateJob } from '@my/api'
 import type { Category } from '@my/api'
 import type { City } from '@my/api'
 import type { CreateJobRequest, CreateJobValidationError, LocalAttachment } from '@my/api'
-import { getFileTypeFromMime, ATTACHMENT_LIMITS } from '@my/api'
+import { getFileTypeFromMime, ATTACHMENT_LIMITS, isUnsupportedImageFormat } from '@my/api'
 import { useRouter } from 'expo-router'
 import {
   ArrowLeft,
@@ -245,18 +245,35 @@ export function AddJobScreen() {
     })
 
     if (!result.canceled && result.assets) {
-      const newAttachments: LocalAttachment[] = result.assets.map((asset) => ({
-        id: generateId(),
-        file: {
-          uri: asset.uri,
-          type: asset.mimeType || 'image/jpeg',
-          name: asset.fileName || `image_${Date.now()}.jpg`,
-        },
-        file_type: 'image' as const,
-        file_name: asset.fileName || `image_${Date.now()}.jpg`,
-        file_size: asset.fileSize || 0,
-      }))
-      updateField('attachments', [...formData.attachments, ...newAttachments])
+      // Filter out unsupported RAW formats
+      const supportedAssets = result.assets.filter((asset) => {
+        const fileName = asset.fileName || ''
+        if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+          return false
+        }
+        return true
+      })
+
+      // Show error if some files were filtered out
+      if (supportedAssets.length < result.assets.length) {
+        const rejectedCount = result.assets.length - supportedAssets.length
+        setGeneralError(`${rejectedCount} image(s) rejected: RAW/DNG formats not supported`)
+      }
+
+      if (supportedAssets.length > 0) {
+        const newAttachments: LocalAttachment[] = supportedAssets.map((asset) => ({
+          id: generateId(),
+          file: {
+            uri: asset.uri,
+            type: asset.mimeType || 'image/jpeg',
+            name: asset.fileName || `image_${Date.now()}.jpg`,
+          },
+          file_type: 'image' as const,
+          file_name: asset.fileName || `image_${Date.now()}.jpg`,
+          file_size: asset.fileSize || 0,
+        }))
+        updateField('attachments', [...formData.attachments, ...newAttachments])
+      }
     }
     setAttachmentPickerOpen(false)
   }, [formData.attachments, updateField])
@@ -282,6 +299,15 @@ export function AddJobScreen() {
 
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0]
+      const fileName = asset.fileName || ''
+      
+      // Check for unsupported RAW formats
+      if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+        setGeneralError('RAW/DNG formats are not supported')
+        setAttachmentPickerOpen(false)
+        return
+      }
+
       const newAttachment: LocalAttachment = {
         id: generateId(),
         file: {

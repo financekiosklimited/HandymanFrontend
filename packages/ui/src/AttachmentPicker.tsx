@@ -35,6 +35,51 @@ const IMAGE_MIME_TYPES = [
 ]
 const VIDEO_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/x-m4v', 'video/webm', 'video/3gpp']
 
+// Unsupported RAW image formats (DNG, CR2, NEF, ARW, etc.)
+const UNSUPPORTED_IMAGE_EXTENSIONS = [
+  'dng',   // Adobe Digital Negative
+  'raw',   // Generic RAW
+  'cr2',   // Canon RAW 2
+  'cr3',   // Canon RAW 3
+  'nef',   // Nikon Electronic Format
+  'arw',   // Sony Alpha RAW
+  'orf',   // Olympus RAW Format
+  'rw2',   // Panasonic RAW
+  'pef',   // Pentax Electronic Format
+  'raf',   // Fujifilm RAW
+  'srw',   // Samsung RAW
+]
+
+const UNSUPPORTED_IMAGE_MIME_TYPES = [
+  'image/x-adobe-dng',
+  'image/x-dcraw',
+  'image/x-canon-cr2',
+  'image/x-canon-cr3',
+  'image/x-nikon-nef',
+  'image/x-sony-arw',
+  'image/x-olympus-orf',
+  'image/x-panasonic-rw2',
+  'image/x-pentax-pef',
+  'image/x-fuji-raf',
+  'image/x-samsung-srw',
+]
+
+/**
+ * Check if a file is an unsupported RAW image format
+ */
+function isUnsupportedImageFormat(fileName: string, mimeType?: string): boolean {
+  // Check by extension
+  const ext = fileName.split('.').pop()?.toLowerCase()
+  if (ext && UNSUPPORTED_IMAGE_EXTENSIONS.includes(ext)) {
+    return true
+  }
+  // Check by MIME type
+  if (mimeType && UNSUPPORTED_IMAGE_MIME_TYPES.some((t) => mimeType.toLowerCase().includes(t))) {
+    return true
+  }
+  return false
+}
+
 function getFileTypeFromMime(mimeType: string): AttachmentFileType {
   if (IMAGE_MIME_TYPES.some((t) => mimeType.startsWith(t.split('/')[0] ?? ''))) {
     return 'image'
@@ -196,15 +241,35 @@ export function AttachmentPicker({
       })
 
       if (!result.canceled && result.assets) {
-        const newAttachments: LocalAttachment[] = result.assets.map((asset) => ({
-          id: generateId(),
-          uri: asset.uri,
-          name: asset.fileName || `image_${Date.now()}.jpg`,
-          type: asset.mimeType || 'image/jpeg',
-          file_type: 'image' as const,
-          file_size: asset.fileSize,
-        }))
-        onAttachmentsChange([...attachments, ...newAttachments])
+        // Filter out unsupported RAW formats
+        const supportedAssets = result.assets.filter((asset) => {
+          const fileName = asset.fileName || ''
+          if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+            return false
+          }
+          return true
+        })
+
+        // Show alert if some files were filtered out
+        if (supportedAssets.length < result.assets.length) {
+          const rejectedCount = result.assets.length - supportedAssets.length
+          Alert.alert(
+            'Unsupported Format',
+            `${rejectedCount} image(s) were not added because RAW/DNG formats are not supported. Please use JPEG, PNG, or HEIC images.`
+          )
+        }
+
+        if (supportedAssets.length > 0) {
+          const newAttachments: LocalAttachment[] = supportedAssets.map((asset) => ({
+            id: generateId(),
+            uri: asset.uri,
+            name: asset.fileName || `image_${Date.now()}.jpg`,
+            type: asset.mimeType || 'image/jpeg',
+            file_type: 'image' as const,
+            file_size: asset.fileSize,
+          }))
+          onAttachmentsChange([...attachments, ...newAttachments])
+        }
       }
     } catch (error) {
       console.error('Error picking images:', error)
@@ -318,6 +383,18 @@ export function AttachmentPicker({
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0]!
+        const fileName = asset.fileName || ''
+        
+        // Check for unsupported RAW formats
+        if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+          Alert.alert(
+            'Unsupported Format',
+            'RAW/DNG formats are not supported. Please capture photos in JPEG or HEIC format.'
+          )
+          setIsLoading(false)
+          return
+        }
+
         const newAttachment: LocalAttachment = {
           id: generateId(),
           uri: asset.uri,

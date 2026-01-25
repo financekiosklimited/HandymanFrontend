@@ -44,6 +44,7 @@ import {
   useUpdateReimbursement,
   useReimbursementCategories,
   ATTACHMENT_LIMITS,
+  isUnsupportedImageFormat,
 } from '@my/api'
 import type {
   ReimbursementCategory,
@@ -146,18 +147,29 @@ export function EditReimbursementScreen() {
     })
 
     if (!result.canceled && result.assets) {
-      const newLocalAttachments: LocalAttachment[] = result.assets.map((asset) => ({
-        id: generateId(),
-        file: {
-          uri: asset.uri,
-          type: asset.mimeType || 'image/jpeg',
-          name: asset.fileName || `image_${Date.now()}.jpg`,
-        },
-        file_type: 'image' as const,
-        file_name: asset.fileName || `image_${Date.now()}.jpg`,
-        file_size: asset.fileSize || 0,
-      }))
-      setNewAttachments((prev) => [...prev, ...newLocalAttachments])
+      // Filter out unsupported RAW formats
+      const supportedAssets = result.assets.filter((asset) => {
+        const fileName = asset.fileName || ''
+        if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+          return false
+        }
+        return true
+      })
+
+      if (supportedAssets.length > 0) {
+        const newLocalAttachments: LocalAttachment[] = supportedAssets.map((asset) => ({
+          id: generateId(),
+          file: {
+            uri: asset.uri,
+            type: asset.mimeType || 'image/jpeg',
+            name: asset.fileName || `image_${Date.now()}.jpg`,
+          },
+          file_type: 'image' as const,
+          file_name: asset.fileName || `image_${Date.now()}.jpg`,
+          file_size: asset.fileSize || 0,
+        }))
+        setNewAttachments((prev) => [...prev, ...newLocalAttachments])
+      }
     }
     setAttachmentPickerOpen(false)
   }, [totalAttachments, maxAttachments, toast])
@@ -188,6 +200,14 @@ export function EditReimbursementScreen() {
 
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0]
+      const fileName = asset.fileName || ''
+      
+      // Check for unsupported RAW formats
+      if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
+        setAttachmentPickerOpen(false)
+        return
+      }
+
       const newLocalAttachment: LocalAttachment = {
         id: generateId(),
         file: {
