@@ -2375,6 +2375,13 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
 
   const handleCreateReport = () =>
     router.push({ pathname: '/(handyman)/jobs/ongoing/reports/create', params: { jobId } } as any)
+
+  // Check if a daily report has already been submitted for today
+  const hasReportForToday = (() => {
+    if (!reports || reports.length === 0) return false
+    const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+    return reports.some((report) => report.report_date === today)
+  })()
   const handleEditReport = (reportId: string) =>
     router.push({
       pathname: '/(handyman)/jobs/ongoing/reports/[reportId]/edit',
@@ -3175,7 +3182,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                       </View>
                     )}
                   </XStack>
-                  {!isCompleted && (
+                  {!isCompleted && !hasReportForToday && (
                     <Button
                       unstyled
                       onPress={handleCreateReport}
