@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, TextArea } from '@my/ui'
 import { GradientBackground } from '@my/ui'
-import { useHandymanJobDetail, useHandymanDailyReport, useUpdateDailyReport } from '@my/api'
+import { useJobDashboard, useHandymanDailyReport, useUpdateDailyReport } from '@my/api'
 import {
   ArrowLeft,
   Clock,
@@ -41,8 +41,8 @@ export function EditReportScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Fetch job details to get all tasks (to cross-ref with report tasks)
-  const { data: job, isLoading: jobLoading } = useHandymanJobDetail(jobId || '')
+  // Fetch job dashboard to get all tasks (to cross-ref with report tasks)
+  const { data: dashboard, isLoading: dashboardLoading } = useJobDashboard(jobId || '')
 
   // Fetch existing report
   const {
@@ -62,17 +62,21 @@ export function EditReportScreen() {
       setWorkHours(Math.floor(totalSeconds / 3600))
       setWorkMinutes(Math.floor((totalSeconds % 3600) / 60))
 
-      if (job?.tasks && report.tasks_worked) {
-        const reportTaskMap = new Map(report.tasks_worked.map((t) => [t.public_id, t]))
+      if (dashboard?.tasks_progress?.tasks && report.tasks_worked) {
+        // Map report tasks by the underlying task definition ID (dashboard task public_id)
+        // Note: report.tasks_worked[i].task.public_id corresponds to the task definition ID
+        const reportTaskMap = new Map(report.tasks_worked.map((t) => [t.task.public_id, t]))
 
-        const initializedTasks = job.tasks.map((jobTask) => {
+        const initializedTasks = dashboard.tasks_progress.tasks.map((jobTask) => {
           const reportTask = reportTaskMap.get(jobTask.public_id)
           return {
             public_id: jobTask.public_id,
             title: jobTask.title,
             description: jobTask.description,
             is_completed: jobTask.is_completed,
-            marked_complete: reportTask ? reportTask.marked_complete : jobTask.is_completed,
+            // If it's in the report, use the report's marked_complete status
+            // If NOT in the report, default to whether the task itself is already completed (or false)
+            marked_complete: reportTask ? reportTask.marked_complete : false,
             notes: reportTask ? reportTask.notes || '' : '',
           }
         })
@@ -81,7 +85,7 @@ export function EditReportScreen() {
 
       setIsInitialized(true)
     }
-  }, [report, job, isInitialized])
+  }, [report, dashboard, isInitialized])
 
   const handleToggleTask = (taskId: string) => {
     setTasks((prev) =>
@@ -149,7 +153,7 @@ export function EditReportScreen() {
     )
   }
 
-  if (jobLoading || reportLoading) {
+  if (dashboardLoading || reportLoading) {
     return (
       <GradientBackground>
         <YStack

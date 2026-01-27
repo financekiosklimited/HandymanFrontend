@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, TextArea } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import {
-  useHandymanJobDetail,
+  useJobDashboard,
   useHandymanWorkSessions,
   useCreateDailyReport,
   isUnsupportedImageFormat,
@@ -46,16 +46,16 @@ export function CreateReportScreen() {
   const [photos, setPhotos] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Fetch job details to get tasks
-  const { data: job, isLoading: jobLoading } = useHandymanJobDetail(jobId || '')
+  // Fetch job dashboard to get tasks
+  const { data: dashboard, isLoading: dashboardLoading } = useJobDashboard(jobId || '')
 
   // Fetch sessions to calculate total work time
   const { data: sessions } = useHandymanWorkSessions(jobId || '')
 
-  // Initialize tasks when job loads
+  // Initialize tasks when dashboard loads
   useMemo(() => {
-    if (job?.tasks && tasks.length === 0) {
-      const initialTasks = job.tasks.map((task) => ({
+    if (dashboard?.tasks_progress?.tasks && tasks.length === 0) {
+      const initialTasks = dashboard.tasks_progress.tasks.map((task) => ({
         public_id: task.public_id,
         title: task.title,
         description: task.description,
@@ -65,7 +65,7 @@ export function CreateReportScreen() {
       }))
       setTasks(initialTasks)
     }
-  }, [job?.tasks])
+  }, [dashboard?.tasks_progress?.tasks])
 
   // Calculate total session time for today
   useMemo(() => {
@@ -173,7 +173,7 @@ export function CreateReportScreen() {
     )
   }
 
-  if (jobLoading) {
+  if (dashboardLoading) {
     return (
       <GradientBackground>
         <YStack
