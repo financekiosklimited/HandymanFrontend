@@ -2324,12 +2324,15 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
     if (result.canceled || !result.assets?.[0]) return
 
     const asset = result.assets[0]
-    
+
     // Check for unsupported RAW formats for photos
     if (type === 'photo') {
       const fileName = asset.fileName || ''
       if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
-        toast.show('Unsupported format', { message: 'RAW/DNG formats are not supported', native: false })
+        toast.show('Unsupported format', {
+          message: 'RAW/DNG formats are not supported',
+          native: false,
+        })
         return
       }
     }

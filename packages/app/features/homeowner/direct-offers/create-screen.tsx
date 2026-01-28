@@ -328,7 +328,7 @@ export function CreateDirectOfferScreen() {
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0]
       const fileName = asset.fileName || ''
-      
+
       // Check for unsupported RAW formats
       if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
         setGeneralError('RAW/DNG formats are not supported')

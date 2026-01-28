@@ -8,9 +8,7 @@
     "android": {
       "package": "com.handymankiosk.app"
     },
-    "plugins": [
-      "expo-video"
-    ],
+    "plugins": ["expo-video"],
     "ios": {
       "bundleIdentifier": "com.handymankiosk.app"
     },

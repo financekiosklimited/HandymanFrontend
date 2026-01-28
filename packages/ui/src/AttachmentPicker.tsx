@@ -37,17 +37,17 @@ const VIDEO_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/x-m4v', 'video/
 
 // Unsupported RAW image formats (DNG, CR2, NEF, ARW, etc.)
 const UNSUPPORTED_IMAGE_EXTENSIONS = [
-  'dng',   // Adobe Digital Negative
-  'raw',   // Generic RAW
-  'cr2',   // Canon RAW 2
-  'cr3',   // Canon RAW 3
-  'nef',   // Nikon Electronic Format
-  'arw',   // Sony Alpha RAW
-  'orf',   // Olympus RAW Format
-  'rw2',   // Panasonic RAW
-  'pef',   // Pentax Electronic Format
-  'raf',   // Fujifilm RAW
-  'srw',   // Samsung RAW
+  'dng', // Adobe Digital Negative
+  'raw', // Generic RAW
+  'cr2', // Canon RAW 2
+  'cr3', // Canon RAW 3
+  'nef', // Nikon Electronic Format
+  'arw', // Sony Alpha RAW
+  'orf', // Olympus RAW Format
+  'rw2', // Panasonic RAW
+  'pef', // Pentax Electronic Format
+  'raf', // Fujifilm RAW
+  'srw', // Samsung RAW
 ]
 
 const UNSUPPORTED_IMAGE_MIME_TYPES = [
@@ -384,7 +384,7 @@ export function AttachmentPicker({
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0]!
         const fileName = asset.fileName || ''
-        
+
         // Check for unsupported RAW formats
         if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
           Alert.alert(

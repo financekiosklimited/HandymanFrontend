@@ -37,17 +37,17 @@ export const DOCUMENT_MIME_TYPES = [
 
 // Unsupported RAW image formats (DNG, CR2, NEF, ARW, etc.)
 export const UNSUPPORTED_IMAGE_EXTENSIONS = [
-  'dng',   // Adobe Digital Negative
-  'raw',   // Generic RAW
-  'cr2',   // Canon RAW 2
-  'cr3',   // Canon RAW 3
-  'nef',   // Nikon Electronic Format
-  'arw',   // Sony Alpha RAW
-  'orf',   // Olympus RAW Format
-  'rw2',   // Panasonic RAW
-  'pef',   // Pentax Electronic Format
-  'raf',   // Fujifilm RAW
-  'srw',   // Samsung RAW
+  'dng', // Adobe Digital Negative
+  'raw', // Generic RAW
+  'cr2', // Canon RAW 2
+  'cr3', // Canon RAW 3
+  'nef', // Nikon Electronic Format
+  'arw', // Sony Alpha RAW
+  'orf', // Olympus RAW Format
+  'rw2', // Panasonic RAW
+  'pef', // Pentax Electronic Format
+  'raf', // Fujifilm RAW
+  'srw', // Samsung RAW
 ] as const
 
 export const UNSUPPORTED_IMAGE_MIME_TYPES = [
