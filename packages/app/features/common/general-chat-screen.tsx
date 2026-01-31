@@ -14,7 +14,6 @@ import {
 } from '@my/api'
 import type { ChatMessage, AttachmentUpload } from '@my/api'
 import {
-  ArrowLeft,
   Send,
   Paperclip,
   X,
@@ -27,10 +26,14 @@ import {
   Video,
   Play,
   Film,
+  ArrowLeft,
 } from '@tamagui/lucide-icons'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import { showMessageSentToast, showSubmissionErrorToast } from 'app/utils/toast-messages'
 import * as ImagePicker from 'expo-image-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
 import * as ImageManipulator from 'expo-image-manipulator'
@@ -1091,7 +1094,7 @@ export function GeneralChatScreen({
             recipientId,
             error: err,
           })
-          toast.show('Could not start conversation', { native: false })
+          showSubmissionErrorToast(toast, 'Could not start conversation')
           setIsCreatingConversation(false)
           return
         } finally {
@@ -1138,7 +1141,7 @@ export function GeneralChatScreen({
           flatListRef.current?.scrollToEnd({ animated: true })
         }, 200)
       } catch (err) {
-        toast.show('Failed to send message', { native: false })
+        showSubmissionErrorToast(toast, 'Failed to send message')
       }
     },
     [conversationId, recipientId, sendMessageMutation, toast, role, router]
@@ -1193,13 +1196,10 @@ export function GeneralChatScreen({
           keyboardVerticalOffset={0}
         >
           {/* Header */}
-          <GeneralChatHeader
-            otherParty={otherPartyInfo}
-            role={role}
+          <PageHeader
+            title="Chat"
+            description={PAGE_DESCRIPTIONS['chat']}
             onBack={() => router.back()}
-            onProfilePress={
-              role === 'homeowner' && (otherPartyId || recipientId) ? handleProfilePress : undefined
-            }
           />
 
           {/* Messages List */}

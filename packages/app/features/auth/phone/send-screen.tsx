@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import { YStack, XStack, Text, Button, Input, Spinner, ScrollView, Sheet } from '@my/ui'
-import { GradientBackground } from '@my/ui'
+import { GradientBackground, PageHeader } from '@my/ui'
 import { useCountryCodes, useSendPhoneOtp, formatErrorMessage } from '@my/api'
 import type { CountryPhoneCode } from '@my/api'
 import { useRouter } from 'expo-router'
-import { ArrowLeft, ChevronDown, Search } from '@tamagui/lucide-icons'
+import { ChevronDown, Search } from '@tamagui/lucide-icons'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { HTTPError, TimeoutError } from 'ky'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 
@@ -119,25 +120,10 @@ export function PhoneSendScreen() {
         pt={insets.top}
         pb={insets.bottom}
       >
-        {/* Header with back button */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={24}
-              color="$color"
-            />
-          </Button>
-        </XStack>
+        <PageHeader
+          title="Enter your phone number"
+          description={PAGE_DESCRIPTIONS['verify-phone']}
+        />
 
         {/* Main content */}
         <YStack
@@ -145,27 +131,6 @@ export function PhoneSendScreen() {
           px="$4"
           gap="$6"
         >
-          {/* Title */}
-          <YStack
-            pt="$4"
-            gap="$2"
-          >
-            <Text
-              fontSize={28}
-              fontWeight="bold"
-              color="$color"
-            >
-              Enter your phone number
-            </Text>
-            <Text
-              fontSize="$4"
-              color="$colorSubtle"
-              lineHeight={24}
-            >
-              We'll send you a verification code via SMS to confirm your phone number.
-            </Text>
-          </YStack>
-
           {/* Phone Input Section */}
           <YStack
             gap="$3"

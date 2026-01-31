@@ -23,7 +23,6 @@ import {
 import type { CreateDirectOfferValidationError, LocalAttachment, AttachmentUpload } from '@my/api'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import {
-  ArrowLeft,
   MapPin,
   DollarSign,
   AlertCircle,
@@ -40,6 +39,8 @@ import {
   File,
   User,
 } from '@tamagui/lucide-icons'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { HTTPError } from 'ky'
 import { Dimensions, FlatList, Pressable, Linking } from 'react-native'
@@ -251,34 +252,11 @@ export function DirectOfferPreviewScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={24}
-              color="$color"
-            />
-          </Button>
-          <Text
-            fontSize="$6"
-            fontWeight="bold"
-            color="$color"
-            flex={1}
-          >
-            Review Offer
-          </Text>
-        </XStack>
+        <PageHeader
+          title="Review Offer"
+          description={PAGE_DESCRIPTIONS['create-direct-offer']}
+          onBack={() => router.back()}
+        />
 
         {/* Content */}
         <ScrollView

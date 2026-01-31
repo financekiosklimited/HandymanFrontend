@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, PageHeader } from '@my/ui'
 import { GradientBackground, SearchBar, DirectOfferCard } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useHomeownerJobs, useHomeownerApplications, useHomeownerDirectOffers } from '@my/api'
 import type {
   HomeownerJob,
@@ -11,7 +12,6 @@ import type {
   HomeownerDirectOffer,
 } from '@my/api'
 import {
-  ArrowLeft,
   Briefcase,
   ChevronDown,
   ChevronUp,
@@ -25,6 +25,7 @@ import {
 } from '@tamagui/lucide-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useToastFromParams } from 'app/hooks/useToastFromParams'
 import {
   jobStatusColors,
   type JobStatus,
@@ -582,6 +583,7 @@ function ExpandableJobCard({
 }
 
 export function JobManagementScreen() {
+  useToastFromParams()
   const router = useRouter()
   const insets = useSafeArea()
   const { tab } = useLocalSearchParams<{ tab?: string }>()
@@ -669,36 +671,10 @@ export function JobManagementScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$lg"
-          py="$md"
-          alignItems="center"
-          gap="$md"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Job Management
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Job Management"
+          description={PAGE_DESCRIPTIONS['job-management']}
+        />
 
         {/* Search and Filter */}
         <XStack

@@ -10,7 +10,9 @@ import {
   formatErrorMessage,
 } from '@my/api'
 import type { HandymanReviewItem, RatingStats } from '@my/api'
-import { ArrowLeft, Star, MessageSquare, User } from '@tamagui/lucide-icons'
+import { Star, MessageSquare, User, ArrowLeft } from '@tamagui/lucide-icons'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 
@@ -414,10 +416,12 @@ export function HandymanReviewsScreen({
               hitSlop={12}
               pressStyle={{ opacity: 0.7 }}
             >
-              <ArrowLeft
-                size={22}
-                color="$color"
-              />
+              <Text
+                fontSize={17}
+                color="$primary"
+              >
+                Back
+              </Text>
             </Button>
             <Text
               flex={1}
@@ -487,48 +491,11 @@ export function HandymanReviewsScreen({
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <YStack
-            flex={1}
-            alignItems="center"
-          >
-            <Text
-              fontSize={17}
-              fontWeight="700"
-              color="$color"
-              textAlign="center"
-            >
-              Reviews
-            </Text>
-            <Text
-              fontSize="$2"
-              color="$colorSubtle"
-              textAlign="center"
-              numberOfLines={1}
-            >
-              {displayName}
-            </Text>
-          </YStack>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Reviews"
+          description={PAGE_DESCRIPTIONS['reviews']}
+          onBack={() => router.back()}
+        />
 
         <ScrollView
           flex={1}

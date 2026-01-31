@@ -13,12 +13,13 @@ import {
   ImageViewer,
   VideoPlayer,
   DocumentThumbnail,
+  PageHeader,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useHomeownerJob, useDeleteJob } from '@my/api'
 import type { HomeownerJobStatus } from '@my/api'
 import {
-  ArrowLeft,
   MapPin,
   Clock,
   Calendar,
@@ -235,36 +236,10 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
         flex={1}
         pt={insets.top}
       >
-        {/* Header with back button */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Job Details
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Job Details"
+          description={PAGE_DESCRIPTIONS['job-detail']}
+        />
 
         <ScrollView
           flex={1}

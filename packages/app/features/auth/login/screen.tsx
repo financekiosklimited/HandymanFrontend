@@ -1,14 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
+import { YStack, XStack, Text, Button, Input, Spinner, PageHeader } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useLogin, useActivateRole, formatErrorMessage } from '@my/api'
 import { useRouter } from 'expo-router'
-import { ArrowLeft, Eye, EyeOff } from '@tamagui/lucide-icons'
+import { Eye, EyeOff } from '@tamagui/lucide-icons'
 import type { Role } from '@my/api'
 import { HTTPError, TimeoutError } from 'ky'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
 interface ApiErrorResponse {
   message?: string
@@ -148,24 +149,11 @@ export function LoginScreen() {
         pb={insets.bottom}
       >
         {/* Header with back button */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-        >
-          <Button
-            unstyled
-            onPress={() => router.replace('/(guest)')}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={24}
-              color="$color"
-            />
-          </Button>
-        </XStack>
+        <PageHeader
+          title="Login"
+          description={PAGE_DESCRIPTIONS['login']}
+          onBack={() => router.replace('/(guest)')}
+        />
 
         {/* Main content */}
         <YStack

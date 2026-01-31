@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
-import { GradientBackground } from '@my/ui'
+import { GradientBackground, PageHeader } from '@my/ui'
 import { useVerifyPhoneOtp, useSendPhoneOtp, useAuthStore, formatErrorMessage } from '@my/api'
 import { useRouter } from 'expo-router'
-import { ArrowLeft } from '@tamagui/lucide-icons'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { HTTPError, TimeoutError } from 'ky'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import type { TextInput } from 'react-native'
@@ -187,25 +187,10 @@ export function PhoneVerifyScreen() {
         pt={insets.top}
         pb={insets.bottom}
       >
-        {/* Header with back button */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={24}
-              color="$color"
-            />
-          </Button>
-        </XStack>
+        <PageHeader
+          title="Verify your phone number"
+          description={PAGE_DESCRIPTIONS['verify-phone']}
+        />
 
         {/* Main content */}
         <YStack
@@ -213,36 +198,27 @@ export function PhoneVerifyScreen() {
           px="$4"
           gap="$6"
         >
-          {/* Title */}
-          <YStack
+          {/* Masked phone display */}
+          <XStack
+            flexWrap="wrap"
             pt="$4"
-            gap="$2"
           >
             <Text
-              fontSize={28}
-              fontWeight="bold"
-              color="$color"
+              fontSize="$4"
+              color="$colorSubtle"
+              lineHeight={24}
             >
-              Verify your phone number
+              Please enter the 6-digit code sent to{' '}
             </Text>
-            <XStack flexWrap="wrap">
-              <Text
-                fontSize="$4"
-                color="$colorSubtle"
-                lineHeight={24}
-              >
-                Please enter the 6-digit code sent to{' '}
-              </Text>
-              <Text
-                fontSize="$4"
-                color="$color"
-                fontWeight="600"
-                lineHeight={24}
-              >
-                {getMaskedPhone()}
-              </Text>
-            </XStack>
-          </YStack>
+            <Text
+              fontSize="$4"
+              color="$color"
+              fontWeight="600"
+              lineHeight={24}
+            >
+              {getMaskedPhone()}
+            </Text>
+          </XStack>
 
           {/* OTP Input */}
           <XStack

@@ -19,7 +19,6 @@ import type { LocalAttachment } from '@my/api'
 import { ATTACHMENT_LIMITS, isUnsupportedImageFormat } from '@my/api'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import {
-  ArrowLeft,
   ChevronDown,
   Plus,
   X,
@@ -33,6 +32,8 @@ import {
   User,
   Calendar,
 } from '@tamagui/lucide-icons'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import * as ImagePicker from 'expo-image-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
@@ -598,26 +599,11 @@ export function CreateDirectOfferScreen() {
           flex={1}
           pt={insets.top}
         >
-          {/* Header */}
-          <XStack
-            px="$4"
-            py="$3"
-            alignItems="center"
-            gap="$3"
-          >
-            <Button
-              unstyled
-              onPress={() => router.back()}
-              p="$2"
-              hitSlop={12}
-              pressStyle={{ opacity: 0.7 }}
-            >
-              <ArrowLeft
-                size={24}
-                color="$color"
-              />
-            </Button>
-          </XStack>
+          <PageHeader
+            title="Send Direct Offer"
+            description={PAGE_DESCRIPTIONS['create-direct-offer']}
+            onBack={() => router.back()}
+          />
 
           {/* Content */}
           <ScrollView

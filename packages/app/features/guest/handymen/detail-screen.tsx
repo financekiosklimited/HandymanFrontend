@@ -3,15 +3,9 @@
 import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useGuestHandyman, formatErrorMessage } from '@my/api'
-import {
-  ArrowLeft,
-  MapPin,
-  Star,
-  DollarSign,
-  Award,
-  User,
-  ChevronRight,
-} from '@tamagui/lucide-icons'
+import { MapPin, Star, DollarSign, Award, User, ChevronRight } from '@tamagui/lucide-icons'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -107,36 +101,11 @@ export function HandymanDetailScreen({ handymanId }: HandymanDetailScreenProps) 
         flex={1}
         pt={insets.top}
       >
-        {/* Header with back button */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Handyman Profile
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Handyman Profile"
+          description={PAGE_DESCRIPTIONS['view-profile']}
+          onBack={() => router.back()}
+        />
 
         <ScrollView
           flex={1}

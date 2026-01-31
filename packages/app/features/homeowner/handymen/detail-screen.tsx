@@ -7,7 +7,6 @@ import { GradientBackground } from '@my/ui'
 import { useGuestHandyman, useHomeownerProfile, formatErrorMessage, apiClient } from '@my/api'
 import type { ChatConversationResponse } from '@my/api'
 import {
-  ArrowLeft,
   MapPin,
   Star,
   DollarSign,
@@ -17,9 +16,12 @@ import {
   Briefcase,
   ChevronRight,
 } from '@tamagui/lucide-icons'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import { showSubmissionErrorToast } from 'app/utils/toast-messages'
 
 interface HomeownerHandymanDetailScreenProps {
   handymanId: string
@@ -189,36 +191,11 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
         flex={1}
         pt={insets.top}
       >
-        {/* Header with back button */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Handyman Profile
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Handyman Profile"
+          description={PAGE_DESCRIPTIONS['view-profile']}
+          onBack={() => router.back()}
+        />
 
         <ScrollView
           flex={1}

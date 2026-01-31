@@ -47,6 +47,9 @@ export const NativeToast = () => {
       borderWidth={1}
       borderColor={getBorderColor()}
       borderRadius="$3"
+      maxWidth={360}
+      width="85%"
+      alignSelf="center"
     >
       <YStack
         py="$1.5"

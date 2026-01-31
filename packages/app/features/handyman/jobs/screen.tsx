@@ -2,25 +2,19 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { RefreshControl } from 'react-native'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, PageHeader } from '@my/ui'
 import { GradientBackground, DirectOfferCard } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
   useHandymanApplications,
   useHandymanDirectOffers,
   useHandymanPendingOffersCount,
   useHandymanAssignedJobs,
 } from '@my/api'
-import {
-  ArrowLeft,
-  Briefcase,
-  MapPin,
-  ChevronRight,
-  Clock,
-  Play,
-  User,
-} from '@tamagui/lucide-icons'
+import { Briefcase, MapPin, ChevronRight, Clock, Play, User } from '@tamagui/lucide-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useToastFromParams } from 'app/hooks/useToastFromParams'
 import type { ApplicationStatus, JobApplication, HandymanAssignedJob } from '@my/api'
 import {
   applicationStatusColors,
@@ -418,6 +412,7 @@ function ActiveJobCard({ job, onPress }: ActiveJobCardProps) {
 }
 
 export function HandymanJobsScreen() {
+  useToastFromParams()
   const router = useRouter()
   const insets = useSafeArea()
   const { tab } = useLocalSearchParams<{ tab?: string }>()
@@ -547,36 +542,10 @@ export function HandymanJobsScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            My Jobs
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="My Jobs"
+          description={PAGE_DESCRIPTIONS['find-jobs']}
+        />
 
         {/* Tabs */}
         <XStack

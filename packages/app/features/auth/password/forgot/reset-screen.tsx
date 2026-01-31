@@ -2,13 +2,15 @@
 
 import { useState } from 'react'
 import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
-import { GradientBackground } from '@my/ui'
+import { GradientBackground, PageHeader } from '@my/ui'
 import { useResetPassword, formatErrorMessage } from '@my/api'
 import { useRouter, useLocalSearchParams } from 'expo-router'
-import { ArrowLeft, Eye, EyeOff } from '@tamagui/lucide-icons'
+import { Eye, EyeOff } from '@tamagui/lucide-icons'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { HTTPError, TimeoutError } from 'ky'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { Toast, useToastController } from '@tamagui/toast'
+import { showPasswordUpdatedToast } from 'app/utils/toast-messages'
 
 /**
  * Transform API error into human-readable message
@@ -89,11 +91,7 @@ export function ForgotPasswordResetScreen() {
         new_password: newPassword,
       })
 
-      toast.show('Password updated!', {
-        message: 'Your password has been successfully reset.',
-        duration: 3000,
-        native: false,
-      })
+      showPasswordUpdatedToast(toast)
 
       // Navigate back to login
       router.replace('/auth/login')
@@ -122,25 +120,10 @@ export function ForgotPasswordResetScreen() {
         pt={insets.top}
         pb={insets.bottom}
       >
-        {/* Header with back button */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={24}
-              color="$color"
-            />
-          </Button>
-        </XStack>
+        <PageHeader
+          title="New password"
+          description={PAGE_DESCRIPTIONS['forgot-password']}
+        />
 
         {/* Main content */}
         <YStack
@@ -148,27 +131,6 @@ export function ForgotPasswordResetScreen() {
           px="$4"
           gap="$6"
         >
-          {/* Title */}
-          <YStack
-            pt="$4"
-            gap="$2"
-          >
-            <Text
-              fontSize={28}
-              fontWeight="bold"
-              color="$color"
-            >
-              New password
-            </Text>
-            <Text
-              fontSize="$4"
-              color="$colorSubtle"
-              lineHeight={24}
-            >
-              Please set your new password.
-            </Text>
-          </YStack>
-
           {/* Form */}
           <YStack
             gap="$5"

@@ -6,6 +6,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { CheckCircle2, Clock, Home, Eye } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { colors } from '@my/config'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
 export function DirectOfferSuccessScreen() {
   const router = useRouter()
@@ -27,6 +29,11 @@ export function DirectOfferSuccessScreen() {
         pt={insets.top}
         pb={insets.bottom + 16}
       >
+        <PageHeader
+          title="Offer Sent"
+          description={PAGE_DESCRIPTIONS['create-direct-offer']}
+          showBack={false}
+        />
         {/* Content */}
         <YStack
           flex={1}

@@ -14,8 +14,10 @@ import {
   ImageViewer,
   AttachmentGrid,
   VideoPlayer,
+  PageHeader,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
   useHandymanJobDetail,
   useHandymanApplicationDetail,
@@ -23,7 +25,6 @@ import {
   formatErrorMessage,
 } from '@my/api'
 import {
-  ArrowLeft,
   MapPin,
   Clock,
   Calendar,
@@ -43,6 +44,7 @@ import {
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import { showApplicationWithdrawnToast, showSubmissionErrorToast } from 'app/utils/toast-messages'
 import { Dimensions, FlatList } from 'react-native'
 import type { ApplicationStatus } from '@my/api'
 
@@ -143,18 +145,10 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
     setIsWithdrawing(true)
     try {
       await withdrawMutation.mutateAsync(applicationId)
-      toast.show('Application Withdrawn', {
-        message: 'Your application has been withdrawn successfully.',
-        duration: 3000,
-        native: false,
-      })
+      showApplicationWithdrawnToast(toast)
       refetch()
     } catch (error: unknown) {
-      toast.show('Withdrawal Failed', {
-        message: formatErrorMessage(error),
-        duration: 4000,
-        native: false,
-      })
+      showSubmissionErrorToast(toast, formatErrorMessage(error))
     } finally {
       setIsWithdrawing(false)
     }
@@ -247,36 +241,10 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
         flex={1}
         pt={insets.top}
       >
-        {/* Header with back button */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Application Details
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Application Details"
+          description={PAGE_DESCRIPTIONS['application-detail']}
+        />
 
         <ScrollView
           flex={1}

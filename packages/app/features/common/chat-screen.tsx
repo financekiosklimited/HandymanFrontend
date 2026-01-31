@@ -7,7 +7,6 @@ import { useJobChat, useChatMessages, useSendMessage, useMarkAsRead, chatQueryKe
 import type { ChatMessage, ChatConversation, Attachment, AttachmentUpload } from '@my/api'
 import { isUnsupportedImageFormat } from '@my/api'
 import {
-  ArrowLeft,
   Send,
   Paperclip,
   X,
@@ -23,10 +22,14 @@ import {
   Video,
   Play,
   Film,
+  ArrowLeft,
 } from '@tamagui/lucide-icons'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import { showMessageSentToast, showSubmissionErrorToast } from 'app/utils/toast-messages'
 import * as ImagePicker from 'expo-image-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
 import * as ImageManipulator from 'expo-image-manipulator'
@@ -1248,7 +1251,7 @@ export function ChatScreen({ jobId, chatRole }: ChatScreenProps) {
           flatListRef.current?.scrollToEnd({ animated: true })
         }, 200)
       } catch (error: any) {
-        toast.show('Failed to send message', { native: false })
+        showSubmissionErrorToast(toast, 'Failed to send message')
       }
     },
     [conversation?.public_id, toast]
@@ -1349,12 +1352,10 @@ export function ChatScreen({ jobId, chatRole }: ChatScreenProps) {
           keyboardVerticalOffset={0}
         >
           {/* Header */}
-          <ChatHeader
-            conversation={conversation}
-            chatRole={chatRole}
+          <PageHeader
+            title="Chat"
+            description={PAGE_DESCRIPTIONS['chat']}
             onBack={() => router.back()}
-            isReadOnly={isReadOnly}
-            onProfilePress={chatRole === 'homeowner' ? handleProfilePress : undefined}
           />
 
           {/* Messages List */}

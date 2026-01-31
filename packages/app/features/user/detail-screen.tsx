@@ -1,8 +1,9 @@
 'use client'
 
 import { Button, Paragraph, YStack } from '@my/ui'
-import { ChevronLeft } from '@tamagui/lucide-icons'
 import { useRouter } from 'solito/navigation'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
 export function UserDetailScreen({ id }: { id: string }) {
   const router = useRouter()
@@ -12,22 +13,25 @@ export function UserDetailScreen({ id }: { id: string }) {
   return (
     <YStack
       flex={1}
-      justify="center"
-      items="center"
-      gap="$4"
       bg="$background"
     >
-      <Paragraph
-        text="center"
-        fontWeight="700"
-        color="$blue10"
-      >{`User ID: ${id}`}</Paragraph>
-      <Button
-        icon={ChevronLeft}
-        onPress={() => router.back()}
+      <PageHeader
+        title="User Profile"
+        description={PAGE_DESCRIPTIONS['view-profile']}
+        onBack={() => router.back()}
+      />
+      <YStack
+        flex={1}
+        justify="center"
+        items="center"
+        gap="$4"
       >
-        Go Home
-      </Button>
+        <Paragraph
+          text="center"
+          fontWeight="700"
+          color="$blue10"
+        >{`User ID: ${id}`}</Paragraph>
+      </YStack>
     </YStack>
   )
 }

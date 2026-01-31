@@ -1,12 +1,14 @@
 'use client'
 
 import { useMemo } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View, PageHeader } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useHandymanApplications } from '@my/api'
-import { ArrowLeft, Briefcase, MapPin, ChevronRight } from '@tamagui/lucide-icons'
+import { Briefcase, MapPin, ChevronRight } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useToastFromParams } from 'app/hooks/useToastFromParams'
 import type { ApplicationStatus, JobApplication } from '@my/api'
 import {
   applicationStatusColors,
@@ -166,6 +168,9 @@ export function MyJobsScreen() {
   const router = useRouter()
   const insets = useSafeArea()
 
+  // Show toast if coming from successful action
+  useToastFromParams()
+
   const {
     data: applicationsData,
     isLoading,
@@ -196,36 +201,10 @@ export function MyJobsScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            My Jobs
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="My Jobs"
+          description={PAGE_DESCRIPTIONS['applied-jobs']}
+        />
 
         <ScrollView
           flex={1}

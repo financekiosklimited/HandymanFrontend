@@ -6,6 +6,7 @@ export const ToastViewport = () => {
       bottom="$8"
       left={0}
       right={0}
+      alignItems="center"
     />
   )
 }

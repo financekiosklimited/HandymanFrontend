@@ -22,7 +22,6 @@ import {
   formatOfferDate,
 } from '@my/api'
 import {
-  ArrowLeft,
   MapPin,
   Clock,
   DollarSign,
@@ -38,6 +37,8 @@ import {
   AlertCircle,
   MessageCircle,
 } from '@tamagui/lucide-icons'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { Alert, Dimensions, FlatList, Pressable } from 'react-native'
@@ -254,34 +255,11 @@ export function HomeownerDirectOfferDetailScreen({
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={24}
-              color="$color"
-            />
-          </Button>
-          <Text
-            fontSize="$6"
-            fontWeight="bold"
-            color="$color"
-            flex={1}
-          >
-            Offer Details
-          </Text>
-        </XStack>
+        <PageHeader
+          title="Direct Offer"
+          description={PAGE_DESCRIPTIONS['direct-offer-detail']}
+          onBack={() => router.back()}
+        />
 
         {/* Content */}
         <ScrollView

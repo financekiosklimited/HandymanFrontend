@@ -12,8 +12,10 @@ import {
   Image,
   Input,
   TextArea,
+  PageHeader,
 } from '@my/ui'
 import { GradientBackground, ImageViewer, AttachmentGrid } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
   useJobDashboard,
   useHandymanDailyReports,
@@ -38,7 +40,6 @@ import type {
   ReimbursementStatus,
 } from '@my/api'
 import {
-  ArrowLeft,
   Play,
   FileText,
   Clock,
@@ -68,7 +69,16 @@ import {
 } from '@tamagui/lucide-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useToastFromParams } from 'app/hooks/useToastFromParams'
 import { useToastController } from '@tamagui/toast'
+import {
+  showReviewSubmittedToast,
+  showSubmissionErrorToast,
+  showSessionStartedToast,
+  showSessionEndedToast,
+  showCompletionRequestedToast,
+  showValidationErrorToast,
+} from 'app/utils/toast-messages'
 import { colors } from '@my/config'
 import * as Location from 'expo-location'
 import * as ImagePicker from 'expo-image-picker'
@@ -412,7 +422,7 @@ function ReviewSection({ jobId, onSubmitted }: { jobId: string; onSubmitted: () 
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      toast.show('Please select a rating', { native: false })
+      showValidationErrorToast(toast, 'rating')
       return
     }
     setIsSubmitting(true)
@@ -421,7 +431,7 @@ function ReviewSection({ jobId, onSubmitted }: { jobId: string; onSubmitted: () 
         jobId,
         data: { rating, comment: comment || undefined },
       })
-      toast.show('Review submitted!', { native: false })
+      showReviewSubmittedToast(toast)
       onSubmitted()
     } catch (error: any) {
       console.error('DEBUG: Review submission error:', error)
@@ -431,7 +441,7 @@ function ReviewSection({ jobId, onSubmitted }: { jobId: string; onSubmitted: () 
           console.error('DEBUG: Review submission error body:', errorData)
         } catch (e) {}
       }
-      toast.show('Failed to submit review', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsSubmitting(false)
     }
@@ -2155,6 +2165,7 @@ function CameraPreviewModal({
 }
 
 export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
+  useToastFromParams()
   const router = useRouter()
   const insets = useSafeArea()
   const toast = useToastController()
@@ -2214,7 +2225,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
   const openCamera = async (): Promise<string | null> => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
     if (status !== 'granted') {
-      toast.show('Camera permission required', { native: false })
+      showValidationErrorToast(toast, 'camera permission')
       return null
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -2240,7 +2251,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== 'granted') {
-        toast.show('Location required', { native: false })
+        showValidationErrorToast(toast, 'location permission')
         setIsStartingSession(false)
         return
       }
@@ -2262,12 +2273,12 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
           start_photo: photoFile,
         },
       })
-      toast.show('Session started', { native: false })
+      showSessionStartedToast(toast)
       setShowStartPreview(false)
       setCapturedImage(null)
       refetch()
     } catch (error: any) {
-      toast.show('Failed', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsStartingSession(false)
     }
@@ -2305,12 +2316,12 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
           end_photo: endPhotoFile,
         },
       })
-      toast.show('Session ended', { native: false })
+      showSessionEndedToast(toast)
       setShowStopPreview(false)
       setCapturedImage(null)
       refetch()
     } catch (error: any) {
-      toast.show('Failed', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsStoppingSession(false)
     }
@@ -2329,10 +2340,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
     if (type === 'photo') {
       const fileName = asset.fileName || ''
       if (isUnsupportedImageFormat(fileName, asset.mimeType ?? undefined)) {
-        toast.show('Unsupported format', {
-          message: 'RAW/DNG formats are not supported',
-          native: false,
-        })
+        showValidationErrorToast(toast, 'file format')
         return
       }
     }
@@ -2365,12 +2373,12 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
           duration_seconds: uploadAsset.duration || undefined,
         },
       })
-      toast.show('Uploaded', { native: false })
+      showSubmissionErrorToast(toast, 'Media uploaded successfully')
       setShowUploadPreview(false)
       setUploadAsset(null)
       refetch()
     } catch (error: any) {
-      toast.show('Failed', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsUploadingMedia(false)
     }
@@ -2407,10 +2415,10 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
     setIsRequestingCompletion(true)
     try {
       await requestCompletionMutation.mutateAsync(jobId)
-      toast.show('Completion requested', { native: false })
+      showCompletionRequestedToast(toast)
       refetch()
     } catch (error: any) {
-      toast.show('Failed', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsRequestingCompletion(false)
     }
@@ -2489,35 +2497,11 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
         flex={1}
         pt={insets.top}
       >
-        <XStack
-          px="$5"
-          py="$3"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Job Dashboard
-          </Text>
-          {/* Chat Button */}
-          <ChatButton jobId={jobId} />
-        </XStack>
+        <PageHeader
+          title="Job Dashboard"
+          description={PAGE_DESCRIPTIONS['ongoing-dashboard']}
+          rightElement={<ChatButton jobId={jobId} />}
+        />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}

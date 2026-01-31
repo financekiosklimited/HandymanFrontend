@@ -12,8 +12,10 @@ import {
   Image,
   ImageViewer,
   VideoPlayer,
+  PageHeader,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useUpdateJob, formatErrorMessage, formatValidationError } from '@my/api'
 import type {
   UpdateJobValidationError,
@@ -23,7 +25,6 @@ import type {
 } from '@my/api'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import {
-  ArrowLeft,
   MapPin,
   DollarSign,
   AlertCircle,
@@ -274,34 +275,10 @@ export function EditJobPreviewScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={24}
-              color="$color"
-            />
-          </Button>
-          <Text
-            fontSize="$6"
-            fontWeight="bold"
-            color="$color"
-            flex={1}
-          >
-            Review Changes
-          </Text>
-        </XStack>
+        <PageHeader
+          title="Review Changes"
+          description={PAGE_DESCRIPTIONS['edit-job']}
+        />
 
         {/* Content */}
         <ScrollView

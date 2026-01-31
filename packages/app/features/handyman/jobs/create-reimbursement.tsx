@@ -13,10 +13,11 @@ import {
   TextArea,
   Input,
   Sheet,
+  PageHeader,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
-  ArrowLeft,
   Receipt,
   DollarSign,
   FileText,
@@ -33,6 +34,11 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import {
+  showReimbursementSubmittedToast,
+  showSubmissionErrorToast,
+  showValidationErrorToast,
+} from 'app/utils/toast-messages'
 import * as ImagePicker from 'expo-image-picker'
 import * as DocumentPicker from 'expo-document-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
@@ -102,10 +108,7 @@ export function CreateReimbursementScreen() {
   const pickImages = useCallback(async () => {
     const remaining = maxAttachments - totalAttachments
     if (remaining <= 0) {
-      toast.show('Maximum attachments reached', {
-        message: `You can upload up to ${maxAttachments} files`,
-        native: false,
-      })
+      showValidationErrorToast(toast, `You can upload up to ${maxAttachments} files`)
       return
     }
 
@@ -147,19 +150,13 @@ export function CreateReimbursementScreen() {
   // Take photo with camera
   const takePhoto = useCallback(async () => {
     if (totalAttachments >= maxAttachments) {
-      toast.show('Maximum attachments reached', {
-        message: `You can upload up to ${maxAttachments} files`,
-        native: false,
-      })
+      showValidationErrorToast(toast, `You can upload up to ${maxAttachments} files`)
       return
     }
 
     const permission = await ImagePicker.requestCameraPermissionsAsync()
     if (!permission.granted) {
-      toast.show('Permission denied', {
-        message: 'Camera permission is required to take photos',
-        native: false,
-      })
+      showValidationErrorToast(toast, 'Camera permission is required to take photos')
       return
     }
 
@@ -198,10 +195,7 @@ export function CreateReimbursementScreen() {
   const pickVideos = useCallback(async () => {
     const remaining = maxAttachments - totalAttachments
     if (remaining <= 0) {
-      toast.show('Maximum attachments reached', {
-        message: `You can upload up to ${maxAttachments} files`,
-        native: false,
-      })
+      showValidationErrorToast(toast, `You can upload up to ${maxAttachments} files`)
       return
     }
 
@@ -239,19 +233,13 @@ export function CreateReimbursementScreen() {
   // Record video with camera
   const recordVideo = useCallback(async () => {
     if (totalAttachments >= maxAttachments) {
-      toast.show('Maximum attachments reached', {
-        message: `You can upload up to ${maxAttachments} files`,
-        native: false,
-      })
+      showValidationErrorToast(toast, `You can upload up to ${maxAttachments} files`)
       return
     }
 
     const permission = await ImagePicker.requestCameraPermissionsAsync()
     if (!permission.granted) {
-      toast.show('Permission denied', {
-        message: 'Camera permission is required to record videos',
-        native: false,
-      })
+      showValidationErrorToast(toast, 'Camera permission is required to record videos')
       return
     }
 
@@ -286,10 +274,7 @@ export function CreateReimbursementScreen() {
   const pickDocuments = useCallback(async () => {
     const remaining = maxAttachments - totalAttachments
     if (remaining <= 0) {
-      toast.show('Maximum attachments reached', {
-        message: `You can upload up to ${maxAttachments} files`,
-        native: false,
-      })
+      showValidationErrorToast(toast, `You can upload up to ${maxAttachments} files`)
       return
     }
 
@@ -372,35 +357,23 @@ export function CreateReimbursementScreen() {
 
     // Validation
     if (!name.trim()) {
-      toast.show('Name required', {
-        message: 'Please enter a name for this expense',
-        native: false,
-      })
+      showValidationErrorToast(toast, 'Please enter a name for this expense')
       return
     }
 
     if (!selectedCategory) {
-      toast.show('Category required', {
-        message: 'Please select a category',
-        native: false,
-      })
+      showValidationErrorToast(toast, 'Please select a category')
       return
     }
 
     const amountNum = Number.parseFloat(amount)
     if (Number.isNaN(amountNum) || amountNum <= 0) {
-      toast.show('Invalid amount', {
-        message: 'Please enter a valid amount greater than 0',
-        native: false,
-      })
+      showValidationErrorToast(toast, 'Please enter a valid amount greater than 0')
       return
     }
 
     if (attachments.length === 0) {
-      toast.show('Attachment required', {
-        message: 'Please upload at least one receipt or proof',
-        native: false,
-      })
+      showValidationErrorToast(toast, 'Please upload at least one receipt or proof')
       return
     }
 
@@ -440,16 +413,9 @@ export function CreateReimbursementScreen() {
         },
       })
 
-      toast.show('Reimbursement submitted', {
-        message: 'Your request has been sent to the homeowner',
-        native: false,
-      })
       router.back()
     } catch (error: any) {
-      toast.show('Failed to submit', {
-        message: error?.message || 'Please try again',
-        native: false,
-      })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsSubmitting(false)
     }
@@ -475,36 +441,10 @@ export function CreateReimbursementScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            New Reimbursement
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="New Reimbursement"
+          description={PAGE_DESCRIPTIONS['reimbursement']}
+        />
 
         <ScrollView
           flex={1}

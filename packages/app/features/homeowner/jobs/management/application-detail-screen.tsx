@@ -12,12 +12,13 @@ import {
   View,
   Image,
   AttachmentGrid,
+  PageHeader,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useHomeownerApplicationDetail, useApproveApplication, useRejectApplication } from '@my/api'
 import type { HomeownerApplicationStatus } from '@my/api'
 import {
-  ArrowLeft,
   Star,
   MapPin,
   CheckCircle,
@@ -34,6 +35,11 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { applicationStatusColors, type ApplicationStatus, colors } from '@my/config'
 import { useToastController } from '@tamagui/toast'
+import {
+  showApplicationApprovedHomeownerToast,
+  showApplicationRejectedHomeownerToast,
+  showSubmissionErrorToast,
+} from 'app/utils/toast-messages'
 
 function getStatusConfig(status: HomeownerApplicationStatus) {
   const config =
@@ -74,21 +80,13 @@ export function ApplicationDetailScreen() {
             setIsApproving(true)
             try {
               await approveApplication.mutateAsync(applicationId)
-              toast.show('Application approved successfully!', {
-                message: 'The handyman has been assigned to this job.',
-                native: false,
-                duration: 3000,
-                customData: { variant: 'success' },
+              router.replace({
+                pathname: '/(homeowner)/jobs',
+                params: { toast: 'application-approved' },
               })
-              router.replace('/(homeowner)/jobs')
             } catch (err) {
               console.error('Error approving application:', err)
-              toast.show('Failed to approve', {
-                message: 'Please try again later.',
-                native: false,
-                duration: 3000,
-                customData: { variant: 'error' },
-              })
+              showSubmissionErrorToast(toast, 'Failed to approve application')
             } finally {
               setIsApproving(false)
             }
@@ -111,21 +109,13 @@ export function ApplicationDetailScreen() {
             setIsRejecting(true)
             try {
               await rejectApplication.mutateAsync(applicationId)
-              toast.show('Application rejected', {
-                message: 'The application has been rejected.',
-                native: false,
-                duration: 3000,
-                customData: { variant: 'success' },
+              router.replace({
+                pathname: '/(homeowner)/jobs',
+                params: { toast: 'application-rejected' },
               })
-              router.replace('/(homeowner)/jobs')
             } catch (err) {
               console.error('Error rejecting application:', err)
-              toast.show('Failed to reject', {
-                message: 'Please try again later.',
-                native: false,
-                duration: 3000,
-                customData: { variant: 'error' },
-              })
+              showSubmissionErrorToast(toast, 'Failed to reject application')
             } finally {
               setIsRejecting(false)
             }
@@ -167,35 +157,10 @@ export function ApplicationDetailScreen() {
           flex={1}
           pt={insets.top}
         >
-          <XStack
-            px="$lg"
-            py="$md"
-            alignItems="center"
-            gap="$md"
-          >
-            <Button
-              unstyled
-              onPress={() => router.back()}
-              p="$2"
-              hitSlop={12}
-              pressStyle={{ opacity: 0.7 }}
-            >
-              <ArrowLeft
-                size={22}
-                color="$color"
-              />
-            </Button>
-            <Text
-              flex={1}
-              fontSize={17}
-              fontWeight="700"
-              color="$color"
-              textAlign="center"
-            >
-              Application
-            </Text>
-            <View width={38} />
-          </XStack>
+          <PageHeader
+            title="Application"
+            description={PAGE_DESCRIPTIONS['review-applications']}
+          />
           <YStack
             flex={1}
             alignItems="center"
@@ -257,36 +222,10 @@ export function ApplicationDetailScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$lg"
-          py="$md"
-          alignItems="center"
-          gap="$md"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Applicant Details
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Applicant Details"
+          description={PAGE_DESCRIPTIONS['review-applications']}
+        />
 
         <ScrollView
           flex={1}

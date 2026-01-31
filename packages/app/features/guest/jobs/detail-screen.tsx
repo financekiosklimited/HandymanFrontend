@@ -17,7 +17,6 @@ import {
 import { GradientBackground } from '@my/ui'
 import { useGuestJob, formatErrorMessage } from '@my/api'
 import {
-  ArrowLeft,
   MapPin,
   Clock,
   Calendar,
@@ -30,6 +29,8 @@ import {
   ChevronRight,
   Play,
 } from '@tamagui/lucide-icons'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { Dimensions, FlatList, Pressable } from 'react-native'
@@ -175,36 +176,11 @@ export function JobDetailScreen({ jobId }: JobDetailScreenProps) {
         flex={1}
         pt={insets.top}
       >
-        {/* Header with back button */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Job Details
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Job Details"
+          description={PAGE_DESCRIPTIONS['job-detail']}
+          onBack={() => router.back()}
+        />
 
         <ScrollView
           flex={1}

@@ -1,8 +1,20 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, TextArea } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Image,
+  TextArea,
+  PageHeader,
+} from '@my/ui'
 import { GradientBackground, ImageViewer, AttachmentGrid } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
   useHomeownerJobDashboard,
   useHomeownerDailyReports,
@@ -27,7 +39,6 @@ import type {
   ReimbursementStatus,
 } from '@my/api'
 import {
-  ArrowLeft,
   Play,
   FileText,
   Clock,
@@ -54,7 +65,15 @@ import {
 } from '@tamagui/lucide-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useToastFromParams } from 'app/hooks/useToastFromParams'
 import { useToastController } from '@tamagui/toast'
+import {
+  showReviewSubmittedToast,
+  showSubmissionErrorToast,
+  showJobCompletedToast,
+  showReimbursementApprovedToast,
+  showValidationErrorToast,
+} from 'app/utils/toast-messages'
 import { colors } from '@my/config'
 import {
   Modal,
@@ -271,7 +290,7 @@ function ReviewSection({ jobId, onSubmitted }: { jobId: string; onSubmitted: () 
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      toast.show('Please select a rating', { native: false })
+      showValidationErrorToast(toast, 'rating')
       return
     }
     setIsSubmitting(true)
@@ -280,11 +299,11 @@ function ReviewSection({ jobId, onSubmitted }: { jobId: string; onSubmitted: () 
         jobId,
         data: { rating, comment: comment || undefined },
       })
-      toast.show('Review submitted!', { native: false })
+      showReviewSubmittedToast(toast)
       onSubmitted()
     } catch (error: any) {
       console.error('DEBUG: Review submission error:', error)
-      toast.show('Failed to submit review', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsSubmitting(false)
     }
@@ -2014,6 +2033,7 @@ function ExpandableSessionCard({
 
 // Main Dashboard Component
 export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
+  useToastFromParams()
   const router = useRouter()
   const insets = useSafeArea()
   const toast = useToastController()
@@ -2074,12 +2094,12 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
         reportId: reportToReview.public_id,
         data: { decision: 'approved', comment: feedback },
       })
-      toast.show('Report approved!', { native: false })
+      showSubmissionErrorToast(toast, 'Report approved successfully')
       setReportToReview(null)
       refetchReports()
       refetch()
     } catch (error: any) {
-      toast.show('Failed to approve', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsReviewing(false)
     }
@@ -2094,12 +2114,12 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
         reportId: reportToReview.public_id,
         data: { decision: 'rejected', comment: feedback },
       })
-      toast.show('Report rejected', { native: false })
+      showSubmissionErrorToast(toast, 'Report rejected')
       setReportToReview(null)
       refetchReports()
       refetch()
     } catch (error: any) {
-      toast.show('Failed to reject', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsReviewing(false)
     }
@@ -2115,11 +2135,11 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
         reimbursementId: reimbursementToReview.public_id,
         data: { decision: 'approved', comment: comment || undefined },
       })
-      toast.show('Reimbursement approved!', { native: false })
       setReimbursementToReview(null)
       refetchReimbursements()
+      router.back()
     } catch (error: any) {
-      toast.show('Failed to approve', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsReviewingReimbursement(false)
     }
@@ -2134,11 +2154,11 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
         reimbursementId: reimbursementToReview.public_id,
         data: { decision: 'rejected', comment: comment || undefined },
       })
-      toast.show('Reimbursement rejected', { native: false })
+      showSubmissionErrorToast(toast, 'Reimbursement rejected')
       setReimbursementToReview(null)
       refetchReimbursements()
     } catch (error: any) {
-      toast.show('Failed to reject', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsReviewingReimbursement(false)
     }
@@ -2148,10 +2168,9 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
     setIsApproving(true)
     try {
       await approveCompletionMutation.mutateAsync(jobId)
-      toast.show('Job completed!', { native: false })
-      refetch()
+      router.back()
     } catch (error: any) {
-      toast.show('Failed', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsApproving(false)
     }
@@ -2161,10 +2180,10 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
     setIsRejecting(true)
     try {
       await rejectCompletionMutation.mutateAsync({ jobId })
-      toast.show('Completion rejected', { native: false })
+      showSubmissionErrorToast(toast, 'Completion rejected')
       refetch()
     } catch (error: any) {
-      toast.show('Failed', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsRejecting(false)
     }
@@ -2239,35 +2258,10 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
         flex={1}
         pt={insets.top}
       >
-        <XStack
-          px="$5"
-          py="$3"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Job Progress
-          </Text>
-          {/* Chat Button */}
-          <ChatButton jobId={jobId} />
-        </XStack>
+        <PageHeader
+          title="Job Dashboard"
+          description={PAGE_DESCRIPTIONS['ongoing-dashboard']}
+        />
 
         <ScrollView
           flex={1}

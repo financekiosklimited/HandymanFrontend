@@ -1,10 +1,11 @@
 'use client'
 
-import { YStack, XStack, Text, Button } from '@my/ui'
-import { GradientBackground } from '@my/ui'
+import { YStack, Text, Button } from '@my/ui'
+import { GradientBackground, PageHeader } from '@my/ui'
 import { useRouter } from 'expo-router'
 import { useAuthStore } from '@my/api'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
 export function RegisterVerifiedScreen() {
   const router = useRouter()
@@ -27,37 +28,17 @@ export function RegisterVerifiedScreen() {
         pt={insets.top}
         pb={insets.bottom}
       >
+        <PageHeader
+          title="Email verified"
+          description={PAGE_DESCRIPTIONS['register']}
+        />
+
         {/* Main content */}
         <YStack
           flex={1}
           px="$4"
           gap="$6"
-          justifyContent="center"
-          alignItems="center"
-        >
-          {/* Title */}
-          <YStack
-            gap="$2"
-            alignItems="center"
-          >
-            <Text
-              fontSize={32}
-              fontWeight="bold"
-              color="$color"
-              textAlign="center"
-            >
-              Email verified
-            </Text>
-            <Text
-              fontSize="$4"
-              color="$colorSubtle"
-              lineHeight={24}
-              textAlign="center"
-            >
-              Your email has been successfully verified. You can now start exploring HandymanKiosk.
-            </Text>
-          </YStack>
-        </YStack>
+        />
 
         {/* Bottom button */}
         <YStack

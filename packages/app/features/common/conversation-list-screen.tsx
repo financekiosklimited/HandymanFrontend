@@ -5,10 +5,12 @@ import { YStack, XStack, Text, Spinner, View, Image } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useConversationList, useTotalUnreadCount } from '@my/api'
 import type { GeneralConversationListItem } from '@my/api'
-import { ArrowLeft, MessageCircle, ChevronRight, Inbox } from '@tamagui/lucide-icons'
+import { MessageCircle, ChevronRight, Inbox } from '@tamagui/lucide-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { FlatList, Pressable, RefreshControl } from 'react-native'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
 type ChatRole = 'homeowner' | 'handyman'
 
@@ -408,74 +410,11 @@ export function ConversationListScreen({ chatRole }: ConversationListScreenProps
         flex={1}
         pt={safeArea.top}
       >
-        {/* Premium Header */}
-        <YStack
-          bg="rgba(255,255,255,0.98)"
-          borderBottomWidth={1}
-          borderBottomColor="rgba(0,0,0,0.04)"
-          shadowColor="black"
-          shadowOffset={{ width: 0, height: 2 }}
-          shadowOpacity={0.04}
-          shadowRadius={12}
-        >
-          <XStack
-            px="$md"
-            py="$sm"
-            alignItems="center"
-            gap="$md"
-          >
-            <Pressable
-              onPress={() => router.back()}
-              style={({ pressed }) => ({
-                padding: 10,
-                borderRadius: 12,
-                backgroundColor: pressed ? 'rgba(0,0,0,0.04)' : 'transparent',
-              })}
-            >
-              <ArrowLeft
-                size={22}
-                color="#1F2937"
-              />
-            </Pressable>
-
-            <YStack flex={1}>
-              <Text
-                fontSize={20}
-                fontWeight="700"
-                color="$color"
-              >
-                Messages
-              </Text>
-              {(totalUnread ?? 0) > 0 && (
-                <Text
-                  fontSize={12}
-                  color="$primary"
-                  fontWeight="500"
-                >
-                  {totalUnread} unread
-                </Text>
-              )}
-            </YStack>
-
-            {/* Message Count Badge */}
-            {conversations && conversations.length > 0 && (
-              <View
-                bg="$primaryBackground"
-                px="$sm"
-                py="$xs"
-                borderRadius={12}
-              >
-                <Text
-                  fontSize={12}
-                  fontWeight="600"
-                  color="$primary"
-                >
-                  {conversations.length} {conversations.length === 1 ? 'chat' : 'chats'}
-                </Text>
-              </View>
-            )}
-          </XStack>
-        </YStack>
+        <PageHeader
+          title="Messages"
+          description={PAGE_DESCRIPTIONS['conversations']}
+          onBack={() => router.back()}
+        />
 
         {/* Conversation List */}
         {!conversations || conversations.length === 0 ? (

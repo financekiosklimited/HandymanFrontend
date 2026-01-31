@@ -20,6 +20,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.handymankiosk.app",
+      "buildNumber": "2",
       "appleTeamId": "C6MM65232A",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {

@@ -13,8 +13,10 @@ import {
   Sheet,
   View,
   Image,
+  PageHeader,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useCategories, useCities, useCreateJob } from '@my/api'
 import type { Category } from '@my/api'
 import type { City } from '@my/api'
@@ -22,7 +24,6 @@ import type { CreateJobRequest, CreateJobValidationError, LocalAttachment } from
 import { getFileTypeFromMime, ATTACHMENT_LIMITS, isUnsupportedImageFormat } from '@my/api'
 import { useRouter } from 'expo-router'
 import {
-  ArrowLeft,
   ChevronDown,
   Plus,
   X,
@@ -563,26 +564,10 @@ export function AddJobScreen() {
           flex={1}
           pt={insets.top}
         >
-          {/* Header */}
-          <XStack
-            px="$4"
-            py="$3"
-            alignItems="center"
-            gap="$3"
-          >
-            <Button
-              unstyled
-              onPress={() => router.back()}
-              p="$2"
-              hitSlop={12}
-              pressStyle={{ opacity: 0.7 }}
-            >
-              <ArrowLeft
-                size={24}
-                color="$color"
-              />
-            </Button>
-          </XStack>
+          <PageHeader
+            title="Create Job"
+            description={PAGE_DESCRIPTIONS['create-job']}
+          />
 
           {/* Content */}
           <ScrollView

@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, PageHeader } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
   useHomeownerJob,
   useHomeownerDailyReports,
@@ -13,7 +14,6 @@ import {
 } from '@my/api'
 import type { DailyReport, DailyReportStatus } from '@my/api'
 import {
-  ArrowLeft,
   FileText,
   Clock,
   MapPin,
@@ -30,6 +30,7 @@ import {
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import { showJobCompletedToast, showSubmissionErrorToast } from 'app/utils/toast-messages'
 import { colors } from '@my/config'
 import { Alert } from 'react-native'
 
@@ -328,10 +329,10 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
         reportId,
         data: { decision: 'approved' },
       })
-      toast.show('Report approved', { native: false })
+      showSubmissionErrorToast(toast, 'Report approved successfully')
       refetchReports()
     } catch (error: any) {
-      toast.show('Failed to approve', { message: error?.message, native: false })
+      showSubmissionErrorToast(toast, error?.message)
     }
   }
 
@@ -347,10 +348,10 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
               reportId,
               data: { decision: 'rejected', comment: feedback || undefined },
             })
-            toast.show('Report rejected', { native: false })
+            showSubmissionErrorToast(toast, 'Report rejected')
             refetchReports()
           } catch (error: any) {
-            toast.show('Failed to reject', { message: error?.message, native: false })
+            showSubmissionErrorToast(toast, error?.message)
           }
         }
       },
@@ -371,13 +372,9 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
           onPress: async () => {
             try {
               await approveCompletionMutation.mutateAsync(jobId)
-              toast.show('Job completed!', {
-                message: 'Payment has been released to the handyman',
-                native: false,
-              })
-              refetchJob()
+              router.back()
             } catch (error: any) {
-              toast.show('Failed to approve', { message: error?.message, native: false })
+              showSubmissionErrorToast(toast, error?.message)
             }
           },
         },
@@ -396,13 +393,10 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
               jobId,
               data: { reason: reason || undefined },
             })
-            toast.show('Completion rejected', {
-              message: 'The handyman can continue working on the job',
-              native: false,
-            })
+            showSubmissionErrorToast(toast, 'Completion rejected')
             refetchJob()
           } catch (error: any) {
-            toast.show('Failed to reject', { message: error?.message, native: false })
+            showSubmissionErrorToast(toast, error?.message)
           }
         }
       },
@@ -482,37 +476,10 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-            numberOfLines={1}
-          >
-            Project Summary
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Project Summary"
+          description={PAGE_DESCRIPTIONS['ongoing-dashboard']}
+        />
 
         <ScrollView
           flex={1}

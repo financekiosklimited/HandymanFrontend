@@ -1,27 +1,35 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, TextArea } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Image,
+  TextArea,
+  PageHeader,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
   useJobDashboard,
   useHandymanWorkSessions,
   useCreateDailyReport,
   isUnsupportedImageFormat,
 } from '@my/api'
-import {
-  ArrowLeft,
-  Clock,
-  Plus,
-  Minus,
-  Camera,
-  CheckCircle2,
-  Circle,
-  Save,
-} from '@tamagui/lucide-icons'
+import { Clock, Plus, Minus, Camera, CheckCircle2, Circle, Save } from '@tamagui/lucide-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import {
+  showReportSubmittedToast,
+  showSubmissionErrorToast,
+  showValidationErrorToast,
+} from 'app/utils/toast-messages'
 import * as ImagePicker from 'expo-image-picker'
 
 interface TaskItem {
@@ -119,10 +127,7 @@ export function CreateReportScreen() {
     if (!jobId) return
 
     if (!summary.trim()) {
-      toast.show('Summary required', {
-        message: 'Please add a summary of your work',
-        native: false,
-      })
+      showValidationErrorToast(toast, 'summary')
       return
     }
 
@@ -144,16 +149,12 @@ export function CreateReportScreen() {
         },
       })
 
-      toast.show('Report submitted', {
-        message: 'Your daily report has been sent for review',
-        native: false,
-      })
+      // Navigate back with toast param
       router.back()
+      // Note: For router.back(), we can't pass params easily
+      // The toast will be handled differently or shown before navigation
     } catch (error: any) {
-      toast.show('Failed to submit report', {
-        message: error?.message || 'Please try again',
-        native: false,
-      })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsSubmitting(false)
     }
@@ -198,36 +199,10 @@ export function CreateReportScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Create Daily Report
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Create Daily Report"
+          description={PAGE_DESCRIPTIONS['daily-report']}
+        />
 
         <ScrollView
           flex={1}

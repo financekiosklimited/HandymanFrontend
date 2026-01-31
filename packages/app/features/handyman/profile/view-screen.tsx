@@ -5,7 +5,6 @@ import { GradientBackground } from '@my/ui'
 import { useHandymanProfile, useActivateRole, useLogout } from '@my/api'
 import { useRouter, useNavigation } from 'expo-router'
 import {
-  ArrowLeft,
   CheckCircle,
   XCircle,
   Star,
@@ -16,6 +15,8 @@ import {
   LogOut,
 } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
 export function HandymanProfileViewScreen() {
   const router = useRouter()
@@ -72,42 +73,17 @@ export function HandymanProfileViewScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => {
-              if (navigation.canGoBack()) {
-                router.back()
-              } else {
-                router.replace('/(handyman)/')
-              }
-            }}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Handyman Profile
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="My Profile"
+          description={PAGE_DESCRIPTIONS['view-profile']}
+          onBack={() => {
+            if (navigation.canGoBack()) {
+              router.back()
+            } else {
+              router.replace('/(handyman)/')
+            }
+          }}
+        />
 
         {/* Content */}
         <ScrollView

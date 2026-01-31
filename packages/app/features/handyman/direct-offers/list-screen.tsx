@@ -5,9 +5,11 @@ import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
 import { GradientBackground, DirectOfferCard } from '@my/ui'
 import { useHandymanDirectOffers } from '@my/api'
 import type { HandymanDirectOffer, DirectOfferStatus } from '@my/api'
-import { ArrowLeft, Mail, Filter } from '@tamagui/lucide-icons'
+import { Mail, Filter } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
 type FilterOption = 'all' | DirectOfferStatus
 
@@ -52,36 +54,11 @@ export function HandymanDirectOffersListScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Direct Offers
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Direct Offers"
+          description={PAGE_DESCRIPTIONS['direct-offers-list']}
+          onBack={() => router.back()}
+        />
 
         {/* Filter Tabs */}
         <ScrollView

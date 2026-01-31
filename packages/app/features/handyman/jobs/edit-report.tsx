@@ -1,11 +1,22 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, TextArea } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Image,
+  TextArea,
+  PageHeader,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useJobDashboard, useHandymanDailyReport, useUpdateDailyReport } from '@my/api'
 import {
-  ArrowLeft,
   Clock,
   Plus,
   Minus,
@@ -18,6 +29,11 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import {
+  showReportSubmittedToast,
+  showSubmissionErrorToast,
+  showValidationErrorToast,
+} from 'app/utils/toast-messages'
 
 interface TaskItem {
   public_id: string
@@ -99,10 +115,7 @@ export function EditReportScreen() {
     if (!jobId || !reportId) return
 
     if (!summary.trim()) {
-      toast.show('Summary required', {
-        message: 'Please add a summary of your work',
-        native: false,
-      })
+      showValidationErrorToast(toast, 'summary')
       return
     }
 
@@ -124,16 +137,9 @@ export function EditReportScreen() {
         },
       })
 
-      toast.show('Report updated', {
-        message: 'Your daily report has been updated',
-        native: false,
-      })
       router.back()
     } catch (error: any) {
-      toast.show('Failed to update report', {
-        message: error?.message || 'Please try again',
-        native: false,
-      })
+      showSubmissionErrorToast(toast, error?.message)
     } finally {
       setIsSubmitting(false)
     }
@@ -212,36 +218,10 @@ export function EditReportScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$5"
-          py="$4"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={22}
-              color="$color"
-            />
-          </Button>
-          <Text
-            flex={1}
-            fontSize={17}
-            fontWeight="700"
-            color="$color"
-            textAlign="center"
-          >
-            Edit Daily Report
-          </Text>
-          <View width={38} />
-        </XStack>
+        <PageHeader
+          title="Edit Daily Report"
+          description={PAGE_DESCRIPTIONS['daily-report']}
+        />
 
         <ScrollView
           flex={1}

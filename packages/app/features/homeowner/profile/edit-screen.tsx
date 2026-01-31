@@ -15,10 +15,12 @@ import { FormInput, FormSelect } from '@my/ui'
 import { useHomeownerProfile, useUpdateHomeownerProfile } from '@my/api'
 import type { HomeownerProfileUpdateRequest } from '@my/api'
 import { useRouter } from 'expo-router'
-import { ArrowLeft, AlertCircle, User, ChevronDown } from '@tamagui/lucide-icons'
+import { AlertCircle, User, ChevronDown } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { KeyboardAvoidingView, Platform } from 'react-native'
 import { HTTPError } from 'ky'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
 interface FormData {
   display_name: string
@@ -200,51 +202,11 @@ export function HomeownerProfileEditScreen() {
           flex={1}
           pt={insets.top}
         >
-          {/* Header */}
-          <XStack
-            px="$5"
-            py="$4"
-            alignItems="center"
-            gap="$3"
-          >
-            <Button
-              unstyled
-              onPress={() => router.back()}
-              p="$2"
-              hitSlop={12}
-              pressStyle={{ opacity: 0.7 }}
-            >
-              <ArrowLeft
-                size={22}
-                color="$color"
-              />
-            </Button>
-            <Text
-              flex={1}
-              fontSize={17}
-              fontWeight="700"
-              color="$color"
-              textAlign="center"
-            >
-              Edit Profile
-            </Text>
-            <Button
-              unstyled
-              onPress={handleSubmit}
-              disabled={updateMutation.isPending}
-              p="$2"
-              hitSlop={12}
-              pressStyle={{ opacity: 0.7 }}
-            >
-              <Text
-                color="$primary"
-                fontSize={15}
-                fontWeight="600"
-              >
-                {updateMutation.isPending ? 'Saving...' : 'Apply'}
-              </Text>
-            </Button>
-          </XStack>
+          <PageHeader
+            title="Edit Profile"
+            description={PAGE_DESCRIPTIONS['edit-profile']}
+            onBack={() => router.back()}
+          />
 
           {/* Content */}
           <ScrollView

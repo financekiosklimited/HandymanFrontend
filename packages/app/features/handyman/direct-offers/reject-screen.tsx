@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, TextArea } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useHandymanDirectOffer, useRejectDirectOffer, QUICK_REJECTION_REASONS } from '@my/api'
-import { ArrowLeft, X, AlertCircle, Check } from '@tamagui/lucide-icons'
+import { X, AlertCircle, Check } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { Alert, Keyboard, TouchableWithoutFeedback } from 'react-native'
+import { PageHeader } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
 interface HandymanDirectOfferRejectScreenProps {
   offerId: string
@@ -168,34 +170,11 @@ export function HandymanDirectOfferRejectScreen({ offerId }: HandymanDirectOffer
           flex={1}
           pt={insets.top}
         >
-          {/* Header */}
-          <XStack
-            px="$4"
-            py="$3"
-            alignItems="center"
-            gap="$3"
-          >
-            <Button
-              unstyled
-              onPress={() => router.back()}
-              p="$2"
-              hitSlop={12}
-              pressStyle={{ opacity: 0.7 }}
-            >
-              <ArrowLeft
-                size={24}
-                color="$color"
-              />
-            </Button>
-            <Text
-              fontSize="$6"
-              fontWeight="bold"
-              color="$color"
-              flex={1}
-            >
-              Decline Offer
-            </Text>
-          </XStack>
+          <PageHeader
+            title="Decline Offer"
+            description={PAGE_DESCRIPTIONS['direct-offer-detail']}
+            onBack={() => router.back()}
+          />
 
           <ScrollView
             flex={1}

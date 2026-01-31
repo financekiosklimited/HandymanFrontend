@@ -13,8 +13,10 @@ import {
   View,
   Image,
   Sheet,
+  PageHeader,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
   useHandymanJobDetail,
   useApplyForJob,
@@ -25,7 +27,6 @@ import {
 import type { LocalAttachment, AttachmentUpload } from '@my/api'
 import { useRouter } from 'expo-router'
 import {
-  ArrowLeft,
   Plus,
   X,
   Clock,
@@ -48,6 +49,7 @@ import * as DocumentPicker from 'expo-document-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
 import * as ImageManipulator from 'expo-image-manipulator'
 import { useToastController } from '@tamagui/toast'
+import { showApplicationSubmittedToast, showSubmissionErrorToast } from 'app/utils/toast-messages'
 import { KeyboardAvoidingView, Platform, ActionSheetIOS, Pressable } from 'react-native'
 
 interface Material {
@@ -474,22 +476,13 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
         attachments: attachments.length > 0 ? attachments : undefined,
       })
 
-      toast.show('Application Submitted!', {
-        message: 'Your proposal has been sent to the homeowner.',
-        duration: 3000,
-        native: false,
-        customData: { variant: 'success' },
+      // Navigate to my-jobs with toast param
+      router.replace({
+        pathname: '/(handyman)/my-jobs',
+        params: { toast: 'application-submitted' },
       })
-
-      // Navigate back to jobs or application list
-      router.replace('/(handyman)/my-jobs')
     } catch (error: unknown) {
-      toast.show('Submission Failed', {
-        message: formatErrorMessage(error),
-        duration: 4000,
-        native: false,
-        customData: { variant: 'error' },
-      })
+      showSubmissionErrorToast(toast, formatErrorMessage(error))
     } finally {
       setIsSubmitting(false)
     }
@@ -624,36 +617,10 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
           flex={1}
           pt={insets.top}
         >
-          {/* Header */}
-          <XStack
-            px="$4"
-            py="$3"
-            alignItems="center"
-            gap="$3"
-          >
-            <Button
-              unstyled
-              onPress={() => router.back()}
-              p="$2"
-              hitSlop={12}
-              pressStyle={{ opacity: 0.7 }}
-            >
-              <ArrowLeft
-                size={24}
-                color="$color"
-              />
-            </Button>
-            <Text
-              flex={1}
-              fontSize={17}
-              fontWeight="700"
-              color="$color"
-              textAlign="center"
-            >
-              Submit Proposal
-            </Text>
-            <View width={38} />
-          </XStack>
+          <PageHeader
+            title="Submit Proposal"
+            description={PAGE_DESCRIPTIONS['apply-job']}
+          />
 
           {/* Content */}
           <ScrollView

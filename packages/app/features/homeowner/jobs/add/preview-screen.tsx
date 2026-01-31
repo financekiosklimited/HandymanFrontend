@@ -12,13 +12,14 @@ import {
   Image,
   ImageViewer,
   VideoPlayer,
+  PageHeader,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useCreateJob, formatErrorMessage, formatValidationError } from '@my/api'
 import type { CreateJobValidationError, LocalAttachment, AttachmentUpload } from '@my/api'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import {
-  ArrowLeft,
   MapPin,
   DollarSign,
   CheckCircle2,
@@ -224,34 +225,10 @@ export function JobPreviewScreen() {
         flex={1}
         pt={insets.top}
       >
-        {/* Header */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-          gap="$3"
-        >
-          <Button
-            unstyled
-            onPress={() => router.back()}
-            p="$2"
-            hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <ArrowLeft
-              size={24}
-              color="$color"
-            />
-          </Button>
-          <Text
-            fontSize="$6"
-            fontWeight="bold"
-            color="$color"
-            flex={1}
-          >
-            Review & Publish
-          </Text>
-        </XStack>
+        <PageHeader
+          title="Review & Publish"
+          description={PAGE_DESCRIPTIONS['create-job']}
+        />
 
         {/* Content */}
         <ScrollView
