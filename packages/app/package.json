@@ -9,6 +9,7 @@
   "dependencies": {
     "@my/api": "0.0.1",
     "@my/ui": "0.0.1",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-navigation/native": "^7.1.6",
     "@tamagui/animations-react-native": "^1.143.1",
     "@tamagui/colors": "^1.143.1",
@@ -19,6 +20,8 @@
     "@tanstack/react-query": "^5.56.2",
     "burnt": "^0.13.0",
     "expo-constants": "~18.0.13",
+    "expo-image": "^3.0.11",
+    "expo-linear-gradient": "^15.0.8",
     "expo-linking": "~8.0.11",
     "expo-router": "~6.0.22",
     "react-native-safe-area-context": "~5.6.0",
