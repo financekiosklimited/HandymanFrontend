@@ -135,6 +135,7 @@ export const config = createTamagui({
     },
     // Add custom colors to tokens
     color: {
+      ...defaultConfig.tokens.color,
       ...colors,
       // Add background-specific colors that are used as tokens
       primaryBackground: 'rgba(12,154,92,0.1)',

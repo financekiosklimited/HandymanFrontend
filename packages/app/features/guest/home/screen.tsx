@@ -1,41 +1,94 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import * as Location from 'expo-location'
-import { YStack, XStack, ScrollView, Text, Button, Spinner } from '@my/ui'
-import { SearchBar, BottomNav, JobCard, HandymanCard, GradientBackground, JobFilters } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
 import { useGuestJobs, useGuestHandymen, useCategories, useCities } from '@my/api'
-import {
-  Menu,
-  Bookmark,
-  MessageCircle,
-  Plus,
-  MapPin,
-  Briefcase,
-  Users,
-} from '@tamagui/lucide-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useDebounce } from 'app/hooks'
+import {
+  Menu,
+  Search,
+  Bookmark,
+  MessageCircle,
+  Plus,
+  Briefcase,
+  Users,
+  Zap,
+  Wrench,
+  Truck,
+  PaintBucket,
+  Tv,
+  Star,
+  MapPin,
+  ChevronDown,
+  ShieldCheck,
+  Sparkles,
+  Hammer,
+  TreePine,
+  Wind,
+  Home,
+  Layers,
+  Settings,
+} from '@tamagui/lucide-icons'
+
+// Icon mapping for API categories (Material Design names → Lucide icons)
+const iconMap: Record<string, any> = {
+  plumbing: Wrench,
+  electrical_services: Zap,
+  carpenter: Hammer,
+  cleaning_services: Sparkles,
+  format_paint: PaintBucket,
+  yard: TreePine,
+  ac_unit: Wind,
+  roofing: Home,
+  layers: Layers,
+  home_repair_service: Settings,
+}
+
+// Hardcoded city coordinates from backend seed data
+const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
+  'toronto-on': { lat: 43.65107, lng: -79.347015 },
+  'ottawa-on': { lat: 45.42153, lng: -75.697193 },
+  'mississauga-on': { lat: 43.589045, lng: -79.64412 },
+  'hamilton-on': { lat: 43.255203, lng: -79.843826 },
+  'vancouver-bc': { lat: 49.282729, lng: -123.120738 },
+  'surrey-bc': { lat: 49.1058, lng: -122.825095 },
+  'calgary-ab': { lat: 51.044733, lng: -114.071883 },
+  'edmonton-ab': { lat: 53.544389, lng: -113.490927 },
+  'montreal-qc': { lat: 45.501689, lng: -73.567256 },
+  'quebec-city-qc': { lat: 46.813878, lng: -71.207981 },
+  'winnipeg-mb': { lat: 49.895136, lng: -97.138374 },
+  'halifax-ns': { lat: 44.648764, lng: -63.575239 },
+}
+
+// Colors for category icons
+const CATEGORY_COLORS = ['$warning', '$info', '$primary', '$success', '$accent', '$error']
 
 export function GuestHomeScreen() {
   const router = useRouter()
   const insets = useSafeArea()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
-  const [selectedCity, setSelectedCity] = useState<string | undefined>(undefined)
   const [location, setLocation] = useState<{
     latitude: number
     longitude: number
   } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
 
+  // Filter states - MUST be declared before hooks that use them
+  const [selectedCity, setSelectedCity] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [minRating, setMinRating] = useState<number | null>(null)
+  const [maxHourlyRate, setMaxHourlyRate] = useState<number | null>(null)
+  const [showCityDropdown, setShowCityDropdown] = useState(false)
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
+  const [showRatingDropdown, setShowRatingDropdown] = useState(false)
+  const [showHourlyRateDropdown, setShowHourlyRateDropdown] = useState(false)
+
   // Debounce search query for handymen API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 400)
-
-  // Fetch categories and cities for filters
-  const { data: categories, isLoading: categoriesLoading } = useCategories()
-  const { data: cities, isLoading: citiesLoading } = useCities()
 
   // Request location permission and get current location
   useEffect(() => {
@@ -99,7 +152,17 @@ export function GuestHomeScreen() {
     }
   }, [])
 
-  // Fetch jobs and handymen with location (or without if location not available)
+  // Fetch categories and cities for filters
+  const { data: categories, isLoading: categoriesLoading } = useCategories()
+  const { data: cities, isLoading: citiesLoading } = useCities()
+
+  // Get coordinates for selected city
+  const selectedCitySlug = selectedCity
+    ? cities?.find((c) => c.public_id === selectedCity)?.slug
+    : null
+  const cityCoords = selectedCitySlug ? CITY_COORDINATES[selectedCitySlug] : null
+
+  // Fetch jobs and handymen with filters
   const {
     data: jobsData,
     isLoading: jobsLoading,
@@ -109,12 +172,14 @@ export function GuestHomeScreen() {
     isFetchingNextPage: isFetchingMoreJobs,
   } = useGuestJobs({
     search: searchQuery || undefined,
-    category: selectedCategory,
-    city: selectedCity,
-    ...(location && {
-      latitude: location.latitude,
-      longitude: location.longitude,
-    }),
+    category: selectedCategory || undefined,
+    city: selectedCitySlug || undefined,
+    ...(cityCoords || location
+      ? {
+          latitude: cityCoords?.lat || location?.latitude,
+          longitude: cityCoords?.lng || location?.longitude,
+        }
+      : {}),
   })
 
   const {
@@ -126,10 +191,12 @@ export function GuestHomeScreen() {
     isFetchingNextPage: isFetchingMoreHandymen,
   } = useGuestHandymen({
     search: debouncedSearchQuery || undefined,
-    ...(location && {
-      latitude: location.latitude,
-      longitude: location.longitude,
-    }),
+    ...(cityCoords || location
+      ? {
+          latitude: cityCoords?.lat || location?.latitude,
+          longitude: cityCoords?.lng || location?.longitude,
+        }
+      : {}),
   })
 
   // Flatten paginated data
@@ -137,24 +204,51 @@ export function GuestHomeScreen() {
     return jobsData?.pages.flatMap((page) => page.results) || []
   }, [jobsData])
 
+  // Filter handymen by rating and hourly rate (client-side)
   const handymen = useMemo(() => {
-    return handymenData?.pages.flatMap((page) => page.results) || []
-  }, [handymenData])
+    let filteredHandymen = handymenData?.pages.flatMap((page) => page.results) || []
+    if (minRating) {
+      filteredHandymen = filteredHandymen.filter((h) => h.rating >= minRating)
+    }
+    if (maxHourlyRate) {
+      filteredHandymen = filteredHandymen.filter(
+        (h) => h.hourly_rate && h.hourly_rate <= maxHourlyRate
+      )
+    }
+    return filteredHandymen
+  }, [handymenData, minRating, maxHourlyRate])
+
+  // Get display labels for filters
+  const selectedCityName = selectedCity
+    ? cities?.find((c) => c.public_id === selectedCity)?.name
+    : null
+  const selectedCategoryName = selectedCategory
+    ? categories?.find((c) => c.slug === selectedCategory)?.name
+    : null
+  const ratingLabel = minRating ? `${minRating}+ Stars` : null
+  const hourlyRateLabel = maxHourlyRate ? `$${maxHourlyRate}/hr or less` : null
+
+  // Login redirect helper
+  const redirectToLogin = useCallback(() => {
+    router.push('/auth/login')
+  }, [router])
 
   return (
-    <GradientBackground>
+    <View
+      flex={1}
+      backgroundColor="$background"
+    >
       <YStack
         flex={1}
         pt={insets.top}
       >
         {/* Header */}
         <XStack
-          px="$md"
-          pt="$md"
-          pb="$sm"
-          gap="$sm"
+          px="$4"
+          py="$3"
           alignItems="center"
-          bg="transparent"
+          gap="$3"
+          justifyContent="space-between"
         >
           <Button
             unstyled
@@ -163,403 +257,878 @@ export function GuestHomeScreen() {
             }}
           >
             <Menu
-              size={20}
+              size={26}
               color="$color"
             />
           </Button>
 
-          <SearchBar
-            placeholder="Search HandymanKiosk"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-
-          <Button
-            unstyled
-            onPress={() => {
-              // TODO: Navigate to bookmarks
-            }}
+          {/* Search Input Placeholder */}
+          <XStack
+            flex={1}
+            bg="$backgroundSubtle"
+            borderColor="$borderColor"
+            borderWidth={1}
+            borderRadius="$4"
+            px="$3"
+            py="$2.5"
+            alignItems="center"
+            gap="$2"
           >
-            <Bookmark
-              size={20}
-              color="$color"
+            <Search
+              pointerEvents="none"
+              size={18}
+              color="$colorSubtle"
             />
-          </Button>
+            <Text
+              color="$colorSubtle"
+              fontSize="$3"
+            >
+              Search HandymanKiosk
+            </Text>
+          </XStack>
 
-          <Button
-            unstyled
-            onPress={() => {
-              // TODO: Navigate to messages
-            }}
+          <XStack
+            alignItems="center"
+            gap="$3"
           >
-            <MessageCircle
-              size={20}
-              color="$color"
-            />
-          </Button>
+            <Button
+              unstyled
+              onPress={redirectToLogin}
+            >
+              <Bookmark
+                size={24}
+                color="$color"
+              />
+            </Button>
+            <Button
+              unstyled
+              onPress={redirectToLogin}
+            >
+              <MessageCircle
+                size={24}
+                color="$color"
+              />
+            </Button>
+          </XStack>
         </XStack>
 
-        {/* Filters */}
-        <YStack
-          px="$md"
-          pb="$sm"
+        <ScrollView
+          flex={1}
+          showsVerticalScrollIndicator={false}
         >
-          <JobFilters
-            categories={categories}
-            cities={cities}
-            selectedCategory={selectedCategory}
-            selectedCity={selectedCity}
-            onCategoryChange={setSelectedCategory}
-            onCityChange={setSelectedCity}
-            isLoadingCategories={categoriesLoading}
-            isLoadingCities={citiesLoading}
-          />
-        </YStack>
-
-        {/* Content */}
-        <ScrollView flex={1}>
+          {/* Welcome Message */}
           <YStack
-            gap="$xl"
-            px="$md"
-            pb="$xl"
-            pt="$sm"
+            px="$4"
+            py="$4"
           >
-            {/* Job List Section */}
-            <YStack gap="$md">
-              <XStack
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <XStack
-                  alignItems="center"
-                  gap="$sm"
-                >
-                  <Briefcase
-                    size={18}
-                    color="$primary"
-                  />
-                  <Text
-                    fontSize="$6"
-                    fontWeight="bold"
-                    color="$color"
-                  >
-                    Job List
-                  </Text>
-                </XStack>
-                <Button
-                  unstyled
-                  onPress={() => {
-                    // TODO: Navigate to create job
-                  }}
-                  bg="$primary"
-                  borderRadius="$full"
-                  width={28}
-                  height={28}
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Plus
-                    size={16}
-                    color="white"
-                  />
-                </Button>
-              </XStack>
+            <Text
+              fontSize="$8"
+              fontWeight="bold"
+              color="$color"
+              lineHeight="$8"
+            >
+              Welcome, <Text color="$primary">Guest</Text>
+            </Text>
+            <Text
+              fontSize="$3"
+              color="$colorSubtle"
+              mt="$1"
+            >
+              Find local professionals for your home projects
+            </Text>
+          </YStack>
 
-              {jobsLoading ? (
-                <YStack
-                  py="$lg"
-                  alignItems="center"
-                >
-                  <Spinner
-                    size="small"
-                    color="$primary"
-                  />
-                  <Text
-                    color="$colorSubtle"
-                    mt="$sm"
-                    fontSize="$3"
-                  >
-                    Loading jobs...
-                  </Text>
-                </YStack>
-              ) : jobsError ? (
-                <YStack
-                  py="$lg"
-                  alignItems="center"
-                  bg="$backgroundMuted"
-                  borderRadius="$md"
-                >
-                  <Text
-                    color="$error"
-                    fontSize="$3"
-                  >
-                    Failed to load jobs
-                  </Text>
-                  <Text
-                    color="$colorMuted"
-                    fontSize="$2"
-                    mt="$xs"
-                  >
-                    {jobsError instanceof Error ? jobsError.message : 'Please try again'}
-                  </Text>
-                </YStack>
-              ) : jobs.length > 0 ? (
-                <YStack gap="$sm">
-                  <XStack
-                    flexWrap="wrap"
-                    mx={-4}
-                  >
-                    {jobs.map((job) => (
-                      <YStack
-                        key={job.public_id}
-                        width="50%"
-                        p={4}
-                      >
-                        <JobCard
-                          job={job}
-                          showCategory
-                          onPress={() => {
-                            router.push(`/(guest)/jobs/${job.public_id}`)
-                          }}
-                        />
-                      </YStack>
-                    ))}
-                  </XStack>
+          {/* Job Posting Panel - Guest Version */}
+          <YStack
+            px="$4"
+            pb="$6"
+            pt="$2"
+          >
+            <YStack
+              overflow="hidden"
+              borderRadius="$8"
+              p="$5"
+              shadowColor="$shadowColor"
+              shadowRadius={10}
+              shadowOffset={{ width: 0, height: 4 }}
+              shadowOpacity={0.1}
+              position="relative"
+            >
+              {/* Gradient Background */}
+              <LinearGradient
+                colors={['#0C9A5C', '#34C759']}
+                start={[0, 0]}
+                end={[1, 1]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
 
-                  {/* Load More Jobs Button */}
-                  {hasMoreJobs && (
-                    <Button
-                      onPress={() => fetchNextJobs()}
-                      disabled={isFetchingMoreJobs}
-                      bg="$backgroundMuted"
-                      borderRadius="$md"
-                      py="$sm"
-                      mt="$xs"
-                      borderWidth={1}
-                      borderColor="$borderColor"
-                    >
-                      {isFetchingMoreJobs ? (
-                        <XStack
-                          alignItems="center"
-                          gap="$sm"
-                        >
-                          <Spinner
-                            size="small"
-                            color="$primary"
-                          />
-                          <Text
-                            color="$colorSubtle"
-                            fontSize="$3"
-                          >
-                            Loading...
-                          </Text>
-                        </XStack>
-                      ) : (
-                        <Text
-                          color="$primary"
-                          fontSize="$3"
-                          fontWeight="500"
-                        >
-                          Load more jobs
-                        </Text>
-                      )}
-                    </Button>
-                  )}
-                </YStack>
-              ) : (
-                <YStack
-                  py="$xl"
-                  alignItems="center"
-                  bg="$backgroundMuted"
-                  borderRadius="$md"
-                  gap="$sm"
-                >
-                  <Briefcase
-                    size={32}
-                    color="$colorMuted"
-                  />
-                  <Text
-                    color="$colorSubtle"
-                    fontSize="$4"
-                    fontWeight="500"
-                  >
-                    No jobs available
-                  </Text>
-                  <Text
-                    color="$colorMuted"
-                    fontSize="$2"
-                    textAlign="center"
-                    px="$md"
-                  >
-                    {locationError
-                      ? 'Enable location to see jobs near you'
-                      : 'Check back later for new opportunities'}
-                  </Text>
-                </YStack>
-              )}
-            </YStack>
+              {/* Decorative Blurs (Simulated) */}
+              <View
+                position="absolute"
+                top={-32}
+                right={-32}
+                width={128}
+                height={128}
+                bg="rgba(255,255,255,0.2)"
+                borderRadius={100}
+                style={{ filter: 'blur(30px)' }}
+                pointerEvents="none"
+              />
+              <View
+                position="absolute"
+                bottom={-32}
+                left={-32}
+                width={96}
+                height={96}
+                bg="rgba(0,0,0,0.1)"
+                borderRadius={100}
+                style={{ filter: 'blur(20px)' }}
+                pointerEvents="none"
+              />
 
-            {/* Hire Handymen Section */}
-            <YStack gap="$md">
-              <XStack
-                alignItems="center"
-                gap="$sm"
-              >
-                <Users
-                  size={18}
-                  color="$primary"
-                />
+              <YStack zIndex={10}>
                 <Text
                   fontSize="$6"
                   fontWeight="bold"
-                  color="$color"
+                  color="white"
+                  mb="$1"
                 >
-                  Hire handymen near you
+                  What do you need done?
                 </Text>
-              </XStack>
+                <Text
+                  fontSize="$2"
+                  color="$primaryBackground"
+                  mb="$5"
+                  fontWeight="500"
+                >
+                  Post a job to get bids from local pros.
+                </Text>
 
-              {handymenLoading ? (
-                <YStack
-                  py="$lg"
+                {/* Input Field - Redirects to Login */}
+                <XStack
+                  bg="white"
+                  borderRadius="$6"
+                  p="$2"
                   alignItems="center"
+                  gap="$3"
+                  mb="$6"
+                  pressStyle={{ scale: 0.99 }}
+                  onPress={redirectToLogin}
                 >
-                  <Spinner
-                    size="small"
-                    color="$primary"
-                  />
+                  <View
+                    bg="$primaryBackground"
+                    p="$2.5"
+                    borderRadius="$4"
+                  >
+                    <Briefcase
+                      size={18}
+                      color="$primary"
+                    />
+                  </View>
+                  <YStack flex={1}>
+                    <Text
+                      fontSize={10}
+                      color="$colorSubtle"
+                      fontWeight="bold"
+                      textTransform="uppercase"
+                      letterSpacing={1}
+                    >
+                      I need help with...
+                    </Text>
+                    <Text
+                      color="$color"
+                      fontWeight="500"
+                      fontSize="$3"
+                    >
+                      Describe your task
+                    </Text>
+                  </YStack>
+                  <View pr="$2">
+                    <View
+                      bg="$color"
+                      p="$1.5"
+                      borderRadius="$4"
+                    >
+                      <Plus
+                        size={14}
+                        color="white"
+                        strokeWidth={3}
+                      />
+                    </View>
+                  </View>
+                </XStack>
+
+                {/* Categories Grid - 2 rows, horizontal scroll */}
+                <YStack>
                   <Text
-                    color="$colorSubtle"
-                    mt="$sm"
-                    fontSize="$3"
+                    fontSize={10}
+                    fontWeight="bold"
+                    color="white"
+                    textTransform="uppercase"
+                    letterSpacing={1}
+                    mb="$3"
+                    opacity={0.9}
                   >
-                    Loading handymen...
+                    Or choose a category
                   </Text>
-                </YStack>
-              ) : handymenError ? (
-                <YStack
-                  py="$lg"
-                  alignItems="center"
-                  bg="$backgroundMuted"
-                  borderRadius="$md"
-                >
-                  <Text
-                    color="$error"
-                    fontSize="$3"
-                  >
-                    Failed to load handymen
-                  </Text>
-                  <Text
-                    color="$colorMuted"
-                    fontSize="$2"
-                    mt="$xs"
-                  >
-                    {handymenError instanceof Error ? handymenError.message : 'Please try again'}
-                  </Text>
-                </YStack>
-              ) : handymen.length > 0 ? (
-                <YStack gap="$sm">
-                  <XStack
-                    flexWrap="wrap"
-                    mx={-4}
-                  >
-                    {handymen.map((handyman) => (
-                      <YStack
-                        key={handyman.public_id}
-                        width="50%"
-                        p={4}
+                  {categoriesLoading ? (
+                    <Spinner
+                      size="small"
+                      color="white"
+                    />
+                  ) : (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                    >
+                      <XStack
+                        flexWrap="wrap"
+                        width={320}
+                        gap="$3"
+                        alignContent="flex-start"
                       >
-                        <HandymanCard
-                          handyman={handyman}
-                          onPress={() => {
-                            router.push(`/(guest)/handymen/${handyman.public_id}`)
-                          }}
+                        {categories?.slice(0, 8).map((cat, index) => {
+                          const colorIndex = index % CATEGORY_COLORS.length
+                          const IconComponent = iconMap[cat.icon] || Wrench
+
+                          return (
+                            <YStack
+                              key={cat.public_id}
+                              alignItems="center"
+                              gap="$2"
+                              width={70}
+                              onPress={redirectToLogin}
+                            >
+                              <View
+                                width={48}
+                                height={48}
+                                borderRadius="$5"
+                                alignItems="center"
+                                justifyContent="center"
+                                bg="rgba(255,255,255,0.95)"
+                              >
+                                <IconComponent
+                                  size={20}
+                                  color={CATEGORY_COLORS[colorIndex]}
+                                  strokeWidth={2}
+                                />
+                              </View>
+                              <Text
+                                fontSize="$2"
+                                fontWeight="600"
+                                color="white"
+                                textAlign="center"
+                                numberOfLines={1}
+                                mt="$1"
+                              >
+                                {cat.name}
+                              </Text>
+                            </YStack>
+                          )
+                        })}
+                      </XStack>
+                    </ScrollView>
+                  )}
+                </YStack>
+              </YStack>
+            </YStack>
+          </YStack>
+
+          {/* Direct Hire Section */}
+          <YStack
+            px="$4"
+            mb="$4"
+            mt="$2"
+          >
+            <YStack
+              bg="white"
+              borderRadius="$6"
+              p="$4"
+              borderColor="$borderSubtle"
+              borderWidth={1}
+              shadowColor="$shadowColor"
+              shadowRadius={5}
+              shadowOpacity={0.05}
+              shadowOffset={{ width: 0, height: 2 }}
+            >
+              <YStack>
+                <Text
+                  fontSize="$4"
+                  fontWeight="bold"
+                  color="$color"
+                  mb="$1"
+                >
+                  Direct Hire
+                </Text>
+                <Text
+                  fontSize="$3"
+                  color="$colorSubtle"
+                  mb="$3"
+                  lineHeight="$5"
+                >
+                  Want to skip the bids?{' '}
+                  <Text
+                    fontWeight="500"
+                    color="$color"
+                  >
+                    Choose a specific handyman
+                  </Text>{' '}
+                  to invite directly to your job.
+                </Text>
+
+                {/* Location Filter with City Dropdown */}
+                <YStack
+                  gap="$2"
+                  mb="$3"
+                >
+                  <XStack
+                    alignItems="center"
+                    gap="$3"
+                    bg="$backgroundSubtle"
+                    p="$2.5"
+                    borderRadius="$4"
+                    pressStyle={{ bg: '$borderSubtle' }}
+                    onPress={() => setShowCityDropdown(!showCityDropdown)}
+                  >
+                    <View
+                      bg="white"
+                      p="$1.5"
+                      borderRadius="$3"
+                      shadowColor="rgba(0,0,0,0.05)"
+                      shadowRadius={2}
+                    >
+                      <MapPin
+                        size={14}
+                        color="$primary"
+                      />
+                    </View>
+                    <YStack flex={1}>
+                      <Text
+                        fontSize={10}
+                        color="$colorSubtle"
+                        fontWeight="bold"
+                        textTransform="uppercase"
+                        letterSpacing={1}
+                      >
+                        Browsing near
+                      </Text>
+                      <XStack
+                        alignItems="center"
+                        gap="$1"
+                      >
+                        <Text
+                          fontSize="$3"
+                          fontWeight="bold"
+                          color="$color"
+                        >
+                          {selectedCityName || 'Select Location'}
+                        </Text>
+                        <ChevronDown
+                          size={14}
+                          color="$colorSubtle"
+                          rotate={showCityDropdown ? '180deg' : '0deg'}
                         />
-                      </YStack>
-                    ))}
+                      </XStack>
+                    </YStack>
                   </XStack>
 
-                  {/* Load More Handymen Button */}
-                  {hasMoreHandymen && (
-                    <Button
-                      onPress={() => fetchNextHandymen()}
-                      disabled={isFetchingMoreHandymen}
-                      bg="$backgroundMuted"
-                      borderRadius="$md"
-                      py="$sm"
-                      mt="$xs"
+                  {/* City Dropdown */}
+                  {showCityDropdown && (
+                    <YStack
+                      bg="white"
+                      borderRadius="$4"
                       borderWidth={1}
                       borderColor="$borderColor"
+                      p="$2"
+                      gap="$1"
+                      maxHeight={200}
                     >
-                      {isFetchingMoreHandymen ? (
-                        <XStack
-                          alignItems="center"
-                          gap="$sm"
-                        >
+                      <ScrollView showsVerticalScrollIndicator={false}>
+                        {citiesLoading ? (
                           <Spinner
                             size="small"
                             color="$primary"
                           />
-                          <Text
-                            color="$colorSubtle"
-                            fontSize="$3"
-                          >
-                            Loading...
-                          </Text>
-                        </XStack>
-                      ) : (
-                        <Text
-                          color="$primary"
-                          fontSize="$3"
-                          fontWeight="500"
-                        >
-                          Load more handymen
-                        </Text>
-                      )}
-                    </Button>
+                        ) : (
+                          <>
+                            <Button
+                              size="$2"
+                              unstyled
+                              onPress={() => {
+                                setSelectedCity(null)
+                                setShowCityDropdown(false)
+                              }}
+                              px="$2"
+                              py="$1.5"
+                            >
+                              <Text
+                                color={!selectedCity ? '$primary' : '$color'}
+                                fontWeight={!selectedCity ? 'bold' : 'normal'}
+                              >
+                                All Locations
+                              </Text>
+                            </Button>
+                            {cities?.map((city) => (
+                              <Button
+                                key={city.public_id}
+                                size="$2"
+                                unstyled
+                                onPress={() => {
+                                  setSelectedCity(city.public_id)
+                                  setShowCityDropdown(false)
+                                }}
+                                px="$2"
+                                py="$1.5"
+                              >
+                                <Text
+                                  color={selectedCity === city.public_id ? '$primary' : '$color'}
+                                  fontWeight={selectedCity === city.public_id ? 'bold' : 'normal'}
+                                >
+                                  {city.name}, {city.province}
+                                </Text>
+                              </Button>
+                            ))}
+                          </>
+                        )}
+                      </ScrollView>
+                    </YStack>
                   )}
                 </YStack>
+
+                {/* Filters - No horizontal scroll, all fit on screen */}
+                <YStack gap="$2">
+                  <XStack gap="$1">
+                    {/* Category Filter Button */}
+                    <Button
+                      flex={1}
+                      size="$2"
+                      bg={selectedCategory ? '$primaryBackground' : 'white'}
+                      borderColor={selectedCategory ? '$primary' : '$borderColor'}
+                      borderWidth={1}
+                      color={selectedCategory ? '$primary' : '$colorSubtle'}
+                      borderRadius="$3"
+                      fontSize="$1"
+                      fontWeight="bold"
+                      px="$0.5"
+                      onPress={() => {
+                        setShowHourlyRateDropdown(false)
+                        setShowRatingDropdown(false)
+                        setShowCategoryDropdown(!showCategoryDropdown)
+                      }}
+                    >
+                      {selectedCategoryName || 'Trades'} <ChevronDown size={10} />
+                    </Button>
+
+                    {/* Hourly Rate Filter Button */}
+                    <Button
+                      flex={1}
+                      size="$2"
+                      bg={maxHourlyRate ? '$primaryBackground' : 'white'}
+                      borderColor={maxHourlyRate ? '$primary' : '$borderColor'}
+                      borderWidth={1}
+                      color={maxHourlyRate ? '$primary' : '$colorSubtle'}
+                      borderRadius="$3"
+                      fontSize="$1"
+                      fontWeight="bold"
+                      px="$0.5"
+                      onPress={() => {
+                        setShowCategoryDropdown(false)
+                        setShowRatingDropdown(false)
+                        setShowHourlyRateDropdown(!showHourlyRateDropdown)
+                      }}
+                    >
+                      {hourlyRateLabel || 'Rate'} <ChevronDown size={10} />
+                    </Button>
+
+                    {/* Rating Filter Button */}
+                    <Button
+                      flex={1}
+                      size="$2"
+                      bg={minRating ? '$primaryBackground' : 'white'}
+                      borderColor={minRating ? '$primary' : '$borderColor'}
+                      borderWidth={1}
+                      color={minRating ? '$primary' : '$colorSubtle'}
+                      borderRadius="$3"
+                      fontSize="$1"
+                      fontWeight="bold"
+                      px="$0.5"
+                      onPress={() => {
+                        setShowCategoryDropdown(false)
+                        setShowHourlyRateDropdown(false)
+                        setShowRatingDropdown(!showRatingDropdown)
+                      }}
+                    >
+                      {ratingLabel || 'Rating'} <ChevronDown size={10} />
+                    </Button>
+                  </XStack>
+
+                  {/* Category Dropdown - Expand Layout */}
+                  {showCategoryDropdown && (
+                    <YStack
+                      bg="white"
+                      borderRadius="$4"
+                      borderWidth={1}
+                      borderColor="$borderColor"
+                      p="$2"
+                      gap="$1"
+                    >
+                      <Button
+                        size="$2"
+                        unstyled
+                        onPress={() => {
+                          setSelectedCategory(null)
+                          setShowCategoryDropdown(false)
+                        }}
+                        px="$2"
+                        py="$1.5"
+                      >
+                        <Text
+                          color={!selectedCategory ? '$primary' : '$color'}
+                          fontWeight={!selectedCategory ? 'bold' : 'normal'}
+                        >
+                          All Trades
+                        </Text>
+                      </Button>
+                      {categories?.map((category) => (
+                        <Button
+                          key={category.public_id}
+                          size="$2"
+                          unstyled
+                          onPress={() => {
+                            setSelectedCategory(category.slug)
+                            setShowCategoryDropdown(false)
+                          }}
+                          px="$2"
+                          py="$1.5"
+                        >
+                          <Text
+                            color={selectedCategory === category.slug ? '$primary' : '$color'}
+                            fontWeight={selectedCategory === category.slug ? 'bold' : 'normal'}
+                          >
+                            {category.name}
+                          </Text>
+                        </Button>
+                      ))}
+                    </YStack>
+                  )}
+
+                  {/* Hourly Rate Dropdown - Expand Layout */}
+                  {showHourlyRateDropdown && (
+                    <YStack
+                      bg="white"
+                      borderRadius="$4"
+                      borderWidth={1}
+                      borderColor="$borderColor"
+                      p="$2"
+                      gap="$1"
+                    >
+                      <Button
+                        size="$2"
+                        unstyled
+                        onPress={() => {
+                          setMaxHourlyRate(null)
+                          setShowHourlyRateDropdown(false)
+                        }}
+                        px="$2"
+                        py="$1.5"
+                      >
+                        <Text
+                          color={!maxHourlyRate ? '$primary' : '$color'}
+                          fontWeight={!maxHourlyRate ? 'bold' : 'normal'}
+                        >
+                          All Rates
+                        </Text>
+                      </Button>
+                      {[25, 50, 100].map((rate) => (
+                        <Button
+                          key={rate}
+                          size="$2"
+                          unstyled
+                          onPress={() => {
+                            setMaxHourlyRate(rate)
+                            setShowHourlyRateDropdown(false)
+                          }}
+                          px="$2"
+                          py="$1.5"
+                        >
+                          <Text
+                            color={maxHourlyRate === rate ? '$primary' : '$color'}
+                            fontWeight={maxHourlyRate === rate ? 'bold' : 'normal'}
+                          >
+                            ${rate}/hr or less
+                          </Text>
+                        </Button>
+                      ))}
+                    </YStack>
+                  )}
+
+                  {/* Rating Dropdown - Expand Layout */}
+                  {showRatingDropdown && (
+                    <YStack
+                      bg="white"
+                      borderRadius="$4"
+                      borderWidth={1}
+                      borderColor="$borderColor"
+                      p="$2"
+                      gap="$1"
+                    >
+                      <Button
+                        size="$2"
+                        unstyled
+                        onPress={() => {
+                          setMinRating(null)
+                          setShowRatingDropdown(false)
+                        }}
+                        px="$2"
+                        py="$1.5"
+                      >
+                        <Text
+                          color={!minRating ? '$primary' : '$color'}
+                          fontWeight={!minRating ? 'bold' : 'normal'}
+                        >
+                          All Ratings
+                        </Text>
+                      </Button>
+                      {[4.5, 4, 3.5, 3].map((rating) => (
+                        <Button
+                          key={rating}
+                          size="$2"
+                          unstyled
+                          onPress={() => {
+                            setMinRating(rating)
+                            setShowRatingDropdown(false)
+                          }}
+                          px="$2"
+                          py="$1.5"
+                        >
+                          <Text
+                            color={minRating === rating ? '$primary' : '$color'}
+                            fontWeight={minRating === rating ? 'bold' : 'normal'}
+                          >
+                            {rating}+ Stars
+                          </Text>
+                        </Button>
+                      ))}
+                    </YStack>
+                  )}
+                </YStack>
+              </YStack>
+            </YStack>
+          </YStack>
+
+          {/* Handyman List */}
+          <YStack
+            px="$4"
+            pb="$8"
+          >
+            <XStack
+              justifyContent="space-between"
+              alignItems="center"
+              mb="$3"
+              px="$1"
+            >
+              <Text
+                fontSize="$3"
+                fontWeight="bold"
+                color="$color"
+              >
+                {handymen.length} Professionals Available
+              </Text>
+              <Text
+                fontSize="$2"
+                fontWeight="bold"
+                color="$primary"
+              >
+                See All
+              </Text>
+            </XStack>
+
+            <YStack gap="$3">
+              {handymenLoading ? (
+                <Spinner
+                  size="large"
+                  color="$primary"
+                  m="$4"
+                />
+              ) : handymen.length > 0 ? (
+                handymen.map((pro) => (
+                  <XStack
+                    key={pro.public_id}
+                    bg="white"
+                    borderRadius="$6"
+                    p="$3"
+                    borderColor="$borderSubtle"
+                    borderWidth={1}
+                    shadowColor="rgba(0,0,0,0.03)"
+                    shadowRadius={5}
+                    shadowOpacity={1}
+                    gap="$3"
+                    onPress={() => router.push(`/(guest)/handymen/${pro.public_id}`)}
+                  >
+                    <View position="relative">
+                      <View
+                        width={56}
+                        height={56}
+                        borderRadius="$4"
+                        bg="$backgroundSubtle"
+                        alignItems="center"
+                        justifyContent="center"
+                        borderWidth={2}
+                        borderColor="white"
+                        shadowColor="rgba(0,0,0,0.1)"
+                        shadowRadius={3}
+                      >
+                        <Text
+                          fontSize="$5"
+                          fontWeight="bold"
+                          color="$colorSubtle"
+                        >
+                          {pro.display_name.charAt(0)}
+                        </Text>
+                      </View>
+                      <View
+                        position="absolute"
+                        bottom={-4}
+                        right={-4}
+                        bg="$primary"
+                        p={2}
+                        borderRadius={100}
+                        borderWidth={2}
+                        borderColor="white"
+                      >
+                        <ShieldCheck
+                          size={10}
+                          color="white"
+                        />
+                      </View>
+                    </View>
+
+                    <YStack
+                      flex={1}
+                      justifyContent="space-between"
+                    >
+                      <XStack
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                      >
+                        <YStack flex={1}>
+                          <Text
+                            fontSize="$3"
+                            fontWeight="bold"
+                            color="$color"
+                            numberOfLines={1}
+                          >
+                            {pro.display_name}
+                          </Text>
+                          <Text
+                            fontSize={10}
+                            color="$colorSubtle"
+                          >
+                            Specialist
+                          </Text>
+                        </YStack>
+                        <YStack alignItems="flex-end">
+                          <Text
+                            fontSize="$3"
+                            fontWeight="bold"
+                            color="$color"
+                          >
+                            ${pro.hourly_rate || 'N/A'}
+                          </Text>
+                          <Text
+                            fontSize={9}
+                            color="$colorSubtle"
+                            fontWeight="500"
+                          >
+                            /hr
+                          </Text>
+                        </YStack>
+                      </XStack>
+
+                      <XStack
+                        gap="$3"
+                        mt="$1"
+                        alignItems="center"
+                      >
+                        <XStack
+                          bg="$warningBackground"
+                          px="$1.5"
+                          py="$0.5"
+                          borderRadius="$2"
+                          borderColor="$warningBackground"
+                          borderWidth={1}
+                          alignItems="center"
+                          gap="$1"
+                        >
+                          <Star
+                            size={10}
+                            color="$accent"
+                            fill="$accent"
+                          />
+                          <Text
+                            fontSize={10}
+                            fontWeight="bold"
+                            color="$accent"
+                          >
+                            {pro.rating || 0}
+                          </Text>
+                          <Text
+                            fontSize={10}
+                            color="$accent"
+                            opacity={0.7}
+                          >
+                            ({pro.review_count || 0})
+                          </Text>
+                        </XStack>
+                        <XStack
+                          alignItems="center"
+                          gap="$1"
+                        >
+                          <Briefcase
+                            size={10}
+                            color="$colorSubtle"
+                          />
+                          <Text
+                            fontSize={10}
+                            color="$colorSubtle"
+                          >
+                            34 jobs
+                          </Text>
+                        </XStack>
+                      </XStack>
+
+                      <Button
+                        size="$2"
+                        bg="$color"
+                        color="white"
+                        borderRadius="$4"
+                        mt="$2"
+                        fontWeight="bold"
+                        pressStyle={{ opacity: 0.9 }}
+                        onPress={redirectToLogin}
+                      >
+                        Invite to Job
+                      </Button>
+                    </YStack>
+                  </XStack>
+                ))
               ) : (
                 <YStack
-                  py="$xl"
+                  py="$8"
                   alignItems="center"
-                  bg="$backgroundMuted"
-                  borderRadius="$md"
-                  gap="$sm"
+                  bg="$gray1"
+                  borderRadius="$6"
+                  borderWidth={2}
+                  borderColor="$borderSubtle"
+                  borderStyle="dashed"
                 >
-                  <Users
-                    size={32}
-                    color="$colorMuted"
-                  />
-                  <Text
-                    color="$colorSubtle"
-                    fontSize="$4"
-                    fontWeight="500"
-                  >
-                    No handymen nearby
-                  </Text>
-                  <Text
-                    color="$colorMuted"
-                    fontSize="$2"
-                    textAlign="center"
-                    px="$md"
-                  >
-                    {locationError
-                      ? 'Enable location to find handymen near you'
-                      : 'No handymen available in your area yet'}
-                  </Text>
+                  <Text color="$colorMuted">No professionals found.</Text>
                 </YStack>
               )}
             </YStack>
           </YStack>
         </ScrollView>
-
-        {/* Bottom Navigation */}
-        <BottomNav
-          activeRoute="/"
-          variant="guest"
-          onNavigate={(route) => router.push(route as any)}
-        />
       </YStack>
-    </GradientBackground>
+    </View>
   )
 }

@@ -44,6 +44,7 @@ export interface City {
   name: string
   province: string
   country: string
+  slug: string
 }
 
 export interface Category {
