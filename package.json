@@ -50,6 +50,7 @@
     "husky": "^9.1.6",
     "react": "19.1.0",
     "react-native": "0.81.5",
+    "testflight": "^1.0.4",
     "turbo": "^1.13.4",
     "typescript": "~5.8.3",
     "ultra-runner": "^3.10.5",

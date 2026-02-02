@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import * as Location from 'expo-location'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
-import { SearchBar, JobCard, GradientBackground, WelcomeHeader, JobFilters } from '@my/ui'
 import {
   useHandymanJobsForYou,
   useAuthStore,
@@ -11,12 +10,26 @@ import {
   useTotalUnreadCount,
   useCategories,
   useCities,
+  useHandymanPendingOffersCount,
+  useHandymanApplications,
+  useHandymanAssignedJobs,
 } from '@my/api'
-import { Menu, Bookmark, MessageCircle } from '@tamagui/lucide-icons'
+import { LinearGradient } from 'expo-linear-gradient'
+import { JobCard } from '@my/ui'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-
-type TabType = 'top-picks' | 'nearby'
+import {
+  Search,
+  MessageCircle,
+  MapPin,
+  ChevronDown,
+  Target,
+  Send,
+  Clock,
+  Star,
+  DollarSign,
+  Briefcase,
+} from '@tamagui/lucide-icons'
 
 // Message button with unread badge
 function MessageBadgeButton({
@@ -27,15 +40,8 @@ function MessageBadgeButton({
   const hasUnread = (unreadCount ?? 0) > 0
 
   return (
-    <Button
-      unstyled
-      onPress={onPress}
-      position="relative"
-    >
-      <MessageCircle
-        size={20}
-        color="$color"
-      />
+    <Button unstyled onPress={onPress} position="relative">
+      <MessageCircle size={20} color="$color" />
       {hasUnread && (
         <View
           position="absolute"
@@ -50,11 +56,7 @@ function MessageBadgeButton({
           borderWidth={2}
           borderColor="white"
         >
-          <Text
-            fontSize={9}
-            fontWeight="700"
-            color="white"
-          >
+          <Text fontSize={9} fontWeight="700" color="white">
             {(unreadCount ?? 0) > 9 ? '9+' : unreadCount}
           </Text>
         </View>
@@ -63,23 +65,49 @@ function MessageBadgeButton({
   )
 }
 
+// Hardcoded city coordinates from backend seed data
+const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
+  'toronto-on': { lat: 43.65107, lng: -79.347015 },
+  'ottawa-on': { lat: 45.42153, lng: -75.697193 },
+  'mississauga-on': { lat: 43.589045, lng: -79.64412 },
+  'hamilton-on': { lat: 43.255203, lng: -79.843826 },
+  'vancouver-bc': { lat: 49.282729, lng: -123.120738 },
+  'surrey-bc': { lat: 49.1058, lng: -122.825095 },
+  'calgary-ab': { lat: 51.044733, lng: -114.071883 },
+  'edmonton-ab': { lat: 53.544389, lng: -113.490927 },
+  'montreal-qc': { lat: 45.501689, lng: -73.567256 },
+  'quebec-city-qc': { lat: 46.813878, lng: -71.207981 },
+  'winnipeg-mb': { lat: 49.895136, lng: -97.138374 },
+  'halifax-ns': { lat: 44.648764, lng: -63.575239 },
+}
+
+// Budget filter options
+const BUDGET_OPTIONS = [
+  { value: null, label: 'All Budgets' },
+  { value: 500, label: 'Under $500' },
+  { value: 1000, label: 'Under $1,000' },
+  { value: 2500, label: 'Under $2,500' },
+  { value: 5000, label: 'Under $5,000' },
+]
+
 export function HandymanHomeScreen() {
   const router = useRouter()
   const insets = useSafeArea()
   const user = useAuthStore((state) => state.user)
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeTab, setActiveTab] = useState<TabType>('top-picks')
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
-  const [selectedCity, setSelectedCity] = useState<string | undefined>(undefined)
   const [location, setLocation] = useState<{
     latitude: number
     longitude: number
   } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
 
-  // Fetch categories and cities for filters
-  const { data: categories, isLoading: categoriesLoading } = useCategories()
-  const { data: cities, isLoading: citiesLoading } = useCities()
+  // Filter states
+  const [selectedCity, setSelectedCity] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [maxBudget, setMaxBudget] = useState<number | null>(null)
+  const [showCityDropdown, setShowCityDropdown] = useState(false)
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
+  const [showBudgetDropdown, setShowBudgetDropdown] = useState(false)
 
   // Request location permission and get current location
   useEffect(() => {
@@ -114,29 +142,35 @@ export function HandymanHomeScreen() {
     getLocation()
   }, [])
 
-  // Determine params based on active tab
-  const jobsParams = useMemo(() => {
-    const baseParams: {
-      search?: string
-      category?: string
-      city?: string
-      latitude?: number
-      longitude?: number
-    } = {
-      search: searchQuery || undefined,
-      category: selectedCategory,
-      city: selectedCity,
-    }
+  // Fetch cities from API (needed before jobs hook)
+  const { data: cities, isLoading: citiesLoading } = useCities()
 
-    // Only include location for 'nearby' tab
-    if (activeTab === 'nearby' && location) {
-      baseParams.latitude = location.latitude
-      baseParams.longitude = location.longitude
-    }
+  // Get coordinates for selected city
+  const selectedCitySlug = selectedCity
+    ? cities?.find((c) => c.public_id === selectedCity)?.slug
+    : null
+  const cityCoords = selectedCitySlug ? CITY_COORDINATES[selectedCitySlug] : null
 
-    return baseParams
-  }, [searchQuery, activeTab, location, selectedCategory, selectedCity])
+  // Fetch categories from API
+  const { data: categories, isLoading: categoriesLoading } = useCategories()
 
+  // Fetch handyman's profile
+  const { data: profile } = useHandymanProfile()
+
+  // Fetch action required data
+  const { data: pendingOffersCount = 0 } = useHandymanPendingOffersCount()
+  const { data: applicationsData } = useHandymanApplications({ status: 'pending' })
+  const { data: activeJobsData } = useHandymanAssignedJobs({ status: 'in_progress' })
+
+  const pendingBidsCount = applicationsData?.pages[0]?.totalCount ?? 0
+  const activeJobsCount = activeJobsData?.pages[0]?.totalCount ?? 0
+
+  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Handyman'
+  const totalEarnings = profile?.total_earnings || 0
+  const completedJobs = profile?.completed_jobs_count || 0
+  const rating = profile?.rating || 0
+
+  // Fetch jobs for you with filters
   const {
     data: jobsData,
     isLoading: jobsLoading,
@@ -144,277 +178,584 @@ export function HandymanHomeScreen() {
     fetchNextPage: fetchNextJobs,
     hasNextPage: hasMoreJobs,
     isFetchingNextPage: isFetchingMoreJobs,
-    refetch: refetchJobs,
-  } = useHandymanJobsForYou(jobsParams)
+  } = useHandymanJobsForYou({
+    search: searchQuery || undefined,
+    latitude: cityCoords?.lat || location?.latitude,
+    longitude: cityCoords?.lng || location?.longitude,
+    category: selectedCategory || undefined,
+    city: selectedCity || undefined,
+  })
 
   // Flatten paginated data
   const jobs = useMemo(() => {
     return jobsData?.pages.flatMap((page) => page.results) || []
   }, [jobsData])
 
-  // Note: Removed redundant useEffect that called refetchJobs on activeTab change
-  // React Query automatically refetches when jobsParams (which includes activeTab) changes
-  // via the queryKey: ['handyman', 'jobs', 'for-you', params]
+  // Filter jobs by budget (client-side)
+  const filteredJobs = useMemo(() => {
+    if (!maxBudget) return jobs
+    return jobs.filter((job) => job.estimated_budget && job.estimated_budget <= maxBudget)
+  }, [jobs, maxBudget])
 
-  // Fetch profile to get display name
-  const { data: profile } = useHandymanProfile()
-  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Handyman'
+  // Get display labels for filters
+  const selectedCityName = selectedCity
+    ? cities?.find((c) => c.public_id === selectedCity)?.name
+    : null
+  const selectedCategoryName = selectedCategory
+    ? categories?.find((c) => c.slug === selectedCategory)?.name
+    : null
+  const budgetLabel = maxBudget
+    ? BUDGET_OPTIONS.find((b) => b.value === maxBudget)?.label
+    : null
 
   return (
-    <GradientBackground>
-      <YStack
-        flex={1}
-        pt={insets.top}
-      >
+    <View flex={1} backgroundColor="$background">
+      <YStack flex={1} pt={insets.top}>
         {/* Header */}
-        <XStack
-          px="$md"
-          pt="$md"
-          pb="$sm"
-          gap="$sm"
-          alignItems="center"
-          bg="transparent"
-        >
-          <Button
-            unstyled
-            onPress={() => {
-              // TODO: Open menu drawer
-            }}
+        <XStack px="$4" py="$3" alignItems="center" gap="$3" justifyContent="space-between">
+          {/* Search Input Placeholder */}
+          <XStack
+            flex={1}
+            bg="$backgroundSubtle"
+            borderColor="$borderColor"
+            borderWidth={1}
+            borderRadius="$4"
+            px="$3"
+            py="$2.5"
+            alignItems="center"
+            gap="$2"
           >
-            <Menu
-              size={20}
-              color="$color"
+            <Search pointerEvents="none" size={18} color="$colorSubtle" />
+            <Text color="$colorSubtle" fontSize="$3">
+              Search jobs...
+            </Text>
+          </XStack>
+
+          <XStack alignItems="center" gap="$3">
+            <MessageBadgeButton
+              chatRole="handyman"
+              onPress={() => router.push('/(handyman)/messages')}
             />
-          </Button>
-
-          <SearchBar
-            placeholder="Search HandymanKiosk"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-
-          <Button
-            unstyled
-            onPress={() => {
-              router.push('/(handyman)/bookmarks')
-            }}
-          >
-            <Bookmark
-              size={20}
-              color="$color"
-            />
-          </Button>
-
-          <MessageBadgeButton
-            chatRole="handyman"
-            onPress={() => router.push('/(handyman)/messages')}
-          />
+          </XStack>
         </XStack>
 
-        {/* Filters */}
-        <YStack
-          px="$md"
-          pb="$sm"
-        >
-          <JobFilters
-            categories={categories}
-            cities={cities}
-            selectedCategory={selectedCategory}
-            selectedCity={selectedCity}
-            onCategoryChange={setSelectedCategory}
-            onCityChange={setSelectedCity}
-            isLoadingCategories={categoriesLoading}
-            isLoadingCities={citiesLoading}
-          />
-        </YStack>
+        <ScrollView flex={1} showsVerticalScrollIndicator={false}>
+          {/* Welcome Message */}
+          <YStack px="$4" py="$3">
+            <Text fontSize="$7" fontWeight="bold" color="$color" lineHeight="$7">
+              Welcome, <Text color="$primary">{displayName}</Text>
+            </Text>
+            <Text fontSize="$3" color="$colorSubtle" mt="$1">
+              Ready to find your next job?
+            </Text>
+          </YStack>
 
-        {/* Content */}
-        <ScrollView flex={1}>
-          <YStack
-            gap="$xl"
-            px="$md"
-            pb="$xl"
-            pt="$2xl"
-          >
-            {/* Welcome Section */}
-            <WelcomeHeader
-              displayName={displayName}
-              subtitle="Ready to rise and shine?"
-            />
-
-            {/* Tabs */}
-            <XStack
-              borderBottomWidth={1}
-              borderBottomColor="$borderColor"
+          {/* Action Required Dashboard */}
+          <YStack px="$4" pb="$4">
+            <YStack
+              bg="white"
+              borderRadius="$6"
+              p="$4"
+              borderColor="$borderSubtle"
+              borderWidth={1}
+              shadowColor="$shadowColor"
+              shadowRadius={5}
+              shadowOpacity={0.05}
+              shadowOffset={{ width: 0, height: 2 }}
             >
-              <Button
-                unstyled
-                flex={1}
-                pb="$md"
-                borderBottomWidth={3}
-                borderBottomColor={activeTab === 'top-picks' ? '$primary' : 'transparent'}
-                marginBottom={-1}
-                onPress={() => setActiveTab('top-picks')}
-              >
-                <Text
-                  fontSize="$4"
-                  fontWeight={activeTab === 'top-picks' ? '600' : '500'}
-                  color={activeTab === 'top-picks' ? '$primary' : '$colorSubtle'}
+              <Text fontSize="$4" fontWeight="bold" color="$color" mb="$3">
+                Action Required
+              </Text>
+              <XStack gap="$2">
+                {/* Direct Offers - Red Theme */}
+                <Button
+                  unstyled
+                  flex={1}
+                  bg={pendingOffersCount > 0 ? 'rgba(239, 68, 68, 0.15)' : '$backgroundSubtle'}
+                  borderColor={pendingOffersCount > 0 ? 'rgb(239, 68, 68)' : '$borderColor'}
+                  borderWidth={2}
+                  borderRadius="$4"
+                  p="$3"
+                  onPress={() => router.push('/(handyman)/jobs?tab=offers')}
                 >
-                  Top picks
-                </Text>
-              </Button>
-              <Button
-                unstyled
-                flex={1}
-                pb="$md"
-                borderBottomWidth={3}
-                borderBottomColor={activeTab === 'nearby' ? '$primary' : 'transparent'}
-                marginBottom={-1}
-                onPress={() => setActiveTab('nearby')}
-              >
-                <Text
-                  fontSize="$4"
-                  fontWeight={activeTab === 'nearby' ? '600' : '500'}
-                  color={activeTab === 'nearby' ? '$primary' : '$colorSubtle'}
+                  <YStack alignItems="center" gap="$1">
+                    <View
+                      bg={pendingOffersCount > 0 ? 'rgb(239, 68, 68)' : '$colorMuted'}
+                      p="$2"
+                      borderRadius="$3"
+                    >
+                      <Target size={20} color="white" />
+                    </View>
+                    <Text
+                      fontSize="$6"
+                      fontWeight="bold"
+                      color={pendingOffersCount > 0 ? 'rgb(239, 68, 68)' : '$colorMuted'}
+                    >
+                      {pendingOffersCount}
+                    </Text>
+                    <Text fontSize="$1" color="$colorSubtle" textAlign="center">
+                      Direct Offers
+                    </Text>
+                  </YStack>
+                  {pendingOffersCount > 0 && (
+                    <View
+                      position="absolute"
+                      top={-4}
+                      right={-4}
+                      bg="rgb(239, 68, 68)"
+                      minWidth={18}
+                      height={18}
+                      borderRadius={9}
+                      alignItems="center"
+                      justifyContent="center"
+                      borderWidth={2}
+                      borderColor="white"
+                    >
+                      <Text fontSize={10} fontWeight="700" color="white">
+                        {pendingOffersCount > 9 ? '9+' : pendingOffersCount}
+                      </Text>
+                    </View>
+                  )}
+                </Button>
+
+                {/* Pending Bids - Green Theme with Send Icon */}
+                <Button
+                  unstyled
+                  flex={1}
+                  bg={pendingBidsCount > 0 ? 'rgba(12, 154, 92, 0.15)' : '$backgroundSubtle'}
+                  borderColor={pendingBidsCount > 0 ? 'rgb(12, 154, 92)' : '$borderColor'}
+                  borderWidth={2}
+                  borderRadius="$4"
+                  p="$3"
+                  onPress={() => router.push('/(handyman)/jobs?tab=applicants')}
                 >
-                  Nearby
+                  <YStack alignItems="center" gap="$1">
+                    <View
+                      bg={pendingBidsCount > 0 ? 'rgb(12, 154, 92)' : '$colorMuted'}
+                      p="$2"
+                      borderRadius="$3"
+                    >
+                      <Send size={20} color="white" />
+                    </View>
+                    <Text
+                      fontSize="$6"
+                      fontWeight="bold"
+                      color={pendingBidsCount > 0 ? 'rgb(12, 154, 92)' : '$colorMuted'}
+                    >
+                      {pendingBidsCount}
+                    </Text>
+                    <Text fontSize="$1" color="$colorSubtle" textAlign="center">
+                      Pending Bids
+                    </Text>
+                  </YStack>
+                </Button>
+
+                {/* Active Jobs - Blue Theme */}
+                <Button
+                  unstyled
+                  flex={1}
+                  bg={activeJobsCount > 0 ? 'rgba(59, 130, 246, 0.15)' : '$backgroundSubtle'}
+                  borderColor={activeJobsCount > 0 ? 'rgb(59, 130, 246)' : '$borderColor'}
+                  borderWidth={2}
+                  borderRadius="$4"
+                  p="$3"
+                  onPress={() => router.push('/(handyman)/jobs?tab=active')}
+                >
+                  <YStack alignItems="center" gap="$1">
+                    <View
+                      bg={activeJobsCount > 0 ? 'rgb(59, 130, 246)' : '$colorMuted'}
+                      p="$2"
+                      borderRadius="$3"
+                    >
+                      <Clock size={20} color="white" />
+                    </View>
+                    <Text
+                      fontSize="$6"
+                      fontWeight="bold"
+                      color={activeJobsCount > 0 ? 'rgb(59, 130, 246)' : '$colorMuted'}
+                    >
+                      {activeJobsCount}
+                    </Text>
+                    <Text fontSize="$1" color="$colorSubtle" textAlign="center">
+                      Active
+                    </Text>
+                  </YStack>
+                </Button>
+              </XStack>
+            </YStack>
+          </YStack>
+
+          {/* Concise Stats */}
+          <YStack px="$4" pb="$4">
+            <YStack
+              bg="white"
+              borderRadius="$6"
+              p="$4"
+              borderColor="$borderSubtle"
+              borderWidth={1}
+              shadowColor="$shadowColor"
+              shadowRadius={5}
+              shadowOpacity={0.05}
+              shadowOffset={{ width: 0, height: 2 }}
+            >
+              <Text fontSize="$4" fontWeight="bold" color="$color" mb="$2">
+                Career Overview
+              </Text>
+              <XStack
+                justifyContent="space-around"
+                alignItems="center"
+              >
+                <XStack alignItems="center" gap="$2">
+                  <Star size={16} color="gold" />
+                  <Text fontSize="$3" fontWeight="600" color="$color">
+                    {rating > 0 ? `${rating.toFixed(1)}` : '—'}
+                  </Text>
+                </XStack>
+                <View width={1} height={20} bg="$borderColor" />
+                <XStack alignItems="center" gap="$2">
+                  <Briefcase size={16} color="primary" />
+                  <Text fontSize="$3" fontWeight="600" color="$color">
+                    {completedJobs} jobs
+                  </Text>
+                </XStack>
+                <View width={1} height={20} bg="$borderColor" />
+                <XStack alignItems="center" gap="$2">
+                  <DollarSign size={16} color="rgb(34, 197, 94)" />
+                  <Text fontSize="$3" fontWeight="600" color="$color">
+                    ${(totalEarnings / 1000).toFixed(1)}k
+                  </Text>
+                </XStack>
+              </XStack>
+            </YStack>
+          </YStack>
+
+          {/* Job Filters Panel */}
+          <YStack px="$4" mb="$4">
+            <YStack
+              bg="white"
+              borderRadius="$6"
+              p="$4"
+              borderColor="$borderSubtle"
+              borderWidth={1}
+              shadowColor="$shadowColor"
+              shadowRadius={5}
+              shadowOpacity={0.05}
+              shadowOffset={{ width: 0, height: 2 }}
+            >
+              <YStack>
+                <Text fontSize="$4" fontWeight="bold" color="$color" mb="$1">
+                  Find Jobs
                 </Text>
-              </Button>
+                <Text fontSize="$3" color="$colorSubtle" mb="$3" lineHeight="$5">
+                  Browse available jobs and{' '}
+                  <Text fontWeight="500" color="$color">
+                    send your proposals
+                  </Text>{' '}
+                  to get hired.
+                </Text>
+
+                {/* Location Filter with City Dropdown */}
+                <YStack gap="$2" mb="$3">
+                  <XStack
+                    alignItems="center"
+                    gap="$3"
+                    bg="$backgroundSubtle"
+                    p="$2.5"
+                    borderRadius="$4"
+                    pressStyle={{ bg: '$borderSubtle' }}
+                    onPress={() => setShowCityDropdown(!showCityDropdown)}
+                  >
+                    <View
+                      bg="white"
+                      p="$1.5"
+                      borderRadius="$3"
+                      shadowColor="rgba(0,0,0,0.05)"
+                      shadowRadius={2}
+                    >
+                      <MapPin size={14} color="primary" />
+                    </View>
+                    <YStack flex={1}>
+                      <Text
+                        fontSize={10}
+                        color="$colorSubtle"
+                        fontWeight="bold"
+                        textTransform="uppercase"
+                        letterSpacing={1}
+                      >
+                        Browsing near
+                      </Text>
+                      <XStack alignItems="center" gap="$1">
+                        <Text fontSize="$3" fontWeight="bold" color="$color">
+                          {selectedCityName || 'Select Location'}
+                        </Text>
+                        <ChevronDown
+                          size={14}
+                          color="$colorSubtle"
+                          rotate={showCityDropdown ? '180deg' : '0deg'}
+                        />
+                      </XStack>
+                    </YStack>
+                  </XStack>
+
+                  {/* City Dropdown */}
+                  {showCityDropdown && (
+                    <YStack
+                      bg="white"
+                      borderRadius="$4"
+                      borderWidth={1}
+                      borderColor="$borderColor"
+                      p="$2"
+                      gap="$1"
+                      maxHeight={200}
+                    >
+                      <ScrollView showsVerticalScrollIndicator={false}>
+                        {citiesLoading ? (
+                          <Spinner size="small" color="primary" />
+                        ) : (
+                          <>
+                            <Button
+                              size="$2"
+                              unstyled
+                              onPress={() => {
+                                setSelectedCity(null)
+                                setShowCityDropdown(false)
+                              }}
+                              px="$2"
+                              py="$1.5"
+                            >
+                              <Text
+                                color={!selectedCity ? 'primary' : '$color'}
+                                fontWeight={!selectedCity ? 'bold' : 'normal'}
+                              >
+                                All Locations
+                              </Text>
+                            </Button>
+                            {cities?.map((city) => (
+                              <Button
+                                key={city.public_id}
+                                size="$2"
+                                unstyled
+                                onPress={() => {
+                                  setSelectedCity(city.public_id)
+                                  setShowCityDropdown(false)
+                                }}
+                                px="$2"
+                                py="$1.5"
+                              >
+                                <Text
+                                  color={selectedCity === city.public_id ? 'primary' : '$color'}
+                                  fontWeight={selectedCity === city.public_id ? 'bold' : 'normal'}
+                                >
+                                  {city.name}, {city.province}
+                                </Text>
+                              </Button>
+                            ))}
+                          </>
+                        )}
+                      </ScrollView>
+                    </YStack>
+                  )}
+                </YStack>
+
+                {/* Filters - Category and Budget */}
+                <YStack gap="$2">
+                  <XStack gap="$2">
+                    {/* Category Filter Button */}
+                    <Button
+                      flex={1}
+                      size="$2"
+                      bg={selectedCategory ? 'rgba(12, 154, 92, 0.1)' : 'white'}
+                      borderColor={selectedCategory ? 'primary' : '$borderColor'}
+                      borderWidth={1}
+                      color={selectedCategory ? 'primary' : '$colorSubtle'}
+                      borderRadius="$3"
+                      fontSize="$1"
+                      fontWeight="bold"
+                      px="$2"
+                      onPress={() => {
+                        setShowBudgetDropdown(false)
+                        setShowCategoryDropdown(!showCategoryDropdown)
+                      }}
+                    >
+                      {selectedCategoryName || 'Category'} <ChevronDown size={10} />
+                    </Button>
+
+                    {/* Budget Filter Button */}
+                    <Button
+                      flex={1}
+                      size="$2"
+                      bg={maxBudget ? 'rgba(12, 154, 92, 0.1)' : 'white'}
+                      borderColor={maxBudget ? 'primary' : '$borderColor'}
+                      borderWidth={1}
+                      color={maxBudget ? 'primary' : '$colorSubtle'}
+                      borderRadius="$3"
+                      fontSize="$1"
+                      fontWeight="bold"
+                      px="$2"
+                      onPress={() => {
+                        setShowCategoryDropdown(false)
+                        setShowBudgetDropdown(!showBudgetDropdown)
+                      }}
+                    >
+                      {budgetLabel || 'Budget'} <ChevronDown size={10} />
+                    </Button>
+                  </XStack>
+
+                  {/* Category Dropdown */}
+                  {showCategoryDropdown && (
+                    <YStack
+                      bg="white"
+                      borderRadius="$4"
+                      borderWidth={1}
+                      borderColor="$borderColor"
+                      p="$2"
+                      gap="$1"
+                    >
+                      <Button
+                        size="$2"
+                        unstyled
+                        onPress={() => {
+                          setSelectedCategory(null)
+                          setShowCategoryDropdown(false)
+                        }}
+                        px="$2"
+                        py="$1.5"
+                      >
+                        <Text
+                          color={!selectedCategory ? 'primary' : '$color'}
+                          fontWeight={!selectedCategory ? 'bold' : 'normal'}
+                        >
+                          All Categories
+                        </Text>
+                      </Button>
+                      {categories?.map((category) => (
+                        <Button
+                          key={category.public_id}
+                          size="$2"
+                          unstyled
+                          onPress={() => {
+                            setSelectedCategory(category.slug)
+                            setShowCategoryDropdown(false)
+                          }}
+                          px="$2"
+                          py="$1.5"
+                        >
+                          <Text
+                            color={selectedCategory === category.slug ? 'primary' : '$color'}
+                            fontWeight={selectedCategory === category.slug ? 'bold' : 'normal'}
+                          >
+                            {category.name}
+                          </Text>
+                        </Button>
+                      ))}
+                    </YStack>
+                  )}
+
+                  {/* Budget Dropdown */}
+                  {showBudgetDropdown && (
+                    <YStack
+                      bg="white"
+                      borderRadius="$4"
+                      borderWidth={1}
+                      borderColor="$borderColor"
+                      p="$2"
+                      gap="$1"
+                    >
+                      {BUDGET_OPTIONS.map((option) => (
+                        <Button
+                          key={option.label}
+                          size="$2"
+                          unstyled
+                          onPress={() => {
+                            setMaxBudget(option.value)
+                            setShowBudgetDropdown(false)
+                          }}
+                          px="$2"
+                          py="$1.5"
+                        >
+                          <Text
+                            color={maxBudget === option.value ? 'primary' : '$color'}
+                            fontWeight={maxBudget === option.value ? 'bold' : 'normal'}
+                          >
+                            {option.label}
+                          </Text>
+                        </Button>
+                      ))}
+                    </YStack>
+                  )}
+                </YStack>
+              </YStack>
+            </YStack>
+          </YStack>
+
+          {/* Jobs List */}
+          <YStack px="$4" pb="$8">
+            <XStack justifyContent="space-between" alignItems="center" mb="$3" px="$1">
+              <Text fontSize="$3" fontWeight="bold" color="$color">
+                {filteredJobs.length} Jobs Available
+              </Text>
+              <Text fontSize="$2" fontWeight="bold" color="primary">
+                See All
+              </Text>
             </XStack>
 
-            {/* Jobs Grid */}
-            {jobsLoading ? (
-              <YStack
-                py="$lg"
-                alignItems="center"
-              >
-                <Spinner
-                  size="small"
-                  color="$primary"
-                />
-                <Text
-                  color="$colorSubtle"
-                  mt="$sm"
-                  fontSize="$3"
+            <YStack gap="$3">
+              {jobsLoading ? (
+                <Spinner size="large" color="primary" m="$4" />
+              ) : filteredJobs.length > 0 ? (
+                filteredJobs.map((job) => (
+                  <View key={job.public_id}>
+                    <JobCard
+                      job={job}
+                      showCategory
+                      onPress={() => router.push(`/(handyman)/jobs/${job.public_id}`)}
+                    />
+                  </View>
+                ))
+              ) : (
+                <YStack
+                  py="$8"
+                  alignItems="center"
+                  bg="$gray1"
+                  borderRadius="$6"
+                  borderWidth={2}
+                  borderColor="$borderSubtle"
+                  borderStyle="dashed"
                 >
-                  Loading jobs...
-                </Text>
-              </YStack>
-            ) : jobsError ? (
-              <YStack
-                py="$lg"
-                alignItems="center"
-                bg="$backgroundMuted"
-                borderRadius="$md"
-              >
-                <Text
-                  color="$error"
-                  fontSize="$3"
-                >
-                  Failed to load jobs
-                </Text>
-                <Text
-                  color="$placeholderColor"
-                  fontSize="$2"
-                  mt="$xs"
-                >
-                  {jobsError instanceof Error ? jobsError.message : 'Please try again'}
-                </Text>
-              </YStack>
-            ) : jobs.length > 0 ? (
-              <YStack gap="$sm">
-                <XStack
-                  flexWrap="wrap"
-                  mx={-4}
-                >
-                  {jobs.map((job) => (
-                    <YStack
-                      key={job.public_id}
-                      width="50%"
-                      p={4}
-                    >
-                      <JobCard
-                        job={job}
-                        showCategory
-                        onPress={() => {
-                          router.push(`/(handyman)/jobs/${job.public_id}`)
-                        }}
-                      />
-                    </YStack>
-                  ))}
-                </XStack>
+                  <Text color="$colorMuted">No jobs found.</Text>
+                </YStack>
+              )}
 
-                {/* Load More Button */}
-                {hasMoreJobs && (
-                  <Button
-                    onPress={() => fetchNextJobs()}
-                    disabled={isFetchingMoreJobs}
-                    bg="$backgroundMuted"
-                    borderRadius="$md"
-                    py="$sm"
-                    mt="$xs"
-                    borderWidth={1}
-                    borderColor="$borderColor"
-                  >
-                    {isFetchingMoreJobs ? (
-                      <XStack
-                        alignItems="center"
-                        gap="$sm"
-                      >
-                        <Spinner
-                          size="small"
-                          color="$primary"
-                        />
-                        <Text
-                          color="$colorSubtle"
-                          fontSize="$3"
-                        >
-                          Loading...
-                        </Text>
-                      </XStack>
-                    ) : (
-                      <Text
-                        color="$primary"
-                        fontSize="$3"
-                        fontWeight="500"
-                      >
-                        Load more jobs
+              {/* Load More Button */}
+              {hasMoreJobs && !jobsLoading && (
+                <Button
+                  onPress={() => fetchNextJobs()}
+                  disabled={isFetchingMoreJobs}
+                  bg="$backgroundMuted"
+                  borderRadius="$md"
+                  py="$sm"
+                  mt="$xs"
+                  borderWidth={1}
+                  borderColor="$borderColor"
+                >
+                  {isFetchingMoreJobs ? (
+                    <XStack alignItems="center" gap="$sm">
+                      <Spinner size="small" color="primary" />
+                      <Text color="$colorSubtle" fontSize="$3">
+                        Loading...
                       </Text>
-                    )}
-                  </Button>
-                )}
-              </YStack>
-            ) : (
-              <YStack
-                py="$xl"
-                alignItems="center"
-                bg="$backgroundMuted"
-                borderRadius="$md"
-                gap="$sm"
-              >
-                <Text
-                  color="$colorSubtle"
-                  fontSize="$4"
-                  fontWeight="500"
-                >
-                  No jobs available
-                </Text>
-                <Text
-                  color="$placeholderColor"
-                  fontSize="$2"
-                  textAlign="center"
-                  px="$md"
-                >
-                  {activeTab === 'nearby' && locationError
-                    ? 'Enable location to see jobs near you'
-                    : 'Check back later for new opportunities'}
-                </Text>
-              </YStack>
-            )}
+                    </XStack>
+                  ) : (
+                    <Text color="primary" fontSize="$3" fontWeight="500">
+                      Load more jobs
+                    </Text>
+                  )}
+                </Button>
+              )}
+            </YStack>
           </YStack>
         </ScrollView>
       </YStack>
-    </GradientBackground>
+    </View>
   )
 }

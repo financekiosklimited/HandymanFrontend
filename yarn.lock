@@ -11961,6 +11961,7 @@ __metadata:
     husky: "npm:^9.1.6"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
+    testflight: "npm:^1.0.4"
     turbo: "npm:^1.13.4"
     typescript: "npm:~5.8.3"
     ultra-runner: "npm:^3.10.5"
@@ -17009,6 +17010,15 @@ __metadata:
     glob: "npm:^7.1.4"
     minimatch: "npm:^3.0.4"
   checksum: 10/8fccb2cb6c8fcb6bb4115394feb833f8b6cf4b9503ec2485c2c90febf435cac62abe882a0c5c51a37b9bbe70640cdd05acf5f45e486ac4583389f4b0855f69e5
+  languageName: node
+  linkType: hard
+
+"testflight@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "testflight@npm:1.0.4"
+  bin:
+    testflight: index.js
+  checksum: 10/c87442ef89e048f3d8f3d0bdf604f3f357510a638880034919e726620e8b3172c808f350978e83f6ed53b0c54e9ca06cc0fad94687470affc07d7027fa2455fc
   languageName: node
   linkType: hard
 

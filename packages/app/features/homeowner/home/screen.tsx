@@ -336,17 +336,16 @@ export function HomeownerHomeScreen() {
           gap="$3"
           justifyContent="space-between"
         >
-          <Button
+          {/* <Button
             unstyled
             onPress={() => {
-              /* Open menu */
             }}
           >
             <Menu
               size={26}
               color="$color"
             />
-          </Button>
+          </Button> */}
 
           {/* Search Input Placeholder */}
           <XStack
@@ -377,12 +376,12 @@ export function HomeownerHomeScreen() {
             alignItems="center"
             gap="$3"
           >
-            <Button unstyled>
+            {/* <Button unstyled>
               <Bookmark
                 size={24}
                 color="$color"
               />
-            </Button>
+            </Button> */}
             <MessageBadgeButton
               chatRole="homeowner"
               onPress={() => router.push('/(homeowner)/messages')}

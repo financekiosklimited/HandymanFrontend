@@ -13,7 +13,7 @@ const { width, height } = Dimensions.get('window')
 const slides = [
     {
         id: 1,
-        title: 'Welcome to SolutionBank',
+        title: 'Welcome to HandymanKiosk',
         description: 'Your trusted partner for home services. Connect with verified local professionals instantly.',
         icon: Shield,
         image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=1000&auto=format&fit=crop',

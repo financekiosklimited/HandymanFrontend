@@ -176,9 +176,9 @@ export function GuestHomeScreen() {
     city: selectedCitySlug || undefined,
     ...(cityCoords || location
       ? {
-          latitude: cityCoords?.lat || location?.latitude,
-          longitude: cityCoords?.lng || location?.longitude,
-        }
+        latitude: cityCoords?.lat || location?.latitude,
+        longitude: cityCoords?.lng || location?.longitude,
+      }
       : {}),
   })
 
@@ -193,9 +193,9 @@ export function GuestHomeScreen() {
     search: debouncedSearchQuery || undefined,
     ...(cityCoords || location
       ? {
-          latitude: cityCoords?.lat || location?.latitude,
-          longitude: cityCoords?.lng || location?.longitude,
-        }
+        latitude: cityCoords?.lat || location?.latitude,
+        longitude: cityCoords?.lng || location?.longitude,
+      }
       : {}),
   })
 
@@ -250,7 +250,7 @@ export function GuestHomeScreen() {
           gap="$3"
           justifyContent="space-between"
         >
-          <Button
+          {/* <Button
             unstyled
             onPress={() => {
               // TODO: Open menu drawer
@@ -260,7 +260,7 @@ export function GuestHomeScreen() {
               size={26}
               color="$color"
             />
-          </Button>
+          </Button> */}
 
           {/* Search Input Placeholder */}
           <XStack
@@ -291,7 +291,7 @@ export function GuestHomeScreen() {
             alignItems="center"
             gap="$3"
           >
-            <Button
+            {/* <Button
               unstyled
               onPress={redirectToLogin}
             >
@@ -299,7 +299,7 @@ export function GuestHomeScreen() {
                 size={24}
                 color="$color"
               />
-            </Button>
+            </Button> */}
             <Button
               unstyled
               onPress={redirectToLogin}
