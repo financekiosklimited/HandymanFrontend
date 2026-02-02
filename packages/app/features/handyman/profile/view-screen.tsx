@@ -13,6 +13,13 @@ import {
   RefreshCw,
   Edit3,
   LogOut,
+  TrendingUp,
+  Clock,
+  Send,
+  Target,
+  Calendar,
+  Award,
+  DollarSign,
 } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { PageHeader } from '@my/ui'
@@ -366,6 +373,226 @@ export function HandymanProfileViewScreen() {
                     {profile.category?.name || '-'}
                   </Text>
                 </XStack>
+              </YStack>
+
+              {/* Performance Stats Section */}
+              <YStack
+                bg="$backgroundStrong"
+                borderRadius={12}
+                borderWidth={1}
+                borderColor="$backgroundHover"
+                overflow="hidden"
+              >
+                {/* Section Header */}
+                <XStack
+                  px="$4"
+                  py="$3.5"
+                  alignItems="center"
+                  gap="$2.5"
+                  borderBottomWidth={1}
+                  borderBottomColor="$borderColor"
+                >
+                  <TrendingUp
+                    size={18}
+                    color="primary"
+                  />
+                  <Text
+                    fontSize={15}
+                    fontWeight="700"
+                    color="$color"
+                  >
+                    Performance Stats
+                  </Text>
+                </XStack>
+
+                {/* Stats Grid */}
+                <YStack px="$4" py="$4" gap="$3">
+                  {/* Row 1: Rating, Completion Rate, Earnings */}
+                  <XStack gap="$2">
+                    {/* Rating Card */}
+                    <YStack
+                      flex={1}
+                      bg="rgba(12, 154, 92, 0.08)"
+                      borderRadius="$3"
+                      p="$3"
+                      alignItems="center"
+                      borderWidth={1}
+                      borderColor="rgba(12, 154, 92, 0.2)"
+                    >
+                      <View bg="rgb(12, 154, 92)" p="$2" borderRadius="$2" mb="$2">
+                        <Star size={18} color="white" />
+                      </View>
+                      <Text fontSize="$6" fontWeight="bold" color="rgb(12, 154, 92)">
+                        {profile.rating ? profile.rating.toFixed(1) : '4.8'}
+                      </Text>
+                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                        Rating
+                      </Text>
+                      <Text fontSize="$1" color="$colorMuted" textAlign="center" mt="$1">
+                        24 reviews
+                      </Text>
+                    </YStack>
+
+                    {/* Completion Rate Card */}
+                    <YStack
+                      flex={1}
+                      bg="rgba(59, 130, 246, 0.08)"
+                      borderRadius="$3"
+                      p="$3"
+                      alignItems="center"
+                      borderWidth={1}
+                      borderColor="rgba(59, 130, 246, 0.2)"
+                    >
+                      <View bg="rgb(59, 130, 246)" p="$2" borderRadius="$2" mb="$2">
+                        <Award size={18} color="white" />
+                      </View>
+                      <Text fontSize="$6" fontWeight="bold" color="rgb(59, 130, 246)">
+                        96%
+                      </Text>
+                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                        Completion
+                      </Text>
+                      <Text fontSize="$1" color="$colorMuted" textAlign="center" mt="$1">
+                        48/50 jobs
+                      </Text>
+                    </YStack>
+
+                    {/* Earnings Card */}
+                    <YStack
+                      flex={1}
+                      bg="rgba(245, 158, 11, 0.08)"
+                      borderRadius="$3"
+                      p="$3"
+                      alignItems="center"
+                      borderWidth={1}
+                      borderColor="rgba(245, 158, 11, 0.2)"
+                    >
+                      <View bg="rgb(245, 158, 11)" p="$2" borderRadius="$2" mb="$2">
+                        <DollarSign size={18} color="white" />
+                      </View>
+                      <Text fontSize="$6" fontWeight="bold" color="rgb(245, 158, 11)">
+                        $12.4k
+                      </Text>
+                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                        Earnings
+                      </Text>
+                      <Text fontSize="$1" color="$colorMuted" textAlign="center" mt="$1">
+                        All time
+                      </Text>
+                    </YStack>
+                  </XStack>
+
+                  {/* Row 2: Total Bids, Direct Offers, Jobs Completed */}
+                  <XStack gap="$2">
+                    {/* Total Bids Card */}
+                    <YStack
+                      flex={1}
+                      bg="rgba(139, 92, 246, 0.08)"
+                      borderRadius="$3"
+                      p="$3"
+                      alignItems="center"
+                      borderWidth={1}
+                      borderColor="rgba(139, 92, 246, 0.2)"
+                    >
+                      <View bg="rgb(139, 92, 246)" p="$2" borderRadius="$2" mb="$2">
+                        <Send size={18} color="white" />
+                      </View>
+                      <Text fontSize="$6" fontWeight="bold" color="rgb(139, 92, 246)">
+                        127
+                      </Text>
+                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                        Total Bids
+                      </Text>
+                    </YStack>
+
+                    {/* Direct Offers Card */}
+                    <YStack
+                      flex={1}
+                      bg="rgba(239, 68, 68, 0.08)"
+                      borderRadius="$3"
+                      p="$3"
+                      alignItems="center"
+                      borderWidth={1}
+                      borderColor="rgba(239, 68, 68, 0.2)"
+                    >
+                      <View bg="rgb(239, 68, 68)" p="$2" borderRadius="$2" mb="$2">
+                        <Target size={18} color="white" />
+                      </View>
+                      <Text fontSize="$6" fontWeight="bold" color="rgb(239, 68, 68)">
+                        23
+                      </Text>
+                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                        Offers
+                      </Text>
+                    </YStack>
+
+                    {/* Jobs Completed Card */}
+                    <YStack
+                      flex={1}
+                      bg="rgba(6, 182, 212, 0.08)"
+                      borderRadius="$3"
+                      p="$3"
+                      alignItems="center"
+                      borderWidth={1}
+                      borderColor="rgba(6, 182, 212, 0.2)"
+                    >
+                      <View bg="rgb(6, 182, 212)" p="$2" borderRadius="$2" mb="$2">
+                        <Briefcase size={18} color="white" />
+                      </View>
+                      <Text fontSize="$6" fontWeight="bold" color="rgb(6, 182, 212)">
+                        48
+                      </Text>
+                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                        Completed
+                      </Text>
+                    </YStack>
+                  </XStack>
+
+                  {/* Row 3: Response Time, Member Since */}
+                  <XStack gap="$2">
+                    {/* Response Time Card */}
+                    <YStack
+                      flex={1}
+                      bg="rgba(20, 184, 166, 0.08)"
+                      borderRadius="$3"
+                      p="$3"
+                      alignItems="center"
+                      borderWidth={1}
+                      borderColor="rgba(20, 184, 166, 0.2)"
+                    >
+                      <View bg="rgb(20, 184, 166)" p="$2" borderRadius="$2" mb="$2">
+                        <Clock size={18} color="white" />
+                      </View>
+                      <Text fontSize="$6" fontWeight="bold" color="rgb(20, 184, 166)">
+                        2h
+                      </Text>
+                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                        Avg Response
+                      </Text>
+                    </YStack>
+
+                    {/* Member Since Card */}
+                    <YStack
+                      flex={1}
+                      bg="rgba(99, 102, 241, 0.08)"
+                      borderRadius="$3"
+                      p="$3"
+                      alignItems="center"
+                      borderWidth={1}
+                      borderColor="rgba(99, 102, 241, 0.2)"
+                    >
+                      <View bg="rgb(99, 102, 241)" p="$2" borderRadius="$2" mb="$2">
+                        <Calendar size={18} color="white" />
+                      </View>
+                      <Text fontSize="$6" fontWeight="bold" color="rgb(99, 102, 241)">
+                        2023
+                      </Text>
+                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                        Member Since
+                      </Text>
+                    </YStack>
+                  </XStack>
+                </YStack>
               </YStack>
 
               {/* Personal Details Section */}
