@@ -33,4 +33,15 @@ export const animations = createAnimations({
     mass: 0.9,
     stiffness: 100,
   },
+  // Micro-interactions - instant feedback for buttons/cards
+  micro: {
+    type: 'timing',
+    duration: 100,
+  },
+  // Press feedback - spring animation for tactile feel
+  press: {
+    damping: 20,
+    mass: 0.5,
+    stiffness: 300,
+  },
 })

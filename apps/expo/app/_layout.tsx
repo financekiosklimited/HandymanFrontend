@@ -4,12 +4,6 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font'
 import { SplashScreen, Stack } from 'expo-router'
 import { Provider } from 'app/provider'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useRouter } from 'expo-router'
-import { useState } from 'react'
-
-// MANUAL TEST TOGGLE: Set to true to always show onboarding
-const FORCE_ONBOARDING = true
 
 export const unstable_settings = {
   // Ensure that reloading on `/user` keeps a back button present.
@@ -39,37 +33,8 @@ export default function App() {
   return <RootLayoutNav />
 }
 
-
 function RootLayoutNav() {
   const colorScheme = useColorScheme()
-  const router = useRouter()
-  const [isChecking, setIsChecking] = useState(true)
-
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      try {
-        const complete = await AsyncStorage.getItem('onboarding_complete')
-        const shouldShowOnboarding = FORCE_ONBOARDING || complete !== 'true'
-
-        if (shouldShowOnboarding) {
-          // We can't navigate immediately if navigation isn't ready, but in expo-router
-          // inside a layout, it's usually fine after mount.
-          // However, using a small timeout or relying on isMounted logic is safer.
-          // For now, let's try direct replace.
-          // Use setTimeout to allow the root stack to initialize
-          setTimeout(() => {
-            router.replace('/onboarding')
-          }, 0)
-        }
-      } catch (e) {
-        console.error('Error checking onboarding status:', e)
-      } finally {
-        setIsChecking(false)
-      }
-    }
-
-    checkOnboarding()
-  }, [])
 
   return (
     <Provider>
@@ -84,4 +49,3 @@ function RootLayoutNav() {
     </Provider>
   )
 }
-

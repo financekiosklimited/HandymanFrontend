@@ -1179,9 +1179,8 @@ export function AddJobScreen() {
             modal
           >
             <Sheet.Overlay
-              animation="lazy"
-              enterStyle={{ opacity: 0 }}
-              exitStyle={{ opacity: 0 }}
+              animation="100ms"
+              opacity={0.5}
             />
             <Sheet.Frame
               borderTopLeftRadius="$6"
@@ -1314,9 +1313,8 @@ export function AddJobScreen() {
             modal
           >
             <Sheet.Overlay
-              animation="lazy"
-              enterStyle={{ opacity: 0 }}
-              exitStyle={{ opacity: 0 }}
+              animation="100ms"
+              opacity={0.5}
             />
             <Sheet.Frame
               borderTopLeftRadius="$6"
@@ -1450,9 +1448,8 @@ export function AddJobScreen() {
               modal
             >
               <Sheet.Overlay
-                animation="lazy"
-                enterStyle={{ opacity: 0 }}
-                exitStyle={{ opacity: 0 }}
+                animation="100ms"
+                opacity={0.5}
               />
               <Sheet.Frame
                 borderTopLeftRadius="$6"

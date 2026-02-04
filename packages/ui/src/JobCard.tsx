@@ -40,7 +40,8 @@ export function JobCard({
       borderRadius="$md"
       overflow="hidden"
       onPress={onPress}
-      pressStyle={{ opacity: 0.8 }}
+      animation="micro"
+      pressStyle={{ scale: 0.97 }}
       cursor="pointer"
       height={220}
     >

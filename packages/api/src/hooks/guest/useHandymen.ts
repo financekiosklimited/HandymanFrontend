@@ -13,6 +13,7 @@ interface GuestHandymenParams {
   longitude?: number
   search?: string
   enabled?: boolean
+  category?: string
 }
 
 export function useGuestHandymen(params?: GuestHandymenParams) {
@@ -26,6 +27,7 @@ export function useGuestHandymen(params?: GuestHandymenParams) {
         if (params?.latitude) searchParams.set('latitude', params.latitude.toString())
         if (params?.longitude) searchParams.set('longitude', params.longitude.toString())
         if (params?.search) searchParams.set('search', params.search)
+        if (params?.category) searchParams.set('category', params.category)
         searchParams.set('page', pageParam.toString())
 
         const url = `guest/handymen/?${searchParams.toString()}`

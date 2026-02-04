@@ -115,6 +115,8 @@ export function BottomNav({
             alignItems="center"
             gap="$1"
             flex={1}
+            animation="micro"
+            pressStyle={{ scale: 0.9 }}
           >
             {isAddButton ? (
               <>
@@ -167,6 +169,10 @@ export function BottomNav({
                     alignItems="center"
                     justifyContent="center"
                     px={4}
+                    animation="micro"
+                    scale={1}
+                    enterStyle={{ scale: 0, opacity: 0 }}
+                    exitStyle={{ scale: 0, opacity: 0 }}
                   >
                     <Text
                       fontSize={10}

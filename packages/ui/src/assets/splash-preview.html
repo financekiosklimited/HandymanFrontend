@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HandymanKiosk - Splash Screen Generator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      gap: 40px;
+    }
+    
+    .info {
+      color: white;
+      text-align: center;
+      max-width: 800px;
+    }
+    
+    .info h1 {
+      margin-bottom: 16px;
+      color: #0C9A5C;
+    }
+    
+    .info p {
+      margin-bottom: 8px;
+      line-height: 1.6;
+    }
+    
+    .info code {
+      background: #333;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    
+    .splash-container {
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    
+    /* iPhone 14 Pro Max Size */
+    .splash-iphone {
+      width: 393px;
+      height: 852px;
+      background: linear-gradient(135deg, #0C9A5C 0%, #34C759 100%);
+      position: relative;
+      overflow: hidden;
+      border-radius: 40px;
+    }
+    
+    /* Decorative circles */
+    .splash-iphone::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 300px;
+      height: 300px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      filter: blur(40px);
+    }
+    
+    .splash-iphone::after {
+      content: '';
+      position: absolute;
+      bottom: -50px;
+      left: -50px;
+      width: 200px;
+      height: 200px;
+      background: rgba(0,0,0,0.1);
+      border-radius: 50%;
+      filter: blur(30px);
+    }
+    
+    .content {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+    }
+    
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+    }
+    
+    .logo {
+      width: 120px;
+      height: 120px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    
+    .logo svg {
+      width: 80px;
+      height: 80px;
+    }
+    
+    .text-content {
+      text-align: center;
+      color: white;
+    }
+    
+    .app-name {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .tagline {
+      font-size: 16px;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+    
+    .tools {
+      position: absolute;
+      bottom: 120px;
+      display: flex;
+      gap: 16px;
+      opacity: 0.3;
+    }
+    
+    .tool-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .export-instructions {
+      background: #2a2a2a;
+      padding: 24px;
+      border-radius: 12px;
+      color: white;
+      max-width: 800px;
+      border: 1px solid #444;
+    }
+    
+    .export-instructions h2 {
+      margin-bottom: 16px;
+      color: #34C759;
+    }
+    
+    .export-instructions ol {
+      margin-left: 20px;
+      line-height: 2;
+    }
+    
+    .export-instructions li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <h1>HandymanKiosk Splash Screen</h1>
+    <p>This is the preview of your splash screen design. The gradient uses your brand colors: <code>#0C9A5C</code> → <code>#34C759</code></p>
+    <p>The logo combines a house icon with a wrench to represent home services.</p>
+  </div>
+  
+  <div class="splash-container">
+    <div class="splash-iphone">
+      <div class="content">
+        <div class="logo-container">
+          <div class="logo">
+            <!-- House Icon -->
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- House -->
+              <path d="M50 20 L20 45 L20 80 L80 80 L80 45 Z" 
+                    stroke="#0C9A5C" 
+                    stroke-width="4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    fill="none"/>
+              <path d="M15 45 L50 15 L85 45" 
+                    stroke="#0C9A5C" 
+                    stroke-width="4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    fill="none"/>
+              
+              <!-- Wrench -->
+              <g transform="translate(55, 55)">
+                <rect x="0" y="0" width="35" height="35" rx="6" fill="white"/>
+                <path d="M8 8 L15 15 M27 8 L20 15 M17.5 17.5 L17.5 30" 
+                      stroke="#FFB800" 
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+                <circle cx="17.5" cy="5" r="4" fill="none" stroke="#FFB800" stroke-width="2.5"/>
+              </g>
+            </svg>
+          </div>
+          
+          <div class="text-content">
+            <div class="app-name">HandymanKiosk</div>
+            <div class="tagline">Your Home, Our Expertise</div>
+          </div>
+        </div>
+        
+        <div class="tools">
+          <div class="tool-icon">🔧</div>
+          <div class="tool-icon">🔨</div>
+          <div class="tool-icon">🎨</div>
+          <div class="tool-icon">⚡</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="export-instructions">
+    <h2>How to Export as PNG</h2>
+    <ol>
+      <li><strong>Option 1 - Screenshot:</strong> Use browser dev tools to screenshot this page at 1242×2688 pixels (iPhone 14 Pro Max size)</li>
+      <li><strong>Option 2 - SVG:</strong> Use the splash.svg file in <code>packages/ui/src/assets/</code> and convert it using an online SVG to PNG converter</li>
+      <li><strong>Option 3 - Figma:</strong> Import the SVG into Figma and export at 2x or 3x resolution</li>
+      <li>Save the final PNG as <code>splash.png</code> in <code>apps/expo/assets/</code></li>
+      <li>Recommended: Also create a dark version or adjust the background color in app.json if needed</li>
+    </ol>
+    <p style="margin-top: 16px;"><strong>Note:</strong> The current splash.png in your app is a placeholder. Replace it with this new design.</p>
+  </div>
+</body>
+</html>

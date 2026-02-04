@@ -277,6 +277,8 @@ export function HandymanHomeScreen() {
                   borderRadius="$4"
                   p="$3"
                   onPress={() => router.push('/(handyman)/jobs?tab=offers')}
+                  animation="micro"
+                  pressStyle={{ scale: 0.95 }}
                 >
                   <YStack alignItems="center" gap="$1">
                     <View
@@ -328,6 +330,8 @@ export function HandymanHomeScreen() {
                   borderRadius="$4"
                   p="$3"
                   onPress={() => router.push('/(handyman)/jobs?tab=applicants')}
+                  animation="micro"
+                  pressStyle={{ scale: 0.95 }}
                 >
                   <YStack alignItems="center" gap="$1">
                     <View
@@ -360,6 +364,8 @@ export function HandymanHomeScreen() {
                   borderRadius="$4"
                   p="$3"
                   onPress={() => router.push('/(handyman)/jobs?tab=active')}
+                  animation="micro"
+                  pressStyle={{ scale: 0.95 }}
                 >
                   <YStack alignItems="center" gap="$1">
                     <View
@@ -576,6 +582,8 @@ export function HandymanHomeScreen() {
                         setShowBudgetDropdown(false)
                         setShowCategoryDropdown(!showCategoryDropdown)
                       }}
+                      animation="micro"
+                      pressStyle={{ scale: 0.95 }}
                     >
                       {selectedCategoryName || 'Category'} <ChevronDown size={10} />
                     </Button>
@@ -596,6 +604,8 @@ export function HandymanHomeScreen() {
                         setShowCategoryDropdown(false)
                         setShowBudgetDropdown(!showBudgetDropdown)
                       }}
+                      animation="micro"
+                      pressStyle={{ scale: 0.95 }}
                     >
                       {budgetLabel || 'Budget'} <ChevronDown size={10} />
                     </Button>
@@ -694,9 +704,16 @@ export function HandymanHomeScreen() {
               <Text fontSize="$3" fontWeight="bold" color="$color">
                 {filteredJobs.length} Jobs Available
               </Text>
-              <Text fontSize="$2" fontWeight="bold" color="primary">
-                See All
-              </Text>
+              <Button
+                unstyled
+                onPress={() => router.push('/(handyman)/jobs')}
+                animation="micro"
+                pressStyle={{ scale: 0.95 }}
+              >
+                <Text fontSize="$2" fontWeight="bold" color="primary">
+                  See All
+                </Text>
+              </Button>
             </XStack>
 
             <YStack gap="$3">

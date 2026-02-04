@@ -1,0 +1,114 @@
+<!--
+  HandymanKiosk Splash Screen - SVG Version
+  
+  This SVG can be converted to PNG for use as the splash screen
+  Recommended sizes:
+  - iPhone: 1242×2688 (iPhone 14 Pro Max)
+  - Android: 1080×1920 (xxhdpi)
+  
+  To convert to PNG:
+  1. Open this file in a browser
+  2. Screenshot at the correct resolution
+  3. Save as splash.png in apps/expo/assets/
+-->
+<svg width="1242" height="2688" viewBox="0 0 1242 2688" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient Background -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0C9A5C"/>
+      <stop offset="100%" style="stop-color:#34C759"/>
+    </linearGradient>
+    
+    <!-- Glow Effects -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="40" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Shadow for Logo -->
+    <filter id="logoShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="rgba(0,0,0,0.2)"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1242" height="2688" fill="url(#bgGradient)"/>
+  
+  <!-- Decorative Circles -->
+  <circle cx="1100" cy="200" r="300" fill="rgba(255,255,255,0.1)" filter="url(#glow)"/>
+  <circle cx="100" cy="2500" r="200" fill="rgba(0,0,0,0.1)" filter="url(#glow)"/>
+  
+  <!-- Logo Container -->
+  <g transform="translate(501, 1100)">
+    <!-- White Background Box -->
+    <rect x="0" y="0" width="240" height="240" rx="24" fill="rgba(255,255,255,0.95)" filter="url(#logoShadow)"/>
+    
+    <!-- House Icon -->
+    <path d="M120 50 L60 100 L60 170 L180 170 L180 100 Z" 
+          fill="none" 
+          stroke="#0C9A5C" 
+          stroke-width="4"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+    <path d="M50 100 L120 45 L190 100" 
+          fill="none" 
+          stroke="#0C9A5C" 
+          stroke-width="4"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+    
+    <!-- Wrench Icon -->
+    <g transform="translate(140, 140)">
+      <rect x="0" y="0" width="56" height="56" rx="8" fill="white"/>
+      <path d="M15 15 L25 25 M41 15 L31 25 M28 28 L28 48" 
+            fill="none" 
+            stroke="#FFB800" 
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+      <circle cx="28" cy="12" r="6" fill="none" stroke="#FFB800" stroke-width="3"/>
+    </g>
+  </g>
+  
+  <!-- App Name -->
+  <text x="621" y="1500" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="72" 
+        font-weight="bold" 
+        fill="white" 
+        text-anchor="middle">
+    HandymanKiosk
+  </text>
+  
+  <!-- Tagline -->
+  <text x="621" y="1580" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="36" 
+        font-weight="500" 
+        fill="rgba(255,255,255,0.9)" 
+        text-anchor="middle">
+    Your Home, Our Expertise
+  </text>
+  
+  <!-- Decorative Tool Icons -->
+  <g transform="translate(381, 2200)" opacity="0.3">
+    <!-- Wrench -->
+    <rect x="0" y="0" width="80" height="80" rx="12" fill="rgba(255,255,255,0.2)"/>
+    <text x="40" y="55" font-size="40" text-anchor="middle">🔧</text>
+    
+    <!-- Hammer -->
+    <rect x="120" y="0" width="80" height="80" rx="12" fill="rgba(255,255,255,0.2)"/>
+    <text x="160" y="55" font-size="40" text-anchor="middle">🔨</text>
+    
+    <!-- Paint -->
+    <rect x="240" y="0" width="80" height="80" rx="12" fill="rgba(255,255,255,0.2)"/>
+    <text x="280" y="55" font-size="40" text-anchor="middle">🎨</text>
+    
+    <!-- Electric -->
+    <rect x="360" y="0" width="80" height="80" rx="12" fill="rgba(255,255,255,0.2)"/>
+    <text x="400" y="55" font-size="40" text-anchor="middle">⚡</text>
+  </g>
+</svg>

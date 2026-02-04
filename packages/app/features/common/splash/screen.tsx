@@ -1,19 +1,33 @@
-import { useEffect } from 'react'
-import { YStack } from 'tamagui'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
-import { GradientBackground, Logo } from '@my/ui'
+import { FluidSplashScreen } from '@my/ui'
 import { useAuthStore } from '@my/api'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+// MANUAL TEST TOGGLE: Set to true to always show onboarding
+const FORCE_ONBOARDING = true
 
 export function SplashScreen() {
   const router = useRouter()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const activeRole = useAuthStore((state) => state.activeRole)
+  const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    // Auto-navigate after 2-3 seconds based on auth state
-    const timer = setTimeout(() => {
-      if (isAuthenticated && activeRole) {
-        // Redirect to role-specific homepage
+    // Preload any data needed before navigation
+    setIsReady(true)
+  }, [])
+
+  const handleAnimationComplete = async () => {
+    try {
+      const complete = await AsyncStorage.getItem('onboarding_complete')
+      const shouldShowOnboarding = FORCE_ONBOARDING || complete !== 'true'
+
+      if (shouldShowOnboarding) {
+        // Show onboarding for new users
+        router.replace('/onboarding')
+      } else if (isAuthenticated && activeRole) {
+        // Redirect to role-specific homepage for returning users
         if (activeRole === 'handyman') {
           router.replace('/(handyman)/')
         } else if (activeRole === 'homeowner') {
@@ -25,24 +39,21 @@ export function SplashScreen() {
         // Not authenticated, go to guest homepage
         router.replace('/(guest)')
       }
-    }, 2500)
+    } catch (e) {
+      console.error('Error checking onboarding status:', e)
+      // Fallback to guest on error
+      router.replace('/(guest)')
+    }
+  }
 
-    return () => clearTimeout(timer)
-  }, [router, isAuthenticated, activeRole])
+  if (!isReady) {
+    return null
+  }
 
   return (
-    <GradientBackground>
-      <YStack
-        flex={1}
-        justifyContent="center"
-        alignItems="center"
-        px="$xl"
-      >
-        <Logo
-          size="lg"
-          showTagline
-        />
-      </YStack>
-    </GradientBackground>
+    <FluidSplashScreen
+      onAnimationComplete={handleAnimationComplete}
+      minDisplayTime={2500}
+    />
   )
 }

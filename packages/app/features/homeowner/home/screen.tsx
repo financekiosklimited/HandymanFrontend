@@ -115,6 +115,20 @@ const iconMap: Record<string, any> = {
   home_repair_service: Settings,
 }
 
+// Category colors - vivid colors matching iconography (no green in default state)
+const categoryColors: Record<string, string> = {
+  plumbing: '#007AFF',              // Blue (water)
+  electrical_services: '#FFCC00',   // Yellow (electricity)
+  carpenter: '#FF9500',             // Orange (wood)
+  cleaning_services: '#00D4FF',     // Cyan/Aqua (clean water)
+  format_paint: '#FF2D55',          // Magenta (paint)
+  yard: '#8B4513',                  // Brown (soil/earth)
+  ac_unit: '#5AC8FA',               // Light Blue (cool air)
+  roofing: '#FF3B30',               // Red (roof tiles)
+  layers: '#AF52DE',                // Purple (general)
+  home_repair_service: '#FF6B35',   // Coral (hand tools)
+}
+
 // Hardcoded city coordinates from backend seed data
 const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'toronto-on': { lat: 43.65107, lng: -79.347015 },
@@ -500,7 +514,7 @@ export function HomeownerHomeScreen() {
                   color="rgba(255,255,255,0.8)"
                   textAlign="center"
                 >
-                  Takes less than 2 minutes
+                  Skilled handymen will fix everything for you.
                 </Text>
               </YStack>
             </YStack>
@@ -700,16 +714,7 @@ export function HomeownerHomeScreen() {
                         gap="$3"
                         alignContent="flex-start"
                       >
-                        {categories?.slice(0, 8).map((cat, index) => {
-                          const colors = [
-                            '$warning',
-                            '$info',
-                            '$primary',
-                            '$success',
-                            '$accent',
-                            '$error',
-                          ]
-                          const colorIndex = index % colors.length
+                        {categories?.map((cat) => {
                           const IconComponent = iconMap[cat.icon] || Wrench
                           const isSelected = selectedCategory === cat.slug
 
@@ -722,6 +727,8 @@ export function HomeownerHomeScreen() {
                               onPress={() =>
                                 setSelectedCategory(isSelected ? null : cat.slug)
                               }
+                              animation="micro"
+                              pressStyle={{ scale: 0.9 }}
                             >
                               <View
                                 width={56}
@@ -732,11 +739,10 @@ export function HomeownerHomeScreen() {
                                 bg={isSelected ? '$primaryBackground' : '$backgroundSubtle'}
                                 borderWidth={isSelected ? 2 : 1}
                                 borderColor={isSelected ? '$primary' : '$borderColor'}
-                                pressStyle={{ scale: 0.95 }}
                               >
                                 <IconComponent
                                   size={24}
-                                  color={isSelected ? '$primary' : colors[colorIndex]}
+                                  color={isSelected ? '$primary' : categoryColors[cat.icon] || '#666666'}
                                   strokeWidth={2}
                                 />
                               </View>
@@ -924,13 +930,20 @@ export function HomeownerHomeScreen() {
               >
                 {handymen.length} Professionals Available
               </Text>
-              <Text
-                fontSize="$2"
-                fontWeight="bold"
-                color="$primary"
+              <Button
+                unstyled
+                onPress={() => router.push('/(homeowner)/handymen')}
+                animation="micro"
+                pressStyle={{ scale: 0.95 }}
               >
-                See All
-              </Text>
+                <Text
+                  fontSize="$2"
+                  fontWeight="bold"
+                  color="$primary"
+                >
+                  See All
+                </Text>
+              </Button>
             </XStack>
 
             <YStack gap="$3">
