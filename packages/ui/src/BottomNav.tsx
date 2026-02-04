@@ -117,28 +117,36 @@ export function BottomNav({
             flex={1}
           >
             {isAddButton ? (
-              <View
-                width={24}
-                height={24}
-                borderRadius={4}
-                bg="$primary"
-                alignItems="center"
-                justifyContent="center"
-                opacity={isAddLoading ? 0.7 : 1}
-              >
-                {isAddLoading ? (
-                  <Spinner
-                    size="small"
-                    color="$backgroundStrong"
-                  />
-                ) : (
-                  <Plus
-                    size={16}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    color={theme.backgroundStrong?.val as any}
-                  />
-                )}
-              </View>
+              <>
+                <View
+                  width={60}
+                  height={60}
+                  borderRadius={30}
+                  bg="$primary"
+                  alignItems="center"
+                  justifyContent="center"
+                  opacity={isAddLoading ? 0.7 : 1}
+                  top={-30}
+                  borderWidth={4}
+                  borderColor="$backgroundStrong"
+                  position="absolute"
+                >
+                  {isAddLoading ? (
+                    <Spinner
+                      size="small"
+                      color="$backgroundStrong"
+                    />
+                  ) : (
+                    <Plus
+                      size={28}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      color={theme.backgroundStrong?.val as any}
+                    />
+                  )}
+                </View>
+                {/* Spacer to align text with other tabs that have 24px icons */}
+                <View height={24} />
+              </>
             ) : (
               <View position="relative">
                 <Icon

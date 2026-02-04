@@ -151,7 +151,6 @@ export function HomeownerHomeScreen() {
   const [minRating, setMinRating] = useState<number | null>(null)
   const [maxHourlyRate, setMaxHourlyRate] = useState<number | null>(null)
   const [showCityDropdown, setShowCityDropdown] = useState(false)
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
   const [showRatingDropdown, setShowRatingDropdown] = useState(false)
   const [showHourlyRateDropdown, setShowHourlyRateDropdown] = useState(false)
 
@@ -411,14 +410,14 @@ export function HomeownerHomeScreen() {
               color="$colorSubtle"
               mt="$1"
             >
-              Ready to tackle your to-do list?
+              Ready to improve your house?
             </Text>
           </YStack>
 
-          {/* Job Posting Panel */}
+          {/* Job Posting Panel - Minimalist CTA */}
           <YStack
             px="$4"
-            pb="$6"
+            pb="$3"
             pt="$2"
           >
             <YStack
@@ -463,164 +462,46 @@ export function HomeownerHomeScreen() {
                 pointerEvents="none"
               />
 
-              <YStack zIndex={10}>
+              <YStack
+                zIndex={10}
+                alignItems="center"
+                gap="$3"
+              >
                 <Text
                   fontSize="$6"
                   fontWeight="bold"
                   color="white"
-                  mb="$1"
+                  textAlign="center"
                 >
-                  What do you need done?
+                  What needs fixing?
                 </Text>
+
+                {/* Minimalist CTA Button */}
+                <Button
+                  size="$5"
+                  bg="white"
+                  color="#0C9A5C"
+                  borderRadius="$6"
+                  fontWeight="bold"
+                  px="$6"
+                  py="$3"
+                  pressStyle={{ scale: 0.98, opacity: 0.9 }}
+                  onPress={() => router.push('/(homeowner)/jobs/add')}
+                  shadowColor="rgba(0,0,0,0.15)"
+                  shadowRadius={8}
+                  shadowOffset={{ width: 0, height: 2 }}
+                  icon={<Plus size={22} color="white" strokeWidth={2.5} bg="#0C9A5C" borderRadius={100} />}
+                >
+                  Describe Your Task
+                </Button>
+
                 <Text
                   fontSize="$2"
-                  color="$primaryBackground"
-                  mb="$5"
-                  fontWeight="500"
+                  color="rgba(255,255,255,0.8)"
+                  textAlign="center"
                 >
-                  Post a job to get bids from local pros.
+                  Takes less than 2 minutes
                 </Text>
-
-                {/* Input Field */}
-                <XStack
-                  bg="white"
-                  borderRadius="$6"
-                  p="$2"
-                  alignItems="center"
-                  gap="$3"
-                  mb="$6"
-                  pressStyle={{ scale: 0.99 }}
-                  onPress={() => router.push('/(homeowner)/jobs/add')}
-                >
-                  <View
-                    bg="$primaryBackground"
-                    p="$2.5"
-                    borderRadius="$4"
-                  >
-                    <Briefcase
-                      size={18}
-                      color="$primary"
-                    />
-                  </View>
-                  <YStack flex={1}>
-                    <Text
-                      fontSize={10}
-                      color="$colorSubtle"
-                      fontWeight="bold"
-                      textTransform="uppercase"
-                      letterSpacing={1}
-                    >
-                      I need help with...
-                    </Text>
-                    <Text
-                      color="$color"
-                      fontWeight="500"
-                      fontSize="$3"
-                    >
-                      Describe your task
-                    </Text>
-                  </YStack>
-                  <View pr="$2">
-                    <View
-                      bg="$color"
-                      p="$1.5"
-                      borderRadius="$4"
-                    >
-                      <Plus
-                        size={14}
-                        color="white"
-                        strokeWidth={3}
-                      />
-                    </View>
-                  </View>
-                </XStack>
-
-                {/* Categories Grid - 2 rows, horizontal scroll */}
-                <YStack>
-                  <Text
-                    fontSize={10}
-                    fontWeight="bold"
-                    color="white"
-                    textTransform="uppercase"
-                    letterSpacing={1}
-                    mb="$3"
-                    opacity={0.9}
-                  >
-                    Or choose a category
-                  </Text>
-                  {categoriesLoading ? (
-                    <Spinner
-                      size="small"
-                      color="white"
-                    />
-                  ) : (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                    >
-                      <XStack
-                        flexWrap="wrap"
-                        width={320}
-                        gap="$3"
-                        alignContent="flex-start"
-                      >
-                        {categories?.slice(0, 8).map((cat, index) => {
-                          const colors = [
-                            '$warning',
-                            '$info',
-                            '$primary',
-                            '$success',
-                            '$accent',
-                            '$error',
-                          ]
-                          // Ensure neighboring tiles have different colors
-                          const colorIndex = index % colors.length
-                          const IconComponent = iconMap[cat.icon] || Wrench
-
-                          return (
-                            <YStack
-                              key={cat.public_id}
-                              alignItems="center"
-                              gap="$2"
-                              width={70}
-                              onPress={() =>
-                                router.push({
-                                  pathname: '/(homeowner)/jobs/add',
-                                  params: { category: cat.slug },
-                                })
-                              }
-                            >
-                              <View
-                                width={48}
-                                height={48}
-                                borderRadius="$5"
-                                alignItems="center"
-                                justifyContent="center"
-                                bg="rgba(255,255,255,0.95)"
-                              >
-                                <IconComponent
-                                  size={20}
-                                  color={colors[colorIndex]}
-                                  strokeWidth={2}
-                                />
-                              </View>
-                              <Text
-                                fontSize="$2"
-                                fontWeight="600"
-                                color="white"
-                                textAlign="center"
-                                numberOfLines={1}
-                                mt="$1"
-                              >
-                                {cat.name}
-                              </Text>
-                            </YStack>
-                          )
-                        })}
-                      </XStack>
-                    </ScrollView>
-                  )}
-                </YStack>
               </YStack>
             </YStack>
           </YStack>
@@ -644,7 +525,6 @@ export function HomeownerHomeScreen() {
           <YStack
             px="$4"
             mb="$4"
-            mt="$2"
           >
             <YStack
               bg="white"
@@ -659,12 +539,12 @@ export function HomeownerHomeScreen() {
             >
               <YStack>
                 <Text
-                  fontSize="$4"
+                  fontSize="$6"
                   fontWeight="bold"
                   color="$color"
                   mb="$1"
                 >
-                  Direct Hire
+                  Want to skip the bids?
                 </Text>
                 <Text
                   fontSize="$3"
@@ -672,14 +552,7 @@ export function HomeownerHomeScreen() {
                   mb="$3"
                   lineHeight="$5"
                 >
-                  Want to skip the bids?{' '}
-                  <Text
-                    fontWeight="500"
-                    color="$color"
-                  >
-                    Choose a specific handyman
-                  </Text>{' '}
-                  to invite directly to your job.
+                  Directly hire a handyman for your job
                 </Text>
 
                 {/* Location Filter with City Dropdown */}
@@ -801,30 +674,93 @@ export function HomeownerHomeScreen() {
                   )}
                 </YStack>
 
-                {/* Filters - No horizontal scroll, all fit on screen */}
+                {/* Category Icons - Prominent Filter for Trades */}
+                <YStack gap="$3" mb="$4">
+                  <Text
+                    fontSize="$4"
+                    fontWeight="bold"
+                    color="$color"
+                    pt="$2"
+                  >
+                    Filter by Trade
+                  </Text>
+                  {categoriesLoading ? (
+                    <Spinner
+                      size="small"
+                      color="$primary"
+                    />
+                  ) : (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                    >
+                      <XStack
+                        flexWrap="wrap"
+                        width={320}
+                        gap="$3"
+                        alignContent="flex-start"
+                      >
+                        {categories?.slice(0, 8).map((cat, index) => {
+                          const colors = [
+                            '$warning',
+                            '$info',
+                            '$primary',
+                            '$success',
+                            '$accent',
+                            '$error',
+                          ]
+                          const colorIndex = index % colors.length
+                          const IconComponent = iconMap[cat.icon] || Wrench
+                          const isSelected = selectedCategory === cat.slug
+
+                          return (
+                            <YStack
+                              key={cat.public_id}
+                              alignItems="center"
+                              gap="$2"
+                              width={70}
+                              onPress={() =>
+                                setSelectedCategory(isSelected ? null : cat.slug)
+                              }
+                            >
+                              <View
+                                width={56}
+                                height={56}
+                                borderRadius="$6"
+                                alignItems="center"
+                                justifyContent="center"
+                                bg={isSelected ? '$primaryBackground' : '$backgroundSubtle'}
+                                borderWidth={isSelected ? 2 : 1}
+                                borderColor={isSelected ? '$primary' : '$borderColor'}
+                                pressStyle={{ scale: 0.95 }}
+                              >
+                                <IconComponent
+                                  size={24}
+                                  color={isSelected ? '$primary' : colors[colorIndex]}
+                                  strokeWidth={2}
+                                />
+                              </View>
+                              <Text
+                                fontSize="$2"
+                                fontWeight="600"
+                                color="$color"
+                                textAlign="center"
+                                numberOfLines={1}
+                                mt="$1"
+                              >
+                                {cat.name}
+                              </Text>
+                            </YStack>
+                          )
+                        })}
+                      </XStack>
+                    </ScrollView>
+                  )}
+                </YStack>
+
+                {/* Filters - Rate and Rating Only */}
                 <YStack gap="$2">
                   <XStack gap="$1">
-                    {/* Category Filter Button */}
-                    <Button
-                      flex={1}
-                      size="$2"
-                      bg={selectedCategory ? '$primaryBackground' : 'white'}
-                      borderColor={selectedCategory ? '$primary' : '$borderColor'}
-                      borderWidth={1}
-                      color={selectedCategory ? '$primary' : '$colorSubtle'}
-                      borderRadius="$3"
-                      fontSize="$1"
-                      fontWeight="bold"
-                      px="$0.5"
-                      onPress={() => {
-                        setShowHourlyRateDropdown(false)
-                        setShowRatingDropdown(false)
-                        setShowCategoryDropdown(!showCategoryDropdown)
-                      }}
-                    >
-                      {selectedCategoryName || 'Trades'} <ChevronDown size={10} />
-                    </Button>
-
                     {/* Hourly Rate Filter Button */}
                     <Button
                       flex={1}
@@ -838,12 +774,11 @@ export function HomeownerHomeScreen() {
                       fontWeight="bold"
                       px="$0.5"
                       onPress={() => {
-                        setShowCategoryDropdown(false)
                         setShowRatingDropdown(false)
                         setShowHourlyRateDropdown(!showHourlyRateDropdown)
                       }}
                     >
-                      {hourlyRateLabel || 'Rate'} <ChevronDown size={10} />
+                      {hourlyRateLabel || 'Hourly Rate'} <ChevronDown size={10} />
                     </Button>
 
                     {/* Rating Filter Button */}
@@ -859,7 +794,6 @@ export function HomeownerHomeScreen() {
                       fontWeight="bold"
                       px="$0.5"
                       onPress={() => {
-                        setShowCategoryDropdown(false)
                         setShowHourlyRateDropdown(false)
                         setShowRatingDropdown(!showRatingDropdown)
                       }}
@@ -867,56 +801,6 @@ export function HomeownerHomeScreen() {
                       {ratingLabel || 'Rating'} <ChevronDown size={10} />
                     </Button>
                   </XStack>
-
-                  {/* Category Dropdown - Expand Layout */}
-                  {showCategoryDropdown && (
-                    <YStack
-                      bg="white"
-                      borderRadius="$4"
-                      borderWidth={1}
-                      borderColor="$borderColor"
-                      p="$2"
-                      gap="$1"
-                    >
-                      <Button
-                        size="$2"
-                        unstyled
-                        onPress={() => {
-                          setSelectedCategory(null)
-                          setShowCategoryDropdown(false)
-                        }}
-                        px="$2"
-                        py="$1.5"
-                      >
-                        <Text
-                          color={!selectedCategory ? '$primary' : '$color'}
-                          fontWeight={!selectedCategory ? 'bold' : 'normal'}
-                        >
-                          All Trades
-                        </Text>
-                      </Button>
-                      {categories?.map((category) => (
-                        <Button
-                          key={category.public_id}
-                          size="$2"
-                          unstyled
-                          onPress={() => {
-                            setSelectedCategory(category.slug)
-                            setShowCategoryDropdown(false)
-                          }}
-                          px="$2"
-                          py="$1.5"
-                        >
-                          <Text
-                            color={selectedCategory === category.slug ? '$primary' : '$color'}
-                            fontWeight={selectedCategory === category.slug ? 'bold' : 'normal'}
-                          >
-                            {category.name}
-                          </Text>
-                        </Button>
-                      ))}
-                    </YStack>
-                  )}
 
                   {/* Hourly Rate Dropdown - Expand Layout */}
                   {showHourlyRateDropdown && (
