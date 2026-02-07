@@ -21,7 +21,9 @@ import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
-import { showSubmissionErrorToast } from 'app/utils/toast-messages'
+import { showSubmissionErrorToast, showDirectOfferOnboardingToast } from 'app/utils/toast-messages'
+import { shouldShowOnboarding, markOnboardingSeen } from 'app/utils/onboarding-storage'
+import { useEffect } from 'react'
 
 interface HomeownerHandymanDetailScreenProps {
   handymanId: string
@@ -35,6 +37,24 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
   const { data: profile, refetch: refetchProfile } = useHomeownerProfile()
   const [isChatLoading, setIsChatLoading] = useState(false)
   const [isCheckingPhone, setIsCheckingPhone] = useState(false)
+
+  // Show direct offer onboarding for first-time users
+  useEffect(() => {
+    const showOnboarding = async () => {
+      if (isLoading || !handyman) return
+
+      const shouldShow = await shouldShowOnboarding('directOffer')
+      if (!shouldShow) return
+
+      // Delay 1 second then show toast
+      setTimeout(() => {
+        showDirectOfferOnboardingToast(toast)
+        markOnboardingSeen('directOffer')
+      }, 1000)
+    }
+
+    showOnboarding()
+  }, [isLoading, handyman, toast])
 
   // Start chat handler - navigates to chat screen without creating conversation yet
   const handleStartChat = () => {

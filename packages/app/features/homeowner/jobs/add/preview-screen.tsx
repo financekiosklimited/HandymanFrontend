@@ -195,8 +195,11 @@ export function JobPreviewScreen() {
       console.info('=== CREATE JOB SUCCESS RESPONSE ===')
       console.info(JSON.stringify(response, null, 2))
 
-      // Success - navigate to jobs list
-      router.replace('/(homeowner)/')
+      // Success - navigate to job management with toast
+      router.replace({
+        pathname: '/(homeowner)/jobs',
+        params: { toast: 'job-created' },
+      })
     } catch (error) {
       // Debug: Log error
       console.info('=== CREATE JOB ERROR ===')

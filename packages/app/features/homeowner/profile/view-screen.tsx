@@ -4,12 +4,27 @@ import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Avatar } from 
 import { GradientBackground } from '@my/ui'
 import { useHomeownerProfile, useActivateRole, useLogout, useAuthStore } from '@my/api'
 import { useRouter, useNavigation } from 'expo-router'
-import { CheckCircle, XCircle, User, RefreshCw, Edit3, LogOut } from '@tamagui/lucide-icons'
+import {
+  CheckCircle,
+  XCircle,
+  User,
+  RefreshCw,
+  Edit3,
+  LogOut,
+  Settings,
+  RotateCcw,
+} from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useToastFromParams } from 'app/hooks/useToastFromParams'
 import { PageHeader } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
+import { useState, useEffect } from 'react'
+import { Alert } from 'react-native'
+import { resetAllOnboarding } from 'app/utils/onboarding-storage'
+import { isDevFlagEnabled, setDevFlag } from 'app/utils/dev-flags'
 
 export function HomeownerProfileViewScreen() {
+  useToastFromParams()
   const router = useRouter()
   const navigation = useNavigation()
   const insets = useSafeArea()
@@ -51,6 +66,18 @@ export function HomeownerProfileViewScreen() {
       console.error('Failed to logout:', error)
     }
   }
+
+  // Dev mode state
+  const [devModeEnabled, setDevModeEnabled] = useState(false)
+
+  // Check dev mode on mount
+  useEffect(() => {
+    const checkDevMode = async () => {
+      const enabled = await isDevFlagEnabled('FORCE_ONBOARDING')
+      setDevModeEnabled(enabled)
+    }
+    checkDevMode()
+  }, [])
 
   return (
     <GradientBackground>
@@ -432,6 +459,74 @@ export function HomeownerProfileViewScreen() {
                       </Text>
                     </>
                   )}
+                </Button>
+
+                {/* Reset Onboarding Button */}
+                <Button
+                  unstyled
+                  bg="$warning"
+                  borderRadius={8}
+                  height={52}
+                  onPress={async () => {
+                    await resetAllOnboarding()
+                    Alert.alert(
+                      'Onboarding Reset',
+                      'All onboarding toasts will show again on next visit'
+                    )
+                  }}
+                  pressStyle={{ opacity: 0.9 }}
+                  alignItems="center"
+                  justifyContent="center"
+                  flexDirection="row"
+                  gap="$2"
+                >
+                  <RotateCcw
+                    size={18}
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontSize={15}
+                    fontWeight="600"
+                  >
+                    Reset All Onboarding
+                  </Text>
+                </Button>
+
+                {/* Dev Mode Toggle Button */}
+                <Button
+                  unstyled
+                  bg={devModeEnabled ? '$success' : '$colorSubtle'}
+                  borderRadius={8}
+                  height={52}
+                  onPress={async () => {
+                    const newValue = !devModeEnabled
+                    await setDevFlag('FORCE_ONBOARDING', newValue)
+                    setDevModeEnabled(newValue)
+                    Alert.alert(
+                      'Developer Mode',
+                      newValue
+                        ? 'Onboarding toasts will always show'
+                        : 'Normal onboarding behavior restored'
+                    )
+                  }}
+                  pressStyle={{ opacity: 0.9 }}
+                  alignItems="center"
+                  justifyContent="center"
+                  flexDirection="row"
+                  gap="$2"
+                >
+                  <Settings
+                    size={18}
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontSize={15}
+                    fontWeight="600"
+                  >
+                    {devModeEnabled ? 'Disable Dev Mode' : 'Enable Dev Mode (Force Onboarding)'}
+                  </Text>
                 </Button>
               </YStack>
             </YStack>

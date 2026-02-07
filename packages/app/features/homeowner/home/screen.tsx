@@ -20,6 +20,18 @@ import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { Alert } from 'react-native'
 import { jobStatusColors, type JobStatus } from '@my/config'
 import { useDebounce } from 'app/hooks'
+import { useToastController } from '@tamagui/toast'
+import {
+  showWelcomeOnboardingToast,
+  showOfferAcceptedToast,
+  showOfferDeclinedToast,
+} from 'app/utils/toast-messages'
+import { shouldShowOnboarding, markOnboardingSeen } from 'app/utils/onboarding-storage'
+import {
+  hasNotificationToastBeenShown,
+  markNotificationToastAsShown,
+} from 'app/utils/notification-toast-storage'
+import { useHomeownerDirectOffers } from '@my/api'
 import {
   Menu,
   Search,
@@ -117,16 +129,16 @@ const iconMap: Record<string, any> = {
 
 // Category colors - vivid colors matching iconography (no green in default state)
 const categoryColors: Record<string, string> = {
-  plumbing: '#007AFF',              // Blue (water)
-  electrical_services: '#FFCC00',   // Yellow (electricity)
-  carpenter: '#FF9500',             // Orange (wood)
-  cleaning_services: '#00D4FF',     // Cyan/Aqua (clean water)
-  format_paint: '#FF2D55',          // Magenta (paint)
-  yard: '#8B4513',                  // Brown (soil/earth)
-  ac_unit: '#5AC8FA',               // Light Blue (cool air)
-  roofing: '#FF3B30',               // Red (roof tiles)
-  layers: '#AF52DE',                // Purple (general)
-  home_repair_service: '#FF6B35',   // Coral (hand tools)
+  plumbing: '#007AFF', // Blue (water)
+  electrical_services: '#FFCC00', // Yellow (electricity)
+  carpenter: '#FF9500', // Orange (wood)
+  cleaning_services: '#00D4FF', // Cyan/Aqua (clean water)
+  format_paint: '#FF2D55', // Magenta (paint)
+  yard: '#8B4513', // Brown (soil/earth)
+  ac_unit: '#5AC8FA', // Light Blue (cool air)
+  roofing: '#FF3B30', // Red (roof tiles)
+  layers: '#AF52DE', // Purple (general)
+  home_repair_service: '#FF6B35', // Coral (hand tools)
 }
 
 // Hardcoded city coordinates from backend seed data
@@ -201,6 +213,9 @@ export function HomeownerHomeScreen() {
     getLocation()
   }, [])
 
+  // Toast controller for onboarding
+  const toast = useToastController()
+
   // Fetch homeowner's jobs
   const {
     data: jobsData,
@@ -212,6 +227,69 @@ export function HomeownerHomeScreen() {
   } = useHomeownerJobs({
     search: searchQuery || undefined,
   })
+
+  // Fetch direct offers for checking responses
+  const { data: offersData, isLoading: offersLoading } = useHomeownerDirectOffers()
+
+  const offers = useMemo(() => {
+    return offersData?.pages.flatMap((page) => page.results) || []
+  }, [offersData])
+
+  // Show welcome onboarding toast for first-time users (delay 2.5s)
+  useEffect(() => {
+    const showOnboarding = async () => {
+      // Wait for jobs to load
+      if (jobsLoading) return
+
+      // Only show if user has 0 jobs
+      const jobCount = jobsData?.pages[0]?.totalCount ?? 0
+      if (jobCount > 0) return
+
+      // Check if should show (respects dev mode)
+      const shouldShow = await shouldShowOnboarding('welcome')
+      if (!shouldShow) return
+
+      // Delay 2.5 seconds then show toast
+      setTimeout(() => {
+        showWelcomeOnboardingToast(toast)
+        markOnboardingSeen('welcome')
+      }, 2500)
+    }
+
+    showOnboarding()
+  }, [jobsLoading, jobsData, toast])
+
+  // Check for direct offer responses (accepted/declined)
+  useEffect(() => {
+    const checkOfferResponses = async () => {
+      if (offersLoading || !offers.length) return
+
+      // Find first offer with accepted or rejected status that hasn't shown toast
+      for (const offer of offers) {
+        if (offer.offer_status === 'accepted') {
+          const hasShown = await hasNotificationToastBeenShown('offerAccepted', {
+            offerId: offer.public_id,
+          })
+          if (!hasShown) {
+            showOfferAcceptedToast(toast, offer.target_handyman.display_name)
+            await markNotificationToastAsShown('offerAccepted', { offerId: offer.public_id })
+            break // Only show one toast
+          }
+        } else if (offer.offer_status === 'rejected') {
+          const hasShown = await hasNotificationToastBeenShown('offerDeclined', {
+            offerId: offer.public_id,
+          })
+          if (!hasShown) {
+            showOfferDeclinedToast(toast, offer.target_handyman.display_name)
+            await markNotificationToastAsShown('offerDeclined', { offerId: offer.public_id })
+            break // Only show one toast
+          }
+        }
+      }
+    }
+
+    checkOfferResponses()
+  }, [offersLoading, offers, toast])
 
   // Fetch cities from API (needed before handymen hook)
   const { data: cities, isLoading: citiesLoading } = useCities()
@@ -504,7 +582,15 @@ export function HomeownerHomeScreen() {
                   shadowColor="rgba(0,0,0,0.15)"
                   shadowRadius={8}
                   shadowOffset={{ width: 0, height: 2 }}
-                  icon={<Plus size={22} color="white" strokeWidth={2.5} bg="#0C9A5C" borderRadius={100} />}
+                  icon={
+                    <Plus
+                      size={22}
+                      color="white"
+                      strokeWidth={2.5}
+                      bg="#0C9A5C"
+                      borderRadius={100}
+                    />
+                  }
                 >
                   Describe Your Task
                 </Button>
@@ -689,7 +775,10 @@ export function HomeownerHomeScreen() {
                 </YStack>
 
                 {/* Category Icons - Prominent Filter for Trades */}
-                <YStack gap="$3" mb="$4">
+                <YStack
+                  gap="$3"
+                  mb="$4"
+                >
                   <Text
                     fontSize="$4"
                     fontWeight="bold"
@@ -724,9 +813,7 @@ export function HomeownerHomeScreen() {
                               alignItems="center"
                               gap="$2"
                               width={70}
-                              onPress={() =>
-                                setSelectedCategory(isSelected ? null : cat.slug)
-                              }
+                              onPress={() => setSelectedCategory(isSelected ? null : cat.slug)}
                               animation="micro"
                               pressStyle={{ scale: 0.9 }}
                             >
@@ -742,7 +829,9 @@ export function HomeownerHomeScreen() {
                               >
                                 <IconComponent
                                   size={24}
-                                  color={isSelected ? '$primary' : categoryColors[cat.icon] || '#666666'}
+                                  color={
+                                    isSelected ? '$primary' : categoryColors[cat.icon] || '#666666'
+                                  }
                                   strokeWidth={2}
                                 />
                               </View>

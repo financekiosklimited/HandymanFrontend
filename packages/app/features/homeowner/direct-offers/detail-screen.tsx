@@ -41,6 +41,13 @@ import { PageHeader } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useToastController } from '@tamagui/toast'
+import { showOfferAcceptedToast, showOfferDeclinedToast } from 'app/utils/toast-messages'
+import {
+  hasNotificationToastBeenShown,
+  markNotificationToastAsShown,
+} from 'app/utils/notification-toast-storage'
+import { useEffect } from 'react'
 import { Alert, Dimensions, FlatList, Pressable } from 'react-native'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -67,6 +74,36 @@ export function HomeownerDirectOfferDetailScreen({
     thumbnail?: string
   } | null>(null)
   const flatListRef = useRef<FlatList>(null)
+  const toast = useToastController()
+
+  // Check for offer status changes (accepted/declined)
+  useEffect(() => {
+    const checkOfferStatus = async () => {
+      if (isLoading || !offer) return
+
+      const handymanName = offer.target_handyman.display_name
+
+      if (offer.offer_status === 'accepted') {
+        const hasShown = await hasNotificationToastBeenShown('offerAccepted', {
+          offerId: offer.public_id,
+        })
+        if (!hasShown) {
+          showOfferAcceptedToast(toast, handymanName)
+          await markNotificationToastAsShown('offerAccepted', { offerId: offer.public_id })
+        }
+      } else if (offer.offer_status === 'rejected') {
+        const hasShown = await hasNotificationToastBeenShown('offerDeclined', {
+          offerId: offer.public_id,
+        })
+        if (!hasShown) {
+          showOfferDeclinedToast(toast, handymanName)
+          await markNotificationToastAsShown('offerDeclined', { offerId: offer.public_id })
+        }
+      }
+    }
+
+    checkOfferStatus()
+  }, [isLoading, offer, toast])
 
   // Type-safe attachment access
   const attachments = useMemo(() => {
@@ -117,8 +154,11 @@ export function HomeownerDirectOfferDetailScreen({
           onPress: async () => {
             try {
               await cancelMutation.mutateAsync(offer.public_id)
-              Alert.alert('Offer Cancelled', 'Your offer has been cancelled.')
-              refetch()
+              // Navigate to job management with toast
+              router.replace({
+                pathname: '/(homeowner)/jobs',
+                params: { toast: 'direct-offer-cancelled', tab: 'offers' },
+              })
             } catch (error: any) {
               Alert.alert('Error', error?.message || 'Failed to cancel offer')
             }
@@ -126,7 +166,7 @@ export function HomeownerDirectOfferDetailScreen({
         },
       ]
     )
-  }, [offer, cancelMutation, refetch])
+  }, [offer, cancelMutation, router])
 
   // Handle convert to public job
   const handleConvert = useCallback(() => {
@@ -142,22 +182,18 @@ export function HomeownerDirectOfferDetailScreen({
           onPress: async () => {
             try {
               const result = await convertMutation.mutateAsync(offer.public_id)
-              Alert.alert(
-                'Job Created!',
-                'Your offer has been converted to a public job listing.',
-                [
-                  {
-                    text: 'View Job',
-                    onPress: () => {
-                      if (result?.public_id) {
-                        router.replace(`/(homeowner)/jobs/${result.public_id}`)
-                      } else {
-                        router.replace('/(homeowner)/')
-                      }
-                    },
-                  },
-                ]
-              )
+              // Navigate to the new job with toast
+              if (result?.public_id) {
+                router.replace({
+                  pathname: `/(homeowner)/jobs/${result.public_id}`,
+                  params: { toast: 'job-converted' },
+                })
+              } else {
+                router.replace({
+                  pathname: '/(homeowner)/jobs',
+                  params: { toast: 'job-converted' },
+                })
+              }
             } catch (error: any) {
               Alert.alert('Error', error?.message || 'Failed to convert offer')
             }

@@ -1,5 +1,74 @@
 import { Toast, useToastState } from '@tamagui/toast'
-import { YStack } from 'tamagui'
+import { YStack, XStack } from 'tamagui'
+import {
+  CheckCircle2,
+  Pencil,
+  Trash2,
+  Send,
+  XCircle,
+  Globe,
+  UserCheck,
+  UserX,
+  FileCheck,
+  FileX,
+  DollarSign,
+  X,
+  Award,
+  AlertTriangle,
+  User,
+  WifiOff,
+  AlertCircle,
+  FormInput,
+  Upload,
+  Loader,
+  Lock,
+  Timer,
+  RefreshCw,
+  Briefcase,
+  MessageCircle,
+  Info,
+  Sparkles,
+  Paperclip,
+  BarChart,
+  Target,
+  Users,
+} from '@tamagui/lucide-icons'
+import type { ToastIcon } from 'app/utils/toast-messages'
+
+// Map icon names to components
+const iconComponents: Record<ToastIcon, React.ComponentType<any>> = {
+  CheckCircle2,
+  Pencil,
+  Trash2,
+  Send,
+  XCircle,
+  Globe,
+  UserCheck,
+  UserX,
+  FileCheck,
+  FileX,
+  DollarSign,
+  X,
+  Award,
+  AlertTriangle,
+  User,
+  WifiOff,
+  AlertCircle,
+  FormInput,
+  Upload,
+  Loader,
+  Lock,
+  Timer,
+  RefreshCw,
+  Briefcase,
+  MessageCircle,
+  Info,
+  Sparkles,
+  Paperclip,
+  BarChart,
+  Target,
+  Users,
+}
 
 export const NativeToast = () => {
   const currentToast = useToastState()
@@ -8,29 +77,40 @@ export const NativeToast = () => {
     return null
   }
 
-  // Determine toast type based on title keywords
-  const title = currentToast.title?.toLowerCase() || ''
-  const isSuccess =
-    title.includes('success') ||
-    title.includes('submitted') ||
-    title.includes('updated') ||
-    title.includes('withdrawn') ||
-    title.includes('verified') ||
-    title.includes('sent')
-  const isError = title.includes('error') || title.includes('failed') || title.includes('failure')
+  // Get variant and icon from customData
+  const variant =
+    (currentToast.customData?.variant as 'success' | 'error' | 'warning' | 'info') || 'info'
+  const iconName = currentToast.customData?.icon as ToastIcon | undefined
+
+  // Determine toast styling based on variant
+  const isSuccess = variant === 'success'
+  const isError = variant === 'error'
+  const isWarning = variant === 'warning'
 
   // Get background color based on type
   const getBackgroundColor = () => {
     if (isSuccess) return '$successBackground'
     if (isError) return '$errorBackground'
+    if (isWarning) return '$warningBackground'
     return '$backgroundStrong'
   }
 
   const getBorderColor = () => {
     if (isSuccess) return '$success'
     if (isError) return '$error'
+    if (isWarning) return '$warning'
     return '$borderColor'
   }
+
+  const getIconColor = () => {
+    if (isSuccess) return '$success'
+    if (isError) return '$error'
+    if (isWarning) return '$warning'
+    return '$primary'
+  }
+
+  // Get icon component
+  const IconComponent = iconName ? iconComponents[iconName] : null
 
   return (
     <Toast
@@ -51,13 +131,40 @@ export const NativeToast = () => {
       width="85%"
       alignSelf="center"
     >
-      <YStack
-        py="$1.5"
-        px="$2"
+      <XStack
+        py="$2"
+        px="$3"
+        gap="$2"
+        alignItems="flex-start"
       >
-        <Toast.Title lineHeight="$1">{currentToast.title}</Toast.Title>
-        {!!currentToast.message && <Toast.Description>{currentToast.message}</Toast.Description>}
-      </YStack>
+        {IconComponent && (
+          <YStack pt="$0.5">
+            <IconComponent
+              size={20}
+              color={getIconColor()}
+            />
+          </YStack>
+        )}
+        <YStack
+          flex={1}
+          gap="$1"
+        >
+          <Toast.Title
+            lineHeight="$1"
+            fontWeight="600"
+          >
+            {currentToast.title}
+          </Toast.Title>
+          {!!currentToast.message && (
+            <Toast.Description
+              fontSize="$2"
+              opacity={0.9}
+            >
+              {currentToast.message}
+            </Toast.Description>
+          )}
+        </YStack>
+      </XStack>
     </Toast>
   )
 }

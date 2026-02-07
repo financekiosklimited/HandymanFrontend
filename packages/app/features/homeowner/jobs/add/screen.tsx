@@ -36,7 +36,11 @@ import {
   Camera,
 } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useToastController } from '@tamagui/toast'
+import { showCreateJobOnboardingToast } from 'app/utils/toast-messages'
+import { shouldShowOnboarding, markOnboardingSeen } from 'app/utils/onboarding-storage'
 import * as ImagePicker from 'expo-image-picker'
+import { useEffect } from 'react'
 
 import * as VideoThumbnails from 'expo-video-thumbnails'
 import * as ImageManipulator from 'expo-image-manipulator'
@@ -142,6 +146,23 @@ export function AddJobScreen() {
   const { data: categories, isLoading: categoriesLoading } = useCategories()
   const { data: cities, isLoading: citiesLoading } = useCities()
   const createJobMutation = useCreateJob()
+  const toast = useToastController()
+
+  // Show create job onboarding toast for first-time users
+  useEffect(() => {
+    const showOnboarding = async () => {
+      const shouldShow = await shouldShowOnboarding('createJob')
+      if (!shouldShow) return
+
+      // Delay 1 second then show toast
+      setTimeout(() => {
+        showCreateJobOnboardingToast(toast)
+        markOnboardingSeen('createJob')
+      }, 1000)
+    }
+
+    showOnboarding()
+  }, [toast])
 
   const [formData, setFormData] = useState<FormData>({
     title: '',

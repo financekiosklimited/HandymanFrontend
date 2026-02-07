@@ -246,8 +246,11 @@ export function EditJobPreviewScreen() {
       console.info('=== UPDATE JOB SUCCESS RESPONSE ===')
       console.info(JSON.stringify(response, null, 2))
 
-      // Navigate to job detail
-      router.replace(`/(homeowner)/jobs/${formData.jobId}`)
+      // Navigate to job detail with toast
+      router.replace({
+        pathname: `/(homeowner)/jobs/${formData.jobId}`,
+        params: { toast: 'job-updated' },
+      })
     } catch (error) {
       // Debug: Log error
       console.info('=== UPDATE JOB ERROR ===')

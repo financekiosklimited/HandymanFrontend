@@ -26,6 +26,13 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastFromParams } from 'app/hooks/useToastFromParams'
+import { useToastController } from '@tamagui/toast'
+import { showApplicationsOnboardingToast, showNoApplicantsToast } from 'app/utils/toast-messages'
+import { shouldShowOnboarding, markOnboardingSeen } from 'app/utils/onboarding-storage'
+import {
+  shouldShowNoApplicantsToast,
+  markNotificationToastAsShown,
+} from 'app/utils/notification-toast-storage'
 import {
   jobStatusColors,
   type JobStatus,
@@ -586,6 +593,7 @@ export function JobManagementScreen() {
   useToastFromParams()
   const router = useRouter()
   const insets = useSafeArea()
+  const toast = useToastController()
   const { tab } = useLocalSearchParams<{ tab?: string }>()
 
   const [activeTab, setActiveTab] = useState<TabType>('jobs')
@@ -593,6 +601,7 @@ export function JobManagementScreen() {
   const [statusFilter, setStatusFilter] = useState('')
   const [showStatusDropdown, setShowStatusDropdown] = useState(false)
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null)
+  const [hasShownApplicationsOnboarding, setHasShownApplicationsOnboarding] = useState(false)
 
   // Set initial tab from query param
   useEffect(() => {
@@ -629,6 +638,29 @@ export function JobManagementScreen() {
     return jobsData?.pages.flatMap((page) => page.results) || []
   }, [jobsData])
 
+  // Show applications onboarding when user expands a job with applicants
+  useEffect(() => {
+    const showOnboarding = async () => {
+      if (!expandedJobId || hasShownApplicationsOnboarding) return
+
+      const shouldShow = await shouldShowOnboarding('applications')
+      if (!shouldShow) {
+        setHasShownApplicationsOnboarding(true)
+        return
+      }
+
+      // Find the expanded job
+      const expandedJob = jobs.find((j) => j.public_id === expandedJobId)
+      if (expandedJob && expandedJob.applicant_count && expandedJob.applicant_count > 0) {
+        showApplicationsOnboardingToast(toast)
+        markOnboardingSeen('applications')
+        setHasShownApplicationsOnboarding(true)
+      }
+    }
+
+    showOnboarding()
+  }, [expandedJobId, jobs, toast, hasShownApplicationsOnboarding])
+
   const offers = useMemo(() => {
     return offersData?.pages.flatMap((page) => page.results) || []
   }, [offersData])
@@ -637,6 +669,31 @@ export function JobManagementScreen() {
   const pendingOffersCount = useMemo(() => {
     return offers.filter((o) => o.offer_status === 'pending').length
   }, [offers])
+
+  // Check for no-applicants on open jobs (48h+ old)
+  useEffect(() => {
+    const checkNoApplicants = async () => {
+      if (isLoading || !jobs.length) return
+
+      // Find first open job with 0 applicants that's 48h+ old
+      for (const job of jobs) {
+        if (job.status === 'open' && job.applicant_count === 0 && job.created_at) {
+          const shouldShow = await shouldShowNoApplicantsToast(
+            job.public_id,
+            job.created_at,
+            job.applicant_count
+          )
+          if (shouldShow) {
+            showNoApplicantsToast(toast)
+            await markNotificationToastAsShown('noApplicants', { jobId: job.public_id })
+            break // Only show one toast
+          }
+        }
+      }
+    }
+
+    checkNoApplicants()
+  }, [isLoading, jobs, toast])
 
   const handleToggleJob = useCallback((jobId: string) => {
     setExpandedJobId((prev) => (prev === jobId ? null : jobId))

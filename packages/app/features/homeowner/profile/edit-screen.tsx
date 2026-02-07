@@ -147,7 +147,11 @@ export function HomeownerProfileEditScreen() {
       }
 
       await updateMutation.mutateAsync(updateData)
-      router.back()
+      // Navigate to profile with toast
+      router.replace({
+        pathname: '/(homeowner)/profile',
+        params: { toast: 'profile-updated' },
+      })
     } catch (error) {
       if (error instanceof HTTPError) {
         try {

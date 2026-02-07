@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   YStack,
   XStack,
@@ -72,8 +72,23 @@ import {
   showSubmissionErrorToast,
   showJobCompletedToast,
   showReimbursementApprovedToast,
+  showReimbursementRejectedToast,
+  showReportApprovedToast,
+  showReportRejectedToast,
+  showCompletionRejectedToast,
+  showDisputeCreatedToast,
   showValidationErrorToast,
+  showOngoingJobOnboardingToast,
+  showNewReportToast,
+  showNewReimbursementToast,
+  showCompletionRequestedNotificationToast,
 } from 'app/utils/toast-messages'
+import { shouldShowOnboarding, markOnboardingSeen } from 'app/utils/onboarding-storage'
+import {
+  getPendingNotificationsForJob,
+  pickRandomNotification,
+  markAllJobNotificationsAsShown,
+} from 'app/utils/notification-toast-storage'
 import { colors } from '@my/config'
 import {
   Modal,
@@ -2073,6 +2088,69 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
   const [isApproving, setIsApproving] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
 
+  // Show ongoing job onboarding for first-time users
+  useEffect(() => {
+    const showOnboarding = async () => {
+      if (dashboardLoading || !dashboard) return
+
+      const shouldShow = await shouldShowOnboarding('ongoing')
+      if (!shouldShow) return
+
+      // Delay 1.5 seconds then show toast
+      setTimeout(() => {
+        showOngoingJobOnboardingToast(toast)
+        markOnboardingSeen('ongoing')
+      }, 1500)
+    }
+
+    showOnboarding()
+  }, [dashboardLoading, dashboard, toast])
+
+  // Check for pending notifications and show ONE random toast
+  useEffect(() => {
+    const checkNotifications = async () => {
+      if (dashboardLoading || !dashboard || !reports || !reimbursements) return
+
+      // Find pending report (pending approval)
+      const pendingReport = reports.find((r) => r.status === 'pending')
+      const pendingReimbursement = reimbursements.find((r) => r.status === 'pending')
+      const isCompletionPending = dashboard.job.status === 'pending_completion'
+
+      // Get all pending notifications
+      const pendingNotifications = await getPendingNotificationsForJob(jobId, {
+        hasPendingReport: !!pendingReport,
+        hasPendingReimbursement: !!pendingReimbursement,
+        hasPendingCompletion: isCompletionPending,
+        reportId: pendingReport?.public_id,
+        reimbursementId: pendingReimbursement?.public_id,
+      })
+
+      if (pendingNotifications.length === 0) return
+
+      // Pick ONE random notification
+      const notification = pickRandomNotification(pendingNotifications)
+      if (!notification) return
+
+      // Show the toast
+      switch (notification.type) {
+        case 'report':
+          showNewReportToast(toast)
+          break
+        case 'reimbursement':
+          showNewReimbursementToast(toast)
+          break
+        case 'completion':
+          showCompletionRequestedNotificationToast(toast)
+          break
+      }
+
+      // Mark ALL as shown to prevent barrage
+      await markAllJobNotificationsAsShown(jobId, pendingNotifications)
+    }
+
+    checkNotifications()
+  }, [dashboardLoading, dashboard, reports, reimbursements, jobId, toast])
+
   // Refetch on focus - empty deps since focus event itself is the trigger
   useFocusEffect(
     useCallback(() => {
@@ -2094,7 +2172,7 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
         reportId: reportToReview.public_id,
         data: { decision: 'approved', comment: feedback },
       })
-      showSubmissionErrorToast(toast, 'Report approved successfully')
+      showReportApprovedToast(toast)
       setReportToReview(null)
       refetchReports()
       refetch()
@@ -2114,7 +2192,7 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
         reportId: reportToReview.public_id,
         data: { decision: 'rejected', comment: feedback },
       })
-      showSubmissionErrorToast(toast, 'Report rejected')
+      showReportRejectedToast(toast)
       setReportToReview(null)
       refetchReports()
       refetch()
@@ -2154,7 +2232,7 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
         reimbursementId: reimbursementToReview.public_id,
         data: { decision: 'rejected', comment: comment || undefined },
       })
-      showSubmissionErrorToast(toast, 'Reimbursement rejected')
+      showReimbursementRejectedToast(toast)
       setReimbursementToReview(null)
       refetchReimbursements()
     } catch (error: any) {
@@ -2180,7 +2258,7 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
     setIsRejecting(true)
     try {
       await rejectCompletionMutation.mutateAsync({ jobId })
-      showSubmissionErrorToast(toast, 'Completion rejected')
+      showCompletionRejectedToast(toast)
       refetch()
     } catch (error: any) {
       showSubmissionErrorToast(toast, error?.message)

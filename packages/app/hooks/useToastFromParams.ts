@@ -8,13 +8,21 @@ import {
   showApplicationWithdrawnToast,
   showApplicationApprovedToast,
   showApplicationRejectedToast,
+  showApplicationApprovedHomeownerToast,
+  showApplicationRejectedHomeownerToast,
   showDirectOfferSentToast,
   showDirectOfferAcceptedToast,
   showDirectOfferDeclinedToast,
+  showDirectOfferCancelledToast,
+  showJobConvertedToast,
   showReportSubmittedToast,
+  showReportApprovedToast,
+  showReportRejectedToast,
   showReimbursementSubmittedToast,
   showReimbursementApprovedToast,
+  showReimbursementRejectedToast,
   showJobCompletedToast,
+  showCompletionRejectedToast,
   showReviewSubmittedToast,
   showPasswordUpdatedToast,
   showPhoneVerifiedToast,
@@ -23,6 +31,7 @@ import {
   showJobCreatedToast,
   showJobUpdatedToast,
   showJobDeletedToast,
+  showDisputeCreatedToast,
 } from 'app/utils/toast-messages'
 
 export type ToastType =
@@ -30,13 +39,21 @@ export type ToastType =
   | 'application-withdrawn'
   | 'application-approved'
   | 'application-rejected'
+  | 'application-approved-homeowner'
+  | 'application-rejected-homeowner'
   | 'direct-offer-sent'
   | 'direct-offer-accepted'
   | 'direct-offer-declined'
+  | 'direct-offer-cancelled'
+  | 'job-converted'
   | 'report-submitted'
+  | 'report-approved'
+  | 'report-rejected'
   | 'reimbursement-submitted'
   | 'reimbursement-approved'
+  | 'reimbursement-rejected'
   | 'job-completed'
+  | 'completion-rejected'
   | 'review-submitted'
   | 'password-updated'
   | 'phone-verified'
@@ -45,6 +62,7 @@ export type ToastType =
   | 'job-created'
   | 'job-updated'
   | 'job-deleted'
+  | 'dispute-created'
 
 /**
  * Hook to show toast based on URL params
@@ -81,6 +99,12 @@ export function useToastFromParams() {
       case 'application-rejected':
         showApplicationRejectedToast(toast)
         break
+      case 'application-approved-homeowner':
+        showApplicationApprovedHomeownerToast(toast)
+        break
+      case 'application-rejected-homeowner':
+        showApplicationRejectedHomeownerToast(toast)
+        break
       case 'direct-offer-sent':
         showDirectOfferSentToast(toast)
         break
@@ -90,8 +114,20 @@ export function useToastFromParams() {
       case 'direct-offer-declined':
         showDirectOfferDeclinedToast(toast)
         break
+      case 'direct-offer-cancelled':
+        showDirectOfferCancelledToast(toast)
+        break
+      case 'job-converted':
+        showJobConvertedToast(toast)
+        break
       case 'report-submitted':
         showReportSubmittedToast(toast)
+        break
+      case 'report-approved':
+        showReportApprovedToast(toast)
+        break
+      case 'report-rejected':
+        showReportRejectedToast(toast)
         break
       case 'reimbursement-submitted':
         showReimbursementSubmittedToast(toast)
@@ -99,8 +135,14 @@ export function useToastFromParams() {
       case 'reimbursement-approved':
         showReimbursementApprovedToast(toast)
         break
+      case 'reimbursement-rejected':
+        showReimbursementRejectedToast(toast)
+        break
       case 'job-completed':
         showJobCompletedToast(toast)
+        break
+      case 'completion-rejected':
+        showCompletionRejectedToast(toast)
         break
       case 'review-submitted':
         showReviewSubmittedToast(toast)
@@ -125,6 +167,9 @@ export function useToastFromParams() {
         break
       case 'job-deleted':
         showJobDeletedToast(toast)
+        break
+      case 'dispute-created':
+        showDisputeCreatedToast(toast)
         break
     }
   }, [params.toast, toast])

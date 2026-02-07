@@ -141,7 +141,11 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
     setIsDeleting(true)
     try {
       await deleteJobMutation.mutateAsync(job.public_id)
-      router.replace('/(homeowner)/')
+      // Navigate to job management with toast
+      router.replace({
+        pathname: '/(homeowner)/jobs',
+        params: { toast: 'job-deleted' },
+      })
     } catch (error: any) {
       const errorMessage = error?.message || 'Failed to delete job'
       Alert.alert('Delete Failed', errorMessage)
