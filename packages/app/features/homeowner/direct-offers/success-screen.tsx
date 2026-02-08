@@ -281,10 +281,12 @@ export function DirectOfferSuccessScreen() {
             borderRadius="$4"
             py="$3"
             minHeight={54}
-            onPress={() => router.replace({
+            onPress={() =>
+              router.replace({
                 pathname: '/(homeowner)/jobs',
                 params: { toast: 'direct-offer-sent', tab: 'offers' },
-              })}
+              })
+            }
             pressStyle={{ opacity: 0.9 }}
           >
             <XStack

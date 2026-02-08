@@ -32,6 +32,13 @@ import {
   BarChart,
   Target,
   Users,
+  Play,
+  Square,
+  MapPin,
+  FileText,
+  Clock,
+  Trophy,
+  Receipt,
 } from '@tamagui/lucide-icons'
 import type { ToastIcon } from 'app/utils/toast-messages'
 
@@ -68,6 +75,13 @@ const iconComponents: Record<ToastIcon, React.ComponentType<any>> = {
   BarChart,
   Target,
   Users,
+  Play,
+  Square,
+  MapPin,
+  FileText,
+  Clock,
+  Trophy,
+  Receipt,
 }
 
 export const NativeToast = () => {
@@ -127,20 +141,21 @@ export const NativeToast = () => {
       borderWidth={1}
       borderColor={getBorderColor()}
       borderRadius="$3"
-      maxWidth={360}
-      width="85%"
+      maxWidth={380}
+      minWidth={300}
+      width="90%"
       alignSelf="center"
     >
       <XStack
-        py="$2"
-        px="$3"
-        gap="$2"
+        py="$3"
+        px="$4"
+        gap="$3"
         alignItems="flex-start"
       >
         {IconComponent && (
           <YStack pt="$0.5">
             <IconComponent
-              size={20}
+              size={22}
               color={getIconColor()}
             />
           </YStack>
@@ -152,13 +167,16 @@ export const NativeToast = () => {
           <Toast.Title
             lineHeight="$1"
             fontWeight="600"
+            fontSize="$4"
+            color="black"
           >
             {currentToast.title}
           </Toast.Title>
           {!!currentToast.message && (
             <Toast.Description
-              fontSize="$2"
+              fontSize="$3"
               opacity={0.9}
+              color="black"
             >
               {currentToast.message}
             </Toast.Description>

@@ -35,11 +35,14 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
 import {
-  showReimbursementSubmittedToast,
+  showHandymanReimbursementSubmittedToast,
   showSubmissionErrorToast,
   showValidationErrorToast,
+  showHandymanReimbursementOnboardingToast,
 } from 'app/utils/toast-messages'
+import { shouldShowOnboarding, markOnboardingSeen } from 'app/utils/onboarding-storage'
 import * as ImagePicker from 'expo-image-picker'
+import { useEffect } from 'react'
 import * as DocumentPicker from 'expo-document-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
 import * as ImageManipulator from 'expo-image-manipulator'
@@ -99,6 +102,21 @@ export function CreateReimbursementScreen() {
   const { data: categories, isLoading: categoriesLoading } = useReimbursementCategories()
 
   const createReimbursementMutation = useCreateReimbursement()
+
+  // Show reimbursement onboarding for first-time users
+  useEffect(() => {
+    const showOnboarding = async () => {
+      const shouldShow = await shouldShowOnboarding('handymanReimbursement')
+      if (!shouldShow) return
+
+      setTimeout(() => {
+        showHandymanReimbursementOnboardingToast(toast)
+        markOnboardingSeen('handymanReimbursement')
+      }, 1000)
+    }
+
+    showOnboarding()
+  }, [toast])
 
   // Attachment limits
   const maxAttachments = ATTACHMENT_LIMITS.reimbursement.maxCount
@@ -413,6 +431,7 @@ export function CreateReimbursementScreen() {
         },
       })
 
+      showHandymanReimbursementSubmittedToast(toast)
       router.back()
     } catch (error: any) {
       showSubmissionErrorToast(toast, error?.message)

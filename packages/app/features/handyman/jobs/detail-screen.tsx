@@ -65,13 +65,13 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
     if (!job) return []
     return Array.isArray((job as { attachments?: unknown })?.attachments)
       ? ((job as { attachments?: unknown[] })?.attachments as Array<{
-        public_id: string
-        file_url: string
-        file_type: 'image' | 'video' | 'document'
-        file_name: string
-        file_size: number
-        thumbnail_url?: string | null
-      }>)
+          public_id: string
+          file_url: string
+          file_type: 'image' | 'video' | 'document'
+          file_name: string
+          file_size: number
+          thumbnail_url?: string | null
+        }>)
       : []
   }, [job])
 

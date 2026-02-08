@@ -20,10 +20,16 @@ import {
   Calendar,
   Award,
   DollarSign,
+  Settings,
+  RotateCcw,
 } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { PageHeader } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
+import { useState, useEffect } from 'react'
+import { Alert } from 'react-native'
+import { resetAllOnboarding } from 'app/utils/onboarding-storage'
+import { isDevFlagEnabled, setDevFlag } from 'app/utils/dev-flags'
 
 export function HandymanProfileViewScreen() {
   const router = useRouter()
@@ -73,6 +79,18 @@ export function HandymanProfileViewScreen() {
       console.error('Failed to logout:', error)
     }
   }
+
+  // Dev mode state
+  const [devModeEnabled, setDevModeEnabled] = useState(false)
+
+  // Check dev mode on mount
+  useEffect(() => {
+    const checkDevMode = async () => {
+      const enabled = await isDevFlagEnabled('FORCE_ONBOARDING')
+      setDevModeEnabled(enabled)
+    }
+    checkDevMode()
+  }, [])
 
   return (
     <GradientBackground>
@@ -406,7 +424,11 @@ export function HandymanProfileViewScreen() {
                 </XStack>
 
                 {/* Stats Grid */}
-                <YStack px="$4" py="$4" gap="$3">
+                <YStack
+                  px="$4"
+                  py="$4"
+                  gap="$3"
+                >
                   {/* Row 1: Rating, Completion Rate, Earnings */}
                   <XStack gap="$2">
                     {/* Rating Card */}
@@ -419,16 +441,37 @@ export function HandymanProfileViewScreen() {
                       borderWidth={1}
                       borderColor="rgba(12, 154, 92, 0.2)"
                     >
-                      <View bg="rgb(12, 154, 92)" p="$2" borderRadius="$2" mb="$2">
-                        <Star size={18} color="white" />
+                      <View
+                        bg="rgb(12, 154, 92)"
+                        p="$2"
+                        borderRadius="$2"
+                        mb="$2"
+                      >
+                        <Star
+                          size={18}
+                          color="white"
+                        />
                       </View>
-                      <Text fontSize="$6" fontWeight="bold" color="rgb(12, 154, 92)">
+                      <Text
+                        fontSize="$6"
+                        fontWeight="bold"
+                        color="rgb(12, 154, 92)"
+                      >
                         {profile.rating ? profile.rating.toFixed(1) : '4.8'}
                       </Text>
-                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                        textAlign="center"
+                      >
                         Rating
                       </Text>
-                      <Text fontSize="$1" color="$colorMuted" textAlign="center" mt="$1">
+                      <Text
+                        fontSize="$1"
+                        color="$colorMuted"
+                        textAlign="center"
+                        mt="$1"
+                      >
                         24 reviews
                       </Text>
                     </YStack>
@@ -443,16 +486,37 @@ export function HandymanProfileViewScreen() {
                       borderWidth={1}
                       borderColor="rgba(59, 130, 246, 0.2)"
                     >
-                      <View bg="rgb(59, 130, 246)" p="$2" borderRadius="$2" mb="$2">
-                        <Award size={18} color="white" />
+                      <View
+                        bg="rgb(59, 130, 246)"
+                        p="$2"
+                        borderRadius="$2"
+                        mb="$2"
+                      >
+                        <Award
+                          size={18}
+                          color="white"
+                        />
                       </View>
-                      <Text fontSize="$6" fontWeight="bold" color="rgb(59, 130, 246)">
+                      <Text
+                        fontSize="$6"
+                        fontWeight="bold"
+                        color="rgb(59, 130, 246)"
+                      >
                         96%
                       </Text>
-                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                        textAlign="center"
+                      >
                         Completion
                       </Text>
-                      <Text fontSize="$1" color="$colorMuted" textAlign="center" mt="$1">
+                      <Text
+                        fontSize="$1"
+                        color="$colorMuted"
+                        textAlign="center"
+                        mt="$1"
+                      >
                         48/50 jobs
                       </Text>
                     </YStack>
@@ -467,16 +531,37 @@ export function HandymanProfileViewScreen() {
                       borderWidth={1}
                       borderColor="rgba(245, 158, 11, 0.2)"
                     >
-                      <View bg="rgb(245, 158, 11)" p="$2" borderRadius="$2" mb="$2">
-                        <DollarSign size={18} color="white" />
+                      <View
+                        bg="rgb(245, 158, 11)"
+                        p="$2"
+                        borderRadius="$2"
+                        mb="$2"
+                      >
+                        <DollarSign
+                          size={18}
+                          color="white"
+                        />
                       </View>
-                      <Text fontSize="$6" fontWeight="bold" color="rgb(245, 158, 11)">
+                      <Text
+                        fontSize="$6"
+                        fontWeight="bold"
+                        color="rgb(245, 158, 11)"
+                      >
                         $12.4k
                       </Text>
-                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                        textAlign="center"
+                      >
                         Earnings
                       </Text>
-                      <Text fontSize="$1" color="$colorMuted" textAlign="center" mt="$1">
+                      <Text
+                        fontSize="$1"
+                        color="$colorMuted"
+                        textAlign="center"
+                        mt="$1"
+                      >
                         All time
                       </Text>
                     </YStack>
@@ -494,13 +579,29 @@ export function HandymanProfileViewScreen() {
                       borderWidth={1}
                       borderColor="rgba(139, 92, 246, 0.2)"
                     >
-                      <View bg="rgb(139, 92, 246)" p="$2" borderRadius="$2" mb="$2">
-                        <Send size={18} color="white" />
+                      <View
+                        bg="rgb(139, 92, 246)"
+                        p="$2"
+                        borderRadius="$2"
+                        mb="$2"
+                      >
+                        <Send
+                          size={18}
+                          color="white"
+                        />
                       </View>
-                      <Text fontSize="$6" fontWeight="bold" color="rgb(139, 92, 246)">
+                      <Text
+                        fontSize="$6"
+                        fontWeight="bold"
+                        color="rgb(139, 92, 246)"
+                      >
                         127
                       </Text>
-                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                        textAlign="center"
+                      >
                         Total Bids
                       </Text>
                     </YStack>
@@ -515,13 +616,29 @@ export function HandymanProfileViewScreen() {
                       borderWidth={1}
                       borderColor="rgba(239, 68, 68, 0.2)"
                     >
-                      <View bg="rgb(239, 68, 68)" p="$2" borderRadius="$2" mb="$2">
-                        <Target size={18} color="white" />
+                      <View
+                        bg="rgb(239, 68, 68)"
+                        p="$2"
+                        borderRadius="$2"
+                        mb="$2"
+                      >
+                        <Target
+                          size={18}
+                          color="white"
+                        />
                       </View>
-                      <Text fontSize="$6" fontWeight="bold" color="rgb(239, 68, 68)">
+                      <Text
+                        fontSize="$6"
+                        fontWeight="bold"
+                        color="rgb(239, 68, 68)"
+                      >
                         23
                       </Text>
-                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                        textAlign="center"
+                      >
                         Offers
                       </Text>
                     </YStack>
@@ -536,13 +653,29 @@ export function HandymanProfileViewScreen() {
                       borderWidth={1}
                       borderColor="rgba(6, 182, 212, 0.2)"
                     >
-                      <View bg="rgb(6, 182, 212)" p="$2" borderRadius="$2" mb="$2">
-                        <Briefcase size={18} color="white" />
+                      <View
+                        bg="rgb(6, 182, 212)"
+                        p="$2"
+                        borderRadius="$2"
+                        mb="$2"
+                      >
+                        <Briefcase
+                          size={18}
+                          color="white"
+                        />
                       </View>
-                      <Text fontSize="$6" fontWeight="bold" color="rgb(6, 182, 212)">
+                      <Text
+                        fontSize="$6"
+                        fontWeight="bold"
+                        color="rgb(6, 182, 212)"
+                      >
                         48
                       </Text>
-                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                        textAlign="center"
+                      >
                         Completed
                       </Text>
                     </YStack>
@@ -560,13 +693,29 @@ export function HandymanProfileViewScreen() {
                       borderWidth={1}
                       borderColor="rgba(20, 184, 166, 0.2)"
                     >
-                      <View bg="rgb(20, 184, 166)" p="$2" borderRadius="$2" mb="$2">
-                        <Clock size={18} color="white" />
+                      <View
+                        bg="rgb(20, 184, 166)"
+                        p="$2"
+                        borderRadius="$2"
+                        mb="$2"
+                      >
+                        <Clock
+                          size={18}
+                          color="white"
+                        />
                       </View>
-                      <Text fontSize="$6" fontWeight="bold" color="rgb(20, 184, 166)">
+                      <Text
+                        fontSize="$6"
+                        fontWeight="bold"
+                        color="rgb(20, 184, 166)"
+                      >
                         2h
                       </Text>
-                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                        textAlign="center"
+                      >
                         Avg Response
                       </Text>
                     </YStack>
@@ -581,13 +730,29 @@ export function HandymanProfileViewScreen() {
                       borderWidth={1}
                       borderColor="rgba(99, 102, 241, 0.2)"
                     >
-                      <View bg="rgb(99, 102, 241)" p="$2" borderRadius="$2" mb="$2">
-                        <Calendar size={18} color="white" />
+                      <View
+                        bg="rgb(99, 102, 241)"
+                        p="$2"
+                        borderRadius="$2"
+                        mb="$2"
+                      >
+                        <Calendar
+                          size={18}
+                          color="white"
+                        />
                       </View>
-                      <Text fontSize="$6" fontWeight="bold" color="rgb(99, 102, 241)">
+                      <Text
+                        fontSize="$6"
+                        fontWeight="bold"
+                        color="rgb(99, 102, 241)"
+                      >
                         2023
                       </Text>
-                      <Text fontSize="$2" color="$colorSubtle" textAlign="center">
+                      <Text
+                        fontSize="$2"
+                        color="$colorSubtle"
+                        textAlign="center"
+                      >
                         Member Since
                       </Text>
                     </YStack>
@@ -844,6 +1009,74 @@ export function HandymanProfileViewScreen() {
                       </Text>
                     </>
                   )}
+                </Button>
+
+                {/* Reset Onboarding Button */}
+                <Button
+                  unstyled
+                  bg="$warning"
+                  borderRadius={8}
+                  height={52}
+                  onPress={async () => {
+                    await resetAllOnboarding()
+                    Alert.alert(
+                      'Onboarding Reset',
+                      'All onboarding toasts will show again on next visit'
+                    )
+                  }}
+                  pressStyle={{ opacity: 0.9 }}
+                  alignItems="center"
+                  justifyContent="center"
+                  flexDirection="row"
+                  gap="$2"
+                >
+                  <RotateCcw
+                    size={18}
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontSize={15}
+                    fontWeight="600"
+                  >
+                    Reset All Onboarding
+                  </Text>
+                </Button>
+
+                {/* Dev Mode Toggle Button */}
+                <Button
+                  unstyled
+                  bg={devModeEnabled ? '$success' : '$colorSubtle'}
+                  borderRadius={8}
+                  height={52}
+                  onPress={async () => {
+                    const newValue = !devModeEnabled
+                    await setDevFlag('FORCE_ONBOARDING', newValue)
+                    setDevModeEnabled(newValue)
+                    Alert.alert(
+                      'Developer Mode',
+                      newValue
+                        ? 'Onboarding toasts will always show'
+                        : 'Normal onboarding behavior restored'
+                    )
+                  }}
+                  pressStyle={{ opacity: 0.9 }}
+                  alignItems="center"
+                  justifyContent="center"
+                  flexDirection="row"
+                  gap="$2"
+                >
+                  <Settings
+                    size={18}
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontSize={15}
+                    fontWeight="600"
+                  >
+                    {devModeEnabled ? 'Disable Dev Mode' : 'Enable Dev Mode (Force Onboarding)'}
+                  </Text>
                 </Button>
               </YStack>
             </YStack>

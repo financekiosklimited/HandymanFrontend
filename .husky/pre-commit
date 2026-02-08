@@ -1,0 +1,19 @@
+#!/bin/sh
+# Frontend Pre-commit Hook
+# Auto-runs Biome linting and formatting on all staged files
+
+cd frontend
+
+echo "🔍 Running Biome lint and format check..."
+
+# Run Biome check with auto-fix on all files
+npx biome check --write --staged .
+
+# Check if there are still errors after auto-fix
+if ! npx biome check . > /dev/null 2>&1; then
+    echo "❌ Linting errors found that could not be auto-fixed."
+    echo "Please fix the errors manually and try again."
+    exit 1
+fi
+
+echo "✅ All checks passed!"

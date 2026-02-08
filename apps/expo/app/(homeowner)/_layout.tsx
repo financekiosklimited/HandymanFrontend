@@ -1,17 +1,21 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Stack, useRouter, usePathname } from 'expo-router'
-import { YStack, View } from 'tamagui'
+import { useRouter, usePathname } from 'expo-router'
+import { YStack } from 'tamagui'
 import { BottomNav } from '@my/ui'
 import { useAuthStore, useHomeownerUnreadCount, useHomeownerProfile } from '@my/api'
-import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useNavigationGuard } from 'app/hooks/useNavigationGuard'
 import { Alert } from 'react-native'
+import { Stack } from 'expo-router'
+import { defaultScreenOptions } from 'app/navigation/config'
 
 export default function HomeownerLayout() {
   const router = useRouter()
   const pathname = usePathname()
-  const insets = useSafeArea()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const activeRole = useAuthStore((state) => state.activeRole)
+
+  // Use navigation guard to prevent double navigation
+  const { push, replace, isNavigating } = useNavigationGuard({ delay: 400 })
 
   // Only fetch unread notification count when authenticated as homeowner
   const shouldFetchNotifications = isAuthenticated && activeRole === 'homeowner'
@@ -33,7 +37,7 @@ export default function HomeownerLayout() {
 
       if (freshProfile?.is_phone_verified) {
         // Phone verified, proceed to add job
-        router.push('/(homeowner)/jobs/add' as any)
+        push('/(homeowner)/jobs/add' as any)
       } else {
         // Phone not verified, show alert and redirect
         Alert.alert(
@@ -42,7 +46,7 @@ export default function HomeownerLayout() {
           [
             {
               text: 'Verify Now',
-              onPress: () => router.push('/user/phone/send' as any),
+              onPress: () => push('/user/phone/send' as any),
             },
             {
               text: 'Cancel',
@@ -60,35 +64,35 @@ export default function HomeownerLayout() {
         [
           {
             text: 'Verify Phone',
-            onPress: () => router.push('/user/phone/send' as any),
+            onPress: () => push('/user/phone/send' as any),
           },
           {
             text: 'Try Again',
-            onPress: () => router.push('/(homeowner)/jobs/add' as any),
+            onPress: () => push('/(homeowner)/jobs/add' as any),
           },
         ]
       )
     } finally {
       setIsCheckingPhone(false)
     }
-  }, [refetchProfile, router])
+  }, [refetchProfile, push])
 
   useEffect(() => {
     // Redirect to login if not authenticated
     if (!isAuthenticated) {
-      router.replace('/auth/login')
+      replace('/auth/login')
       return
     }
 
     // Redirect to correct role homepage if not homeowner
     if (activeRole !== 'homeowner') {
       if (activeRole === 'handyman') {
-        router.replace('/(handyman)/' as any)
+        replace('/(handyman)/' as any)
       } else {
-        router.replace('/')
+        replace('/')
       }
     }
-  }, [isAuthenticated, activeRole, router])
+  }, [isAuthenticated, activeRole, replace])
 
   // Map pathname to active route for bottom nav
   // Note: usePathname() returns just the path without route groups, e.g. "/updates" not "/(homeowner)/updates"
@@ -123,8 +127,14 @@ export default function HomeownerLayout() {
       backgroundColor="$background"
     >
       <YStack flex={1}>
+        {/*
+          Nested Stack for homeowner routes
+          Inherits animation config from root, but we explicitly set it here
+          to ensure consistency even if root config changes
+        */}
         <Stack
           screenOptions={{
+            ...defaultScreenOptions,
             headerShown: false,
           }}
         />
@@ -135,8 +145,8 @@ export default function HomeownerLayout() {
           variant="homeowner"
           notificationCount={unreadCount}
           onAddPress={handleAddJobPress}
-          isAddLoading={isCheckingPhone}
-          onNavigate={(route) => router.push(route as any)}
+          isAddLoading={isCheckingPhone || isNavigating}
+          onNavigate={(route) => push(route as any)}
         />
       )}
     </YStack>

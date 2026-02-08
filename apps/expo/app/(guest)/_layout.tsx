@@ -1,27 +1,31 @@
 import { useEffect } from 'react'
-import { Stack, useRouter, usePathname } from 'expo-router'
+import { useRouter, usePathname } from 'expo-router'
 import { YStack } from 'tamagui'
 import { BottomNav } from '@my/ui'
 import { useAuthStore } from '@my/api'
-import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useNavigationGuard } from 'app/hooks/useNavigationGuard'
+import { Stack } from 'expo-router'
+import { defaultScreenOptions } from 'app/navigation/config'
 
 export default function GuestLayout() {
   const router = useRouter()
   const pathname = usePathname()
-  const insets = useSafeArea()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const activeRole = useAuthStore((state) => state.activeRole)
+
+  // Use navigation guard to prevent double navigation
+  const { push, replace } = useNavigationGuard({ delay: 400 })
 
   useEffect(() => {
     // If user is already authenticated, redirect to their homepage
     if (isAuthenticated && activeRole) {
       if (activeRole === 'handyman') {
-        router.replace('/(handyman)/')
+        replace('/(handyman)/')
       } else if (activeRole === 'homeowner') {
-        router.replace('/(homeowner)/')
+        replace('/(homeowner)/')
       }
     }
-  }, [isAuthenticated, activeRole, router])
+  }, [isAuthenticated, activeRole, replace])
 
   // Map pathname to active route for bottom nav
   const getActiveRoute = () => {
@@ -45,8 +49,14 @@ export default function GuestLayout() {
       backgroundColor="$background"
     >
       <YStack flex={1}>
+        {/*
+          Nested Stack for guest routes
+          Inherits animation config from root, but we explicitly set it here
+          to ensure consistency even if root config changes
+        */}
         <Stack
           screenOptions={{
+            ...defaultScreenOptions,
             headerShown: false,
           }}
         >
@@ -57,7 +67,7 @@ export default function GuestLayout() {
         <BottomNav
           activeRoute={getActiveRoute()}
           variant="guest"
-          onNavigate={(route) => router.push(route as any)}
+          onNavigate={(route) => push(route as any)}
         />
       )}
     </YStack>

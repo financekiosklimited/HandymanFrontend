@@ -30,6 +30,12 @@ import {
   DollarSign,
   Briefcase,
 } from '@tamagui/lucide-icons'
+import { useToastController } from '@tamagui/toast'
+import { showNewDirectOfferToast } from 'app/utils/toast-messages'
+import {
+  hasNotificationToastBeenShown,
+  markNotificationToastAsShown,
+} from 'app/utils/notification-toast-storage'
 
 // Message button with unread badge
 function MessageBadgeButton({
@@ -40,8 +46,15 @@ function MessageBadgeButton({
   const hasUnread = (unreadCount ?? 0) > 0
 
   return (
-    <Button unstyled onPress={onPress} position="relative">
-      <MessageCircle size={20} color="$color" />
+    <Button
+      unstyled
+      onPress={onPress}
+      position="relative"
+    >
+      <MessageCircle
+        size={20}
+        color="$color"
+      />
       {hasUnread && (
         <View
           position="absolute"
@@ -56,7 +69,11 @@ function MessageBadgeButton({
           borderWidth={2}
           borderColor="white"
         >
-          <Text fontSize={9} fontWeight="700" color="white">
+          <Text
+            fontSize={9}
+            fontWeight="700"
+            color="white"
+          >
             {(unreadCount ?? 0) > 9 ? '9+' : unreadCount}
           </Text>
         </View>
@@ -156,9 +173,24 @@ export function HandymanHomeScreen() {
 
   // Fetch handyman's profile
   const { data: profile } = useHandymanProfile()
+  const toast = useToastController()
 
   // Fetch action required data
   const { data: pendingOffersCount = 0 } = useHandymanPendingOffersCount()
+
+  // Check for new direct offers and show toast
+  useEffect(() => {
+    const checkNewOffers = async () => {
+      if (pendingOffersCount > 0) {
+        const hasShown = await hasNotificationToastBeenShown('newDirectOffer', {})
+        if (!hasShown) {
+          showNewDirectOfferToast(toast, 'A homeowner')
+          await markNotificationToastAsShown('newDirectOffer', {})
+        }
+      }
+    }
+    checkNewOffers()
+  }, [pendingOffersCount, toast])
   const { data: applicationsData } = useHandymanApplications({ status: 'pending' })
   const { data: activeJobsData } = useHandymanAssignedJobs({ status: 'in_progress' })
 
@@ -204,15 +236,25 @@ export function HandymanHomeScreen() {
   const selectedCategoryName = selectedCategory
     ? categories?.find((c) => c.slug === selectedCategory)?.name
     : null
-  const budgetLabel = maxBudget
-    ? BUDGET_OPTIONS.find((b) => b.value === maxBudget)?.label
-    : null
+  const budgetLabel = maxBudget ? BUDGET_OPTIONS.find((b) => b.value === maxBudget)?.label : null
 
   return (
-    <View flex={1} backgroundColor="$background">
-      <YStack flex={1} pt={insets.top}>
+    <View
+      flex={1}
+      backgroundColor="$background"
+    >
+      <YStack
+        flex={1}
+        pt={insets.top}
+      >
         {/* Header */}
-        <XStack px="$4" py="$3" alignItems="center" gap="$3" justifyContent="space-between">
+        <XStack
+          px="$4"
+          py="$3"
+          alignItems="center"
+          gap="$3"
+          justifyContent="space-between"
+        >
           {/* Search Input Placeholder */}
           <XStack
             flex={1}
@@ -225,13 +267,23 @@ export function HandymanHomeScreen() {
             alignItems="center"
             gap="$2"
           >
-            <Search pointerEvents="none" size={18} color="$colorSubtle" />
-            <Text color="$colorSubtle" fontSize="$3">
+            <Search
+              pointerEvents="none"
+              size={18}
+              color="$colorSubtle"
+            />
+            <Text
+              color="$colorSubtle"
+              fontSize="$3"
+            >
               Search jobs...
             </Text>
           </XStack>
 
-          <XStack alignItems="center" gap="$3">
+          <XStack
+            alignItems="center"
+            gap="$3"
+          >
             <MessageBadgeButton
               chatRole="handyman"
               onPress={() => router.push('/(handyman)/messages')}
@@ -239,19 +291,37 @@ export function HandymanHomeScreen() {
           </XStack>
         </XStack>
 
-        <ScrollView flex={1} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          flex={1}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Welcome Message */}
-          <YStack px="$4" py="$3">
-            <Text fontSize="$7" fontWeight="bold" color="$color" lineHeight="$7">
+          <YStack
+            px="$4"
+            py="$3"
+          >
+            <Text
+              fontSize="$7"
+              fontWeight="bold"
+              color="$color"
+              lineHeight="$7"
+            >
               Welcome, <Text color="$primary">{displayName}</Text>
             </Text>
-            <Text fontSize="$3" color="$colorSubtle" mt="$1">
+            <Text
+              fontSize="$3"
+              color="$colorSubtle"
+              mt="$1"
+            >
               Ready to find your next job?
             </Text>
           </YStack>
 
           {/* Action Required Dashboard */}
-          <YStack px="$4" pb="$4">
+          <YStack
+            px="$4"
+            pb="$4"
+          >
             <YStack
               bg="white"
               borderRadius="$6"
@@ -263,7 +333,12 @@ export function HandymanHomeScreen() {
               shadowOpacity={0.05}
               shadowOffset={{ width: 0, height: 2 }}
             >
-              <Text fontSize="$4" fontWeight="bold" color="$color" mb="$3">
+              <Text
+                fontSize="$4"
+                fontWeight="bold"
+                color="$color"
+                mb="$3"
+              >
                 Action Required
               </Text>
               <XStack gap="$2">
@@ -280,13 +355,19 @@ export function HandymanHomeScreen() {
                   animation="micro"
                   pressStyle={{ scale: 0.95 }}
                 >
-                  <YStack alignItems="center" gap="$1">
+                  <YStack
+                    alignItems="center"
+                    gap="$1"
+                  >
                     <View
                       bg={pendingOffersCount > 0 ? 'rgb(239, 68, 68)' : '$colorMuted'}
                       p="$2"
                       borderRadius="$3"
                     >
-                      <Target size={20} color="white" />
+                      <Target
+                        size={20}
+                        color="white"
+                      />
                     </View>
                     <Text
                       fontSize="$6"
@@ -295,7 +376,11 @@ export function HandymanHomeScreen() {
                     >
                       {pendingOffersCount}
                     </Text>
-                    <Text fontSize="$1" color="$colorSubtle" textAlign="center">
+                    <Text
+                      fontSize="$1"
+                      color="$colorSubtle"
+                      textAlign="center"
+                    >
                       Direct Offers
                     </Text>
                   </YStack>
@@ -313,7 +398,11 @@ export function HandymanHomeScreen() {
                       borderWidth={2}
                       borderColor="white"
                     >
-                      <Text fontSize={10} fontWeight="700" color="white">
+                      <Text
+                        fontSize={10}
+                        fontWeight="700"
+                        color="white"
+                      >
                         {pendingOffersCount > 9 ? '9+' : pendingOffersCount}
                       </Text>
                     </View>
@@ -333,13 +422,19 @@ export function HandymanHomeScreen() {
                   animation="micro"
                   pressStyle={{ scale: 0.95 }}
                 >
-                  <YStack alignItems="center" gap="$1">
+                  <YStack
+                    alignItems="center"
+                    gap="$1"
+                  >
                     <View
                       bg={pendingBidsCount > 0 ? 'rgb(12, 154, 92)' : '$colorMuted'}
                       p="$2"
                       borderRadius="$3"
                     >
-                      <Send size={20} color="white" />
+                      <Send
+                        size={20}
+                        color="white"
+                      />
                     </View>
                     <Text
                       fontSize="$6"
@@ -348,7 +443,11 @@ export function HandymanHomeScreen() {
                     >
                       {pendingBidsCount}
                     </Text>
-                    <Text fontSize="$1" color="$colorSubtle" textAlign="center">
+                    <Text
+                      fontSize="$1"
+                      color="$colorSubtle"
+                      textAlign="center"
+                    >
                       Pending Bids
                     </Text>
                   </YStack>
@@ -367,13 +466,19 @@ export function HandymanHomeScreen() {
                   animation="micro"
                   pressStyle={{ scale: 0.95 }}
                 >
-                  <YStack alignItems="center" gap="$1">
+                  <YStack
+                    alignItems="center"
+                    gap="$1"
+                  >
                     <View
                       bg={activeJobsCount > 0 ? 'rgb(59, 130, 246)' : '$colorMuted'}
                       p="$2"
                       borderRadius="$3"
                     >
-                      <Clock size={20} color="white" />
+                      <Clock
+                        size={20}
+                        color="white"
+                      />
                     </View>
                     <Text
                       fontSize="$6"
@@ -382,7 +487,11 @@ export function HandymanHomeScreen() {
                     >
                       {activeJobsCount}
                     </Text>
-                    <Text fontSize="$1" color="$colorSubtle" textAlign="center">
+                    <Text
+                      fontSize="$1"
+                      color="$colorSubtle"
+                      textAlign="center"
+                    >
                       Active
                     </Text>
                   </YStack>
@@ -392,7 +501,10 @@ export function HandymanHomeScreen() {
           </YStack>
 
           {/* Concise Stats */}
-          <YStack px="$4" pb="$4">
+          <YStack
+            px="$4"
+            pb="$4"
+          >
             <YStack
               bg="white"
               borderRadius="$6"
@@ -404,30 +516,73 @@ export function HandymanHomeScreen() {
               shadowOpacity={0.05}
               shadowOffset={{ width: 0, height: 2 }}
             >
-              <Text fontSize="$4" fontWeight="bold" color="$color" mb="$2">
+              <Text
+                fontSize="$4"
+                fontWeight="bold"
+                color="$color"
+                mb="$2"
+              >
                 Career Overview
               </Text>
               <XStack
                 justifyContent="space-around"
                 alignItems="center"
               >
-                <XStack alignItems="center" gap="$2">
-                  <Star size={16} color="gold" />
-                  <Text fontSize="$3" fontWeight="600" color="$color">
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                >
+                  <Star
+                    size={16}
+                    color="gold"
+                  />
+                  <Text
+                    fontSize="$3"
+                    fontWeight="600"
+                    color="$color"
+                  >
                     {rating > 0 ? `${rating.toFixed(1)}` : '—'}
                   </Text>
                 </XStack>
-                <View width={1} height={20} bg="$borderColor" />
-                <XStack alignItems="center" gap="$2">
-                  <Briefcase size={16} color="primary" />
-                  <Text fontSize="$3" fontWeight="600" color="$color">
+                <View
+                  width={1}
+                  height={20}
+                  bg="$borderColor"
+                />
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                >
+                  <Briefcase
+                    size={16}
+                    color="primary"
+                  />
+                  <Text
+                    fontSize="$3"
+                    fontWeight="600"
+                    color="$color"
+                  >
                     {completedJobs} jobs
                   </Text>
                 </XStack>
-                <View width={1} height={20} bg="$borderColor" />
-                <XStack alignItems="center" gap="$2">
-                  <DollarSign size={16} color="rgb(34, 197, 94)" />
-                  <Text fontSize="$3" fontWeight="600" color="$color">
+                <View
+                  width={1}
+                  height={20}
+                  bg="$borderColor"
+                />
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                >
+                  <DollarSign
+                    size={16}
+                    color="rgb(34, 197, 94)"
+                  />
+                  <Text
+                    fontSize="$3"
+                    fontWeight="600"
+                    color="$color"
+                  >
                     ${(totalEarnings / 1000).toFixed(1)}k
                   </Text>
                 </XStack>
@@ -436,7 +591,10 @@ export function HandymanHomeScreen() {
           </YStack>
 
           {/* Job Filters Panel */}
-          <YStack px="$4" mb="$4">
+          <YStack
+            px="$4"
+            mb="$4"
+          >
             <YStack
               bg="white"
               borderRadius="$6"
@@ -449,19 +607,35 @@ export function HandymanHomeScreen() {
               shadowOffset={{ width: 0, height: 2 }}
             >
               <YStack>
-                <Text fontSize="$4" fontWeight="bold" color="$color" mb="$1">
+                <Text
+                  fontSize="$4"
+                  fontWeight="bold"
+                  color="$color"
+                  mb="$1"
+                >
                   Find Jobs
                 </Text>
-                <Text fontSize="$3" color="$colorSubtle" mb="$3" lineHeight="$5">
+                <Text
+                  fontSize="$3"
+                  color="$colorSubtle"
+                  mb="$3"
+                  lineHeight="$5"
+                >
                   Browse available jobs and{' '}
-                  <Text fontWeight="500" color="$color">
+                  <Text
+                    fontWeight="500"
+                    color="$color"
+                  >
                     send your proposals
                   </Text>{' '}
                   to get hired.
                 </Text>
 
                 {/* Location Filter with City Dropdown */}
-                <YStack gap="$2" mb="$3">
+                <YStack
+                  gap="$2"
+                  mb="$3"
+                >
                   <XStack
                     alignItems="center"
                     gap="$3"
@@ -478,7 +652,10 @@ export function HandymanHomeScreen() {
                       shadowColor="rgba(0,0,0,0.05)"
                       shadowRadius={2}
                     >
-                      <MapPin size={14} color="primary" />
+                      <MapPin
+                        size={14}
+                        color="primary"
+                      />
                     </View>
                     <YStack flex={1}>
                       <Text
@@ -490,8 +667,15 @@ export function HandymanHomeScreen() {
                       >
                         Browsing near
                       </Text>
-                      <XStack alignItems="center" gap="$1">
-                        <Text fontSize="$3" fontWeight="bold" color="$color">
+                      <XStack
+                        alignItems="center"
+                        gap="$1"
+                      >
+                        <Text
+                          fontSize="$3"
+                          fontWeight="bold"
+                          color="$color"
+                        >
                           {selectedCityName || 'Select Location'}
                         </Text>
                         <ChevronDown
@@ -516,7 +700,10 @@ export function HandymanHomeScreen() {
                     >
                       <ScrollView showsVerticalScrollIndicator={false}>
                         {citiesLoading ? (
-                          <Spinner size="small" color="primary" />
+                          <Spinner
+                            size="small"
+                            color="primary"
+                          />
                         ) : (
                           <>
                             <Button
@@ -699,9 +886,21 @@ export function HandymanHomeScreen() {
           </YStack>
 
           {/* Jobs List */}
-          <YStack px="$4" pb="$8">
-            <XStack justifyContent="space-between" alignItems="center" mb="$3" px="$1">
-              <Text fontSize="$3" fontWeight="bold" color="$color">
+          <YStack
+            px="$4"
+            pb="$8"
+          >
+            <XStack
+              justifyContent="space-between"
+              alignItems="center"
+              mb="$3"
+              px="$1"
+            >
+              <Text
+                fontSize="$3"
+                fontWeight="bold"
+                color="$color"
+              >
                 {filteredJobs.length} Jobs Available
               </Text>
               <Button
@@ -710,7 +909,11 @@ export function HandymanHomeScreen() {
                 animation="micro"
                 pressStyle={{ scale: 0.95 }}
               >
-                <Text fontSize="$2" fontWeight="bold" color="primary">
+                <Text
+                  fontSize="$2"
+                  fontWeight="bold"
+                  color="primary"
+                >
                   See All
                 </Text>
               </Button>
@@ -718,7 +921,11 @@ export function HandymanHomeScreen() {
 
             <YStack gap="$3">
               {jobsLoading ? (
-                <Spinner size="large" color="primary" m="$4" />
+                <Spinner
+                  size="large"
+                  color="primary"
+                  m="$4"
+                />
               ) : filteredJobs.length > 0 ? (
                 filteredJobs.map((job) => (
                   <View key={job.public_id}>
@@ -756,14 +963,27 @@ export function HandymanHomeScreen() {
                   borderColor="$borderColor"
                 >
                   {isFetchingMoreJobs ? (
-                    <XStack alignItems="center" gap="$sm">
-                      <Spinner size="small" color="primary" />
-                      <Text color="$colorSubtle" fontSize="$3">
+                    <XStack
+                      alignItems="center"
+                      gap="$sm"
+                    >
+                      <Spinner
+                        size="small"
+                        color="primary"
+                      />
+                      <Text
+                        color="$colorSubtle"
+                        fontSize="$3"
+                      >
                         Loading...
                       </Text>
                     </XStack>
                   ) : (
-                    <Text color="primary" fontSize="$3" fontWeight="500">
+                    <Text
+                      color="primary"
+                      fontSize="$3"
+                      fontWeight="500"
+                    >
                       Load more jobs
                     </Text>
                   )}

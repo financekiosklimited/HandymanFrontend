@@ -5,13 +5,13 @@ import { LinearGradient } from 'expo-linear-gradient'
 
 /**
  * HandymanKiosk Splash Screen Component
- * 
+ *
  * Design: Gradient Hero (Option 2)
  * - Gradient background: #0C9A5C → #34C759
  * - Custom logo: Wrench + House combination
  * - White text for contrast
  * - Decorative tool icons
- * 
+ *
  * Usage: This component can be used to generate the splash screen image
  * or as a loading/launch screen in the app
  */
@@ -62,7 +62,10 @@ export function SplashScreen() {
         padding="$4"
       >
         {/* Logo Container */}
-        <YStack alignItems="center" gap="$4">
+        <YStack
+          alignItems="center"
+          gap="$4"
+        >
           {/* Custom Logo: House + Wrench */}
           <View
             width={120}
@@ -101,7 +104,10 @@ export function SplashScreen() {
           </View>
 
           {/* App Name */}
-          <YStack alignItems="center" gap="$2">
+          <YStack
+            alignItems="center"
+            gap="$2"
+          >
             <Text
               fontSize="$8"
               fontWeight="bold"
@@ -186,7 +192,7 @@ export function SplashScreen() {
 
 /**
  * Static Splash Screen for Export
- * 
+ *
  * This is a 1242×2688 pixel version (iPhone 14 Pro Max dimensions)
  * that can be exported as a PNG for the actual splash screen image
  */
@@ -240,7 +246,10 @@ export function SplashScreenExport() {
         padding="$4"
       >
         {/* Logo Container */}
-        <YStack alignItems="center" gap="$8">
+        <YStack
+          alignItems="center"
+          gap="$8"
+        >
           {/* Custom Logo: House + Wrench */}
           <View
             width={240}
@@ -279,7 +288,10 @@ export function SplashScreenExport() {
           </View>
 
           {/* App Name */}
-          <YStack alignItems="center" gap="$4">
+          <YStack
+            alignItems="center"
+            gap="$4"
+          >
             <Text
               fontSize="$12"
               fontWeight="bold"

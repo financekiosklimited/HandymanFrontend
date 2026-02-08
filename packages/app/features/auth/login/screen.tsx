@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { YStack, XStack, Text, Button, Input, Spinner, PageHeader } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useLogin, useActivateRole, formatErrorMessage } from '@my/api'
-import { useRouter } from 'expo-router'
+
 import { Eye, EyeOff } from '@tamagui/lucide-icons'
 import type { Role } from '@my/api'
 import { HTTPError, TimeoutError } from 'ky'
+import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
@@ -126,14 +127,9 @@ export function LoginScreen() {
       await loginMutation.mutateAsync({ email: email.trim(), password })
 
       // Step 2: Activate role
+      // Note: Navigation is handled by the route file (apps/expo/app/auth/login.tsx)
+      // which watches auth state and redirects automatically
       await activateRoleMutation.mutateAsync({ role })
-
-      // Step 3: Redirect based on role
-      if (role === 'handyman') {
-        router.replace('/(handyman)/')
-      } else {
-        router.replace('/(homeowner)/')
-      }
     } catch (err) {
       const humanReadableError = await getHumanReadableError(err)
       setError(humanReadableError)

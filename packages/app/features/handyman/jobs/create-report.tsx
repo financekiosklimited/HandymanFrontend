@@ -26,11 +26,14 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
 import {
-  showReportSubmittedToast,
+  showHandymanReportSubmittedToast,
   showSubmissionErrorToast,
   showValidationErrorToast,
+  showHandymanReportOnboardingToast,
 } from 'app/utils/toast-messages'
+import { shouldShowOnboarding, markOnboardingSeen } from 'app/utils/onboarding-storage'
 import * as ImagePicker from 'expo-image-picker'
+import { useEffect } from 'react'
 
 interface TaskItem {
   public_id: string
@@ -89,6 +92,21 @@ export function CreateReportScreen() {
   }, [sessions])
 
   const createReportMutation = useCreateDailyReport()
+
+  // Show report onboarding for first-time users
+  useEffect(() => {
+    const showOnboarding = async () => {
+      const shouldShow = await shouldShowOnboarding('handymanReport')
+      if (!shouldShow) return
+
+      setTimeout(() => {
+        showHandymanReportOnboardingToast(toast)
+        markOnboardingSeen('handymanReport')
+      }, 1000)
+    }
+
+    showOnboarding()
+  }, [toast])
 
   const handleToggleTask = (taskId: string) => {
     setTasks((prev) =>
@@ -149,10 +167,11 @@ export function CreateReportScreen() {
         },
       })
 
-      // Navigate back with toast param
+      // Show success toast before navigating back
+      showHandymanReportSubmittedToast(toast)
+
+      // Navigate back
       router.back()
-      // Note: For router.back(), we can't pass params easily
-      // The toast will be handled differently or shown before navigation
     } catch (error: any) {
       showSubmissionErrorToast(toast, error?.message)
     } finally {

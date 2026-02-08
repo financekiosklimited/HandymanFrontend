@@ -3,12 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import * as Location from 'expo-location'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
-import {
-  useGuestJobs,
-  useGuestHandymen,
-  useCategories,
-  useCities,
-} from '@my/api'
+import { useGuestJobs, useGuestHandymen, useCategories, useCities } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -53,16 +48,16 @@ const iconMap: Record<string, any> = {
 
 // Category colors - vivid colors matching iconography (no green in default state)
 const categoryColors: Record<string, string> = {
-  plumbing: '#007AFF',              // Blue (water)
-  electrical_services: '#FFCC00',   // Yellow (electricity)
-  carpenter: '#FF9500',             // Orange (wood)
-  cleaning_services: '#00D4FF',     // Cyan/Aqua (clean water)
-  format_paint: '#FF2D55',          // Magenta (paint)
-  yard: '#8B4513',                  // Brown (soil/earth)
-  ac_unit: '#5AC8FA',               // Light Blue (cool air)
-  roofing: '#FF3B30',               // Red (roof tiles)
-  layers: '#AF52DE',                // Purple (general)
-  home_repair_service: '#FF6B35',   // Coral (hand tools)
+  plumbing: '#007AFF', // Blue (water)
+  electrical_services: '#FFCC00', // Yellow (electricity)
+  carpenter: '#FF9500', // Orange (wood)
+  cleaning_services: '#00D4FF', // Cyan/Aqua (clean water)
+  format_paint: '#FF2D55', // Magenta (paint)
+  yard: '#8B4513', // Brown (soil/earth)
+  ac_unit: '#5AC8FA', // Light Blue (cool air)
+  roofing: '#FF3B30', // Red (roof tiles)
+  layers: '#AF52DE', // Purple (general)
+  home_repair_service: '#FF6B35', // Coral (hand tools)
 }
 
 // Hardcoded city coordinates from backend seed data
@@ -179,10 +174,7 @@ export function GuestHomeScreen() {
   }, [handymenData, minRating, maxHourlyRate])
 
   // Fetch available jobs for handymen
-  const {
-    data: jobsData,
-    isLoading: jobsLoading,
-  } = useGuestJobs({
+  const { data: jobsData, isLoading: jobsLoading } = useGuestJobs({
     category: selectedCategory || undefined,
   })
 
@@ -367,7 +359,15 @@ export function GuestHomeScreen() {
                   shadowColor="rgba(0,0,0,0.15)"
                   shadowRadius={8}
                   shadowOffset={{ width: 0, height: 2 }}
-                  icon={<Plus size={22} color="white" strokeWidth={2.5} bg="#0C9A5C" borderRadius={100} />}
+                  icon={
+                    <Plus
+                      size={22}
+                      color="white"
+                      strokeWidth={2.5}
+                      bg="#0C9A5C"
+                      borderRadius={100}
+                    />
+                  }
                 >
                   Describe Your Task
                 </Button>
@@ -537,7 +537,10 @@ export function GuestHomeScreen() {
                 </YStack>
 
                 {/* Category Icons - Prominent Filter for Trades */}
-                <YStack gap="$3" mb="$4">
+                <YStack
+                  gap="$3"
+                  mb="$4"
+                >
                   <Text
                     fontSize="$4"
                     fontWeight="bold"
@@ -556,9 +559,7 @@ export function GuestHomeScreen() {
                       horizontal
                       showsHorizontalScrollIndicator={false}
                     >
-                      <XStack
-                        gap="$3"
-                      >
+                      <XStack gap="$3">
                         {categories?.map((cat) => {
                           const IconComponent = iconMap[cat.icon] || Wrench
                           const isSelected = selectedCategory === cat.slug
@@ -569,9 +570,7 @@ export function GuestHomeScreen() {
                               alignItems="center"
                               gap="$2"
                               width={70}
-                              onPress={() =>
-                                setSelectedCategory(isSelected ? null : cat.slug)
-                              }
+                              onPress={() => setSelectedCategory(isSelected ? null : cat.slug)}
                               animation="micro"
                               pressStyle={{ scale: 0.9 }}
                             >
@@ -587,7 +586,9 @@ export function GuestHomeScreen() {
                               >
                                 <IconComponent
                                   size={24}
-                                  color={isSelected ? '$primary' : categoryColors[cat.icon] || '#666666'}
+                                  color={
+                                    isSelected ? '$primary' : categoryColors[cat.icon] || '#666666'
+                                  }
                                   strokeWidth={2}
                                 />
                               </View>
@@ -781,21 +782,39 @@ export function GuestHomeScreen() {
                 animation="micro"
                 pressStyle={{ scale: 0.95 }}
               >
-                <XStack alignItems="center" gap="$1" color="$primary">
-                  <Text fontSize="$2" fontWeight="bold" color="$primary">
+                <XStack
+                  alignItems="center"
+                  gap="$1"
+                  color="$primary"
+                >
+                  <Text
+                    fontSize="$2"
+                    fontWeight="bold"
+                    color="$primary"
+                  >
                     {expandHandymen ? 'Show Less' : 'See All'}
                   </Text>
                   {expandHandymen ? (
-                    <ChevronUp size={16} color="#0C9A5C" />
+                    <ChevronUp
+                      size={16}
+                      color="#0C9A5C"
+                    />
                   ) : (
-                    <ChevronDown size={16} color="#0C9A5C" />
+                    <ChevronDown
+                      size={16}
+                      color="#0C9A5C"
+                    />
                   )}
                 </XStack>
               </Button>
             </XStack>
 
             {handymenLoading ? (
-              <Spinner size="large" color="$primary" m="$4" />
+              <Spinner
+                size="large"
+                color="$primary"
+                m="$4"
+              />
             ) : handymen.length > 0 ? (
               expandHandymen ? (
                 // Expanded vertical list
@@ -827,7 +846,11 @@ export function GuestHomeScreen() {
                           shadowColor="rgba(0,0,0,0.1)"
                           shadowRadius={3}
                         >
-                          <Text fontSize="$5" fontWeight="bold" color="$colorSubtle">
+                          <Text
+                            fontSize="$5"
+                            fontWeight="bold"
+                            color="$colorSubtle"
+                          >
                             {pro.display_name.charAt(0)}
                           </Text>
                         </View>
@@ -841,27 +864,60 @@ export function GuestHomeScreen() {
                           borderWidth={2}
                           borderColor="white"
                         >
-                          <ShieldCheck size={10} color="white" />
+                          <ShieldCheck
+                            size={10}
+                            color="white"
+                          />
                         </View>
                       </View>
 
-                      <YStack flex={1} justifyContent="space-between">
-                        <XStack justifyContent="space-between" alignItems="flex-start">
+                      <YStack
+                        flex={1}
+                        justifyContent="space-between"
+                      >
+                        <XStack
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                        >
                           <YStack flex={1}>
-                            <Text fontSize="$3" fontWeight="bold" color="$color" numberOfLines={1}>
+                            <Text
+                              fontSize="$3"
+                              fontWeight="bold"
+                              color="$color"
+                              numberOfLines={1}
+                            >
                               {pro.display_name}
                             </Text>
-                            <Text fontSize={10} color="$colorSubtle">Specialist</Text>
+                            <Text
+                              fontSize={10}
+                              color="$colorSubtle"
+                            >
+                              Specialist
+                            </Text>
                           </YStack>
                           <YStack alignItems="flex-end">
-                            <Text fontSize="$3" fontWeight="bold" color="$color">
+                            <Text
+                              fontSize="$3"
+                              fontWeight="bold"
+                              color="$color"
+                            >
                               ${pro.hourly_rate || 'N/A'}
                             </Text>
-                            <Text fontSize={9} color="$colorSubtle" fontWeight="500">/hr</Text>
+                            <Text
+                              fontSize={9}
+                              color="$colorSubtle"
+                              fontWeight="500"
+                            >
+                              /hr
+                            </Text>
                           </YStack>
                         </XStack>
 
-                        <XStack gap="$3" mt="$1" alignItems="center">
+                        <XStack
+                          gap="$3"
+                          mt="$1"
+                          alignItems="center"
+                        >
                           <XStack
                             bg="$warningBackground"
                             px="$1.5"
@@ -872,17 +928,40 @@ export function GuestHomeScreen() {
                             alignItems="center"
                             gap="$1"
                           >
-                            <Star size={10} color="$accent" fill="$accent" />
-                            <Text fontSize={10} fontWeight="bold" color="$accent">
+                            <Star
+                              size={10}
+                              color="$accent"
+                              fill="$accent"
+                            />
+                            <Text
+                              fontSize={10}
+                              fontWeight="bold"
+                              color="$accent"
+                            >
                               {pro.rating || 0}
                             </Text>
-                            <Text fontSize={10} color="$accent" opacity={0.7}>
+                            <Text
+                              fontSize={10}
+                              color="$accent"
+                              opacity={0.7}
+                            >
                               ({pro.review_count || 0})
                             </Text>
                           </XStack>
-                          <XStack alignItems="center" gap="$1">
-                            <Briefcase size={10} color="$colorSubtle" />
-                            <Text fontSize={10} color="$colorSubtle">34 jobs</Text>
+                          <XStack
+                            alignItems="center"
+                            gap="$1"
+                          >
+                            <Briefcase
+                              size={10}
+                              color="$colorSubtle"
+                            />
+                            <Text
+                              fontSize={10}
+                              color="$colorSubtle"
+                            >
+                              34 jobs
+                            </Text>
                           </XStack>
                         </XStack>
 
@@ -904,7 +983,10 @@ export function GuestHomeScreen() {
                 </YStack>
               ) : (
                 // Horizontal scroll list
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                >
                   <XStack gap="$3">
                     {handymen.slice(0, 5).map((pro) => (
                       <YStack
@@ -920,7 +1002,10 @@ export function GuestHomeScreen() {
                         width={160}
                         onPress={redirectToLogin}
                       >
-                        <YStack alignItems="center" gap="$2">
+                        <YStack
+                          alignItems="center"
+                          gap="$2"
+                        >
                           <View position="relative">
                             <View
                               width={64}
@@ -932,7 +1017,11 @@ export function GuestHomeScreen() {
                               borderWidth={2}
                               borderColor="white"
                             >
-                              <Text fontSize="$6" fontWeight="bold" color="$colorSubtle">
+                              <Text
+                                fontSize="$6"
+                                fontWeight="bold"
+                                color="$colorSubtle"
+                              >
                                 {pro.display_name.charAt(0)}
                               </Text>
                             </View>
@@ -946,11 +1035,20 @@ export function GuestHomeScreen() {
                               borderWidth={2}
                               borderColor="white"
                             >
-                              <ShieldCheck size={10} color="white" />
+                              <ShieldCheck
+                                size={10}
+                                color="white"
+                              />
                             </View>
                           </View>
 
-                          <Text fontSize="$3" fontWeight="bold" color="$color" textAlign="center" numberOfLines={1}>
+                          <Text
+                            fontSize="$3"
+                            fontWeight="bold"
+                            color="$color"
+                            textAlign="center"
+                            numberOfLines={1}
+                          >
                             {pro.display_name}
                           </Text>
 
@@ -964,16 +1062,32 @@ export function GuestHomeScreen() {
                             alignItems="center"
                             gap="$1"
                           >
-                            <Star size={10} color="$accent" fill="$accent" />
-                            <Text fontSize={10} fontWeight="bold" color="$accent">
+                            <Star
+                              size={10}
+                              color="$accent"
+                              fill="$accent"
+                            />
+                            <Text
+                              fontSize={10}
+                              fontWeight="bold"
+                              color="$accent"
+                            >
                               {pro.rating || 0}
                             </Text>
-                            <Text fontSize={10} color="$accent" opacity={0.7}>
+                            <Text
+                              fontSize={10}
+                              color="$accent"
+                              opacity={0.7}
+                            >
                               ({pro.review_count || 0})
                             </Text>
                           </XStack>
 
-                          <Text fontSize="$2" fontWeight="bold" color="$color">
+                          <Text
+                            fontSize="$2"
+                            fontWeight="bold"
+                            color="$color"
+                          >
                             ${pro.hourly_rate || 'N/A'}/hr
                           </Text>
                         </YStack>
@@ -998,7 +1112,10 @@ export function GuestHomeScreen() {
           </YStack>
 
           {/* Become a Handyman Banner */}
-          <YStack px="$4" pb="$4">
+          <YStack
+            px="$4"
+            pb="$4"
+          >
             <XStack
               bg="rgba(255,184,0,0.15)"
               borderRadius="$6"
@@ -1015,29 +1132,50 @@ export function GuestHomeScreen() {
                 p="$2.5"
                 borderRadius="$4"
               >
-                <DollarSign size={24} color="white" strokeWidth={2.5} />
+                <DollarSign
+                  size={24}
+                  color="white"
+                  strokeWidth={2.5}
+                />
               </View>
               <YStack flex={1}>
-                <Text fontSize="$4" fontWeight="bold" color="$color">
+                <Text
+                  fontSize="$4"
+                  fontWeight="bold"
+                  color="$color"
+                >
                   Earn Money as a Handyman
                 </Text>
-                <Text fontSize="$2" color="$colorSubtle">
+                <Text
+                  fontSize="$2"
+                  color="$colorSubtle"
+                >
                   Set your own schedule and rates
                 </Text>
               </YStack>
-              <ArrowRight size={20} color="#FFB800" />
+              <ArrowRight
+                size={20}
+                color="#FFB800"
+              />
             </XStack>
           </YStack>
 
           {/* Available Jobs - Horizontal Scroll with Toggle */}
-          <YStack px="$4" pb="$8">
+          <YStack
+            px="$4"
+            pb="$8"
+          >
             <XStack
               justifyContent="space-between"
               alignItems="center"
               mb="$3"
               px="$1"
             >
-              <Text fontSize="$3" fontWeight="bold" color="$color">
+              <Text
+                fontSize="$3"
+                fontWeight="bold"
+                color="$color"
+              >
                 {jobs.length} Jobs Available
               </Text>
               <Button
@@ -1046,21 +1184,38 @@ export function GuestHomeScreen() {
                 animation="micro"
                 pressStyle={{ scale: 0.95 }}
               >
-                <XStack alignItems="center" gap="$1">
-                  <Text fontSize="$2" fontWeight="bold" color="$primary">
+                <XStack
+                  alignItems="center"
+                  gap="$1"
+                >
+                  <Text
+                    fontSize="$2"
+                    fontWeight="bold"
+                    color="$primary"
+                  >
                     {expandJobs ? 'Show Less' : 'See All'}
                   </Text>
                   {expandJobs ? (
-                    <ChevronUp size={16} color="#0C9A5C" />
+                    <ChevronUp
+                      size={16}
+                      color="#0C9A5C"
+                    />
                   ) : (
-                    <ChevronDown size={16} color="#0C9A5C" />
+                    <ChevronDown
+                      size={16}
+                      color="#0C9A5C"
+                    />
                   )}
                 </XStack>
               </Button>
             </XStack>
 
             {jobsLoading ? (
-              <Spinner size="large" color="$primary" m="$4" />
+              <Spinner
+                size="large"
+                color="$primary"
+                m="$4"
+              />
             ) : jobs.length > 0 ? (
               expandJobs ? (
                 // Expanded vertical list
@@ -1078,24 +1233,50 @@ export function GuestHomeScreen() {
                       shadowOpacity={1}
                       onPress={redirectToLogin}
                     >
-                      <XStack justifyContent="space-between" alignItems="flex-start" mb="$2">
+                      <XStack
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                        mb="$2"
+                      >
                         <YStack flex={1}>
-                          <Text fontSize="$4" fontWeight="bold" color="$color" numberOfLines={2}>
+                          <Text
+                            fontSize="$4"
+                            fontWeight="bold"
+                            color="$color"
+                            numberOfLines={2}
+                          >
                             {job.title}
                           </Text>
-                          <Text fontSize="$2" color="$colorSubtle" mt="$1">
+                          <Text
+                            fontSize="$2"
+                            color="$colorSubtle"
+                            mt="$1"
+                          >
                             {job.city?.name || 'Location N/A'}
                           </Text>
                         </YStack>
                         <YStack alignItems="flex-end">
-                          <Text fontSize="$4" fontWeight="bold" color="#FFB800">
+                          <Text
+                            fontSize="$4"
+                            fontWeight="bold"
+                            color="#FFB800"
+                          >
                             ${job.estimated_budget}
                           </Text>
-                          <Text fontSize="$1" color="$colorSubtle">budget</Text>
+                          <Text
+                            fontSize="$1"
+                            color="$colorSubtle"
+                          >
+                            budget
+                          </Text>
                         </YStack>
                       </XStack>
 
-                      <XStack gap="$2" mt="$2" flexWrap="wrap">
+                      <XStack
+                        gap="$2"
+                        mt="$2"
+                        flexWrap="wrap"
+                      >
                         {job.category && (
                           <XStack
                             bg="rgba(12,154,92,0.1)"
@@ -1105,7 +1286,11 @@ export function GuestHomeScreen() {
                             alignItems="center"
                             gap="$1"
                           >
-                            <Text fontSize="$1" color="$primary" fontWeight="500">
+                            <Text
+                              fontSize="$1"
+                              color="$primary"
+                              fontWeight="500"
+                            >
                               {job.category.name}
                             </Text>
                           </XStack>
@@ -1118,7 +1303,11 @@ export function GuestHomeScreen() {
                           alignItems="center"
                           gap="$1"
                         >
-                          <Text fontSize="$1" color="#FFB800" fontWeight="500">
+                          <Text
+                            fontSize="$1"
+                            color="#FFB800"
+                            fontWeight="500"
+                          >
                             Open
                           </Text>
                         </XStack>
@@ -1128,7 +1317,10 @@ export function GuestHomeScreen() {
                 </YStack>
               ) : (
                 // Horizontal scroll list
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                >
                   <XStack gap="$3">
                     {jobs.slice(0, 5).map((job) => (
                       <YStack
@@ -1144,20 +1336,40 @@ export function GuestHomeScreen() {
                         width={280}
                         onPress={redirectToLogin}
                       >
-                        <Text fontSize="$4" fontWeight="bold" color="$color" numberOfLines={2} mb="$2">
+                        <Text
+                          fontSize="$4"
+                          fontWeight="bold"
+                          color="$color"
+                          numberOfLines={2}
+                          mb="$2"
+                        >
                           {job.title}
                         </Text>
 
-                        <XStack justifyContent="space-between" alignItems="center" mb="$2">
-                          <Text fontSize="$2" color="$colorSubtle">
+                        <XStack
+                          justifyContent="space-between"
+                          alignItems="center"
+                          mb="$2"
+                        >
+                          <Text
+                            fontSize="$2"
+                            color="$colorSubtle"
+                          >
                             {job.city?.name || 'Location N/A'}
                           </Text>
-                          <Text fontSize="$4" fontWeight="bold" color="#FFB800">
+                          <Text
+                            fontSize="$4"
+                            fontWeight="bold"
+                            color="#FFB800"
+                          >
                             ${job.estimated_budget}
                           </Text>
                         </XStack>
 
-                        <XStack gap="$2" mt="$2">
+                        <XStack
+                          gap="$2"
+                          mt="$2"
+                        >
                           {job.category && (
                             <XStack
                               bg="rgba(12,154,92,0.1)"
@@ -1165,7 +1377,11 @@ export function GuestHomeScreen() {
                               py="$1"
                               borderRadius="$2"
                             >
-                              <Text fontSize="$1" color="$primary" fontWeight="500">
+                              <Text
+                                fontSize="$1"
+                                color="$primary"
+                                fontWeight="500"
+                              >
                                 {job.category.name}
                               </Text>
                             </XStack>
@@ -1176,7 +1392,11 @@ export function GuestHomeScreen() {
                             py="$1"
                             borderRadius="$2"
                           >
-                            <Text fontSize="$1" color="#FFB800" fontWeight="500">
+                            <Text
+                              fontSize="$1"
+                              color="#FFB800"
+                              fontWeight="500"
+                            >
                               Open
                             </Text>
                           </XStack>

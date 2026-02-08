@@ -2,12 +2,14 @@ import { useEffect } from 'react'
 import { useColorScheme } from 'react-native'
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { useFonts } from 'expo-font'
-import { SplashScreen, Stack } from 'expo-router'
+import { SplashScreen } from 'expo-router'
 import { Provider } from 'app/provider'
+import { defaultScreenOptions } from 'app/navigation/config'
+import { Stack } from 'expo-router'
 
 export const unstable_settings = {
   // Ensure that reloading on `/user` keeps a back button present.
-  initialRouteName: 'Home',
+  initialRouteName: 'index',
 }
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -39,10 +41,22 @@ function RootLayoutNav() {
   return (
     <Provider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        {/*
+          Root Stack Navigator
+          
+          IMPORTANT: We apply defaultScreenOptions here to ensure consistent
+          animations across ALL screens in the app. This fixes the "screen pops
+          up instantly then animation plays" bug caused by inconsistent animation
+          configuration between nested Stacks.
+          
+          Each route group (homeowner), (handyman), (guest) will inherit these
+          options but can override them if needed.
+        */}
         <Stack
           screenOptions={{
+            ...defaultScreenOptions,
+            // Allow child stacks to define their own headers
             headerShown: false,
-            gestureEnabled: true,
           }}
         />
       </ThemeProvider>

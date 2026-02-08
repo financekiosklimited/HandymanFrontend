@@ -1,3 +1,4 @@
+import { useRef, useCallback } from 'react'
 import { XStack, YStack, Text, Button, View, Spinner, useTheme } from 'tamagui'
 import { Search, Bell, Plus, Briefcase, User } from '@tamagui/lucide-icons'
 import type { IconProps } from '@tamagui/helpers-icon'
@@ -59,6 +60,8 @@ interface BottomNavProps {
   notificationCount?: number
   /** Navigation handler - receives the route to navigate to */
   onNavigate: (route: string) => void
+  /** Delay in ms to prevent double taps (default: 500ms) */
+  tapDelay?: number
 }
 
 export function BottomNav({
@@ -68,25 +71,48 @@ export function BottomNav({
   isAddLoading,
   notificationCount = 0,
   onNavigate,
+  tapDelay = 500,
 }: BottomNavProps) {
   const navItems = getNavItems(variant)
   const theme = useTheme()
   const insets = useSafeAreaInsets()
 
-  const handleNavPress = (item: BottomNavItem) => {
-    // If it's the Add button and we have a custom handler, use it
-    if (item.id === 'add' && onAddPress) {
-      onAddPress()
-      return
-    }
+  // Local navigation lock to prevent rapid button presses
+  const isNavigatingRef = useRef(false)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    // If guest tries to access protected route, redirect to login
-    if (variant === 'guest' && item.requiresAuth) {
-      onNavigate('/auth/login')
-      return
-    }
-    onNavigate(item.route)
-  }
+  const handleNavPress = useCallback(
+    (item: BottomNavItem) => {
+      // Prevent rapid button presses
+      if (isNavigatingRef.current) {
+        return
+      }
+
+      // If it's the Add button and we have a custom handler, use it
+      if (item.id === 'add' && onAddPress) {
+        onAddPress()
+        return
+      }
+
+      // If guest tries to access protected route, redirect to login
+      if (variant === 'guest' && item.requiresAuth) {
+        isNavigatingRef.current = true
+        onNavigate('/auth/login')
+      } else {
+        isNavigatingRef.current = true
+        onNavigate(item.route)
+      }
+
+      // Reset the lock after delay
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      timeoutRef.current = setTimeout(() => {
+        isNavigatingRef.current = false
+      }, tapDelay)
+    },
+    [variant, onAddPress, onNavigate, tapDelay]
+  )
 
   return (
     <XStack
@@ -117,6 +143,8 @@ export function BottomNav({
             flex={1}
             animation="micro"
             pressStyle={{ scale: 0.9 }}
+            disabled={isNavigatingRef.current && !isAddButton}
+            opacity={isNavigatingRef.current && !isAddButton ? 0.7 : 1}
           >
             {isAddButton ? (
               <>

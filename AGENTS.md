@@ -2,6 +2,49 @@
 
 Guidelines for AI coding agents working in this HandymanKiosk React Native/Next.js monorepo.
 
+## Workflow Rules
+
+### 🎯 PLAN MODE - **ALWAYS START HERE**
+
+**⚠️ CRITICAL RULE: DO NOT EDIT FILES UNTIL EXPLICIT PERMISSION IS GIVEN**
+
+When you ask me to do something, I **MUST** follow this workflow:
+
+1. **Explore & Research**
+   - Read relevant files to understand the current implementation
+   - Find all related components, hooks, and services
+   - Check for existing patterns in the codebase
+
+2. **Analyze Root Cause**
+   - Identify the underlying issue (for bugs)
+   - Understand the full scope of the feature request
+   - Find where changes need to be made
+
+3. **Consider Edge Cases**
+   - What could break with this change?
+   - How does this affect mobile vs web?
+   - What about error states and loading states?
+   - Backward compatibility concerns?
+
+4. **Identify Possible Conflicts**
+   - Will this conflict with existing features?
+   - Does it require backend API changes?
+   - TypeScript type implications?
+   - Shared component changes that affect multiple screens?
+
+5. **Present Multiple Approaches**
+   - Approach 1: Minimal change (safest)
+   - Approach 2: Refactored solution (cleaner)
+   - Approach 3: Full-featured solution (most comprehensive)
+   - Pros/cons of each approach
+
+6. **Wait for Permission**
+   - **DO NOT EDIT ANY FILES**
+   - Present findings and wait for your explicit "proceed" or "go with approach X"
+   - Only then execute the plan
+
+---
+
 ## Build/Lint/Test Commands
 
 ```bash
@@ -14,11 +57,23 @@ yarn build
 # Type checking
 yarn type-check
 
-# Linting (Biome)
-yarn workspace next-app lint
-# Or run biome directly:
+# Linting (Biome) - **REQUIRED AFTER EVERY EDIT**
+
+**⚠️ CRITICAL RULE: Always run linting after ANY file edit in this repo.**
+
+```bash
+# Check for errors (after ANY edit)
 npx biome check .
-npx biome check --write .  # Auto-fix issues
+
+# Auto-fix issues (preferred after editing)
+npx biome check --write --unsafe .
+
+# Or use the npm scripts
+yarn lint      # Check only
+yarn lint:fix  # Auto-fix all issues
+```
+
+**Pre-commit Hook:** Husky is configured to run `npx biome check --write --staged .` on every commit.
 
 # Testing
 yarn test              # Run all tests once
@@ -33,6 +88,10 @@ yarn android           # Run Android emulator
 ```
 
 ## Code Style Guidelines
+
+### Decisions
+- always keep in mind of edge cases
+- be critical, ask detailed and important questions
 
 ### Imports
 - Group imports: React/hooks → External libraries → Internal packages → Types

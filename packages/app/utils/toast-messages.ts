@@ -39,6 +39,13 @@ export type ToastIcon =
   | 'BarChart'
   | 'Target'
   | 'Users'
+  | 'Play'
+  | 'Square'
+  | 'MapPin'
+  | 'FileText'
+  | 'Clock'
+  | 'Trophy'
+  | 'Receipt'
 
 // Toast controller interface (returned by useToastController)
 interface ToastController {
@@ -897,5 +904,257 @@ export function showNoApplicantsToast(toast: ToastController) {
     duration: 5000,
     native: false,
     customData: { variant: 'info', icon: 'Users' },
+  })
+}
+
+// ============================================
+// HANDYMAN WORK SESSION TOASTS
+// ============================================
+
+export function showWorkSessionStartedToast(toast: ToastController) {
+  toast.show('Work session started', {
+    message: 'Timer is running. Submit a daily report when done.',
+    duration: 4000,
+    native: false,
+    customData: { variant: 'success', icon: 'Play' },
+  })
+}
+
+export function showWorkSessionStoppedToast(toast: ToastController, hours: number) {
+  toast.show('Work session stopped', {
+    message: `Total today: ${hours} hours. Submit your daily report now.`,
+    duration: 5000,
+    native: false,
+    customData: { variant: 'info', icon: 'Square' },
+  })
+}
+
+export function showLocationPermissionDeniedToast(toast: ToastController) {
+  toast.show('Location access required', {
+    message: 'Enable location to track work sessions in Settings > Privacy > Location.',
+    duration: 6000,
+    native: false,
+    customData: { variant: 'warning', icon: 'MapPin' },
+  })
+}
+
+// ============================================
+// HANDYMAN REPORT TOASTS
+// ============================================
+
+export function showHandymanReportSubmittedToast(toast: ToastController) {
+  toast.show('Report submitted', {
+    message: 'Status: Pending approval. You will be notified when reviewed.',
+    duration: 4000,
+    native: false,
+    customData: { variant: 'success', icon: 'FileText' },
+  })
+}
+
+export function showHandymanReportRejectedToast(toast: ToastController) {
+  toast.show('Report needs revision', {
+    message: 'Tap to view feedback and update your report.',
+    duration: 6000,
+    native: false,
+    customData: { variant: 'error', icon: 'AlertCircle' },
+  })
+}
+
+export function showHandymanReportApprovedToast(toast: ToastController) {
+  toast.show('Report approved', {
+    message: 'Great! Your work is confirmed. Continue with remaining tasks.',
+    duration: 4000,
+    native: false,
+    customData: { variant: 'success', icon: 'CheckCircle2' },
+  })
+}
+
+export function showEndOfDayReminderToast(toast: ToastController, hours: number) {
+  toast.show("Don't forget your report", {
+    message: `You worked ${hours} hours today but haven't submitted a report yet.`,
+    duration: 5000,
+    native: false,
+    customData: { variant: 'warning', icon: 'Clock' },
+  })
+}
+
+// ============================================
+// HANDYMAN REIMBURSEMENT TOASTS
+// ============================================
+
+export function showHandymanReimbursementSubmittedToast(toast: ToastController) {
+  toast.show('Expense request submitted', {
+    message: 'Status: Pending approval',
+    duration: 4000,
+    native: false,
+    customData: { variant: 'success', icon: 'DollarSign' },
+  })
+}
+
+export function showHandymanReimbursementApprovedToast(toast: ToastController) {
+  toast.show('Expense approved', {
+    message: 'This amount will be added to your final payment.',
+    duration: 5000,
+    native: false,
+    customData: { variant: 'success', icon: 'DollarSign' },
+  })
+}
+
+export function showHandymanReimbursementRejectedToast(toast: ToastController) {
+  toast.show('Expense declined', {
+    message: 'Tap to view reason and resubmit if needed.',
+    duration: 5000,
+    native: false,
+    customData: { variant: 'error', icon: 'XCircle' },
+  })
+}
+
+// ============================================
+// HANDYMAN JOB COMPLETION TOASTS
+// ============================================
+
+export function showHandymanCompletionRequestedToast(toast: ToastController) {
+  toast.show('Completion requested', {
+    message: 'Homeowner will review your work. Check Active Jobs for status.',
+    duration: 5000,
+    native: false,
+    customData: { variant: 'info', icon: 'Award' },
+  })
+}
+
+export function showHandymanJobCompletedToast(toast: ToastController) {
+  toast.show('Job completed successfully!', {
+    message: 'Payment will be processed within 3-5 business days.',
+    duration: 6000,
+    native: false,
+    customData: { variant: 'success', icon: 'Trophy' },
+  })
+}
+
+export function showHandymanCompletionRejectedToast(toast: ToastController) {
+  toast.show('Additional work requested', {
+    message: 'Tap to view details and continue with the job.',
+    duration: 5000,
+    native: false,
+    customData: { variant: 'warning', icon: 'AlertTriangle' },
+  })
+}
+
+// ============================================
+// HANDYMAN DIRECT OFFER TOASTS
+// ============================================
+
+export function showNewDirectOfferToast(toast: ToastController, homeownerName: string) {
+  toast.show('New direct offer!', {
+    message: `${homeownerName} wants to hire you. Check your offers.`,
+    duration: 5000,
+    native: false,
+    customData: { variant: 'info', icon: 'Target' },
+  })
+}
+
+export function showDirectOfferAcceptedByYouToast(toast: ToastController) {
+  toast.show('Offer accepted - Job started!', {
+    message: "You've accepted the offer. The job is now active in your dashboard.",
+    duration: 5000,
+    native: false,
+    customData: { variant: 'success', icon: 'CheckCircle2' },
+  })
+}
+
+export function showDirectOfferDeclinedByYouToast(toast: ToastController) {
+  toast.show('Offer declined', {
+    message: 'You declined the offer. Browse other available jobs.',
+    duration: 4000,
+    native: false,
+    customData: { variant: 'info', icon: 'XCircle' },
+  })
+}
+
+export function showDirectOfferExpiringSoonToast(toast: ToastController, homeownerName: string) {
+  toast.show('Offer expires tomorrow', {
+    message: `Your offer from ${homeownerName} expires in 24 hours.`,
+    duration: 5000,
+    native: false,
+    customData: { variant: 'warning', icon: 'Timer' },
+  })
+}
+
+// ============================================
+// HANDYMAN TASK PROGRESS TOASTS
+// ============================================
+
+export function showTaskCompletedToast(
+  toast: ToastController,
+  taskNumber: number,
+  totalTasks: number
+) {
+  toast.show(`Task completed`, {
+    message: `${taskNumber} of ${totalTasks} tasks done. Keep up the good work!`,
+    duration: 3500,
+    native: false,
+    customData: { variant: 'success', icon: 'CheckCircle2' },
+  })
+}
+
+export function showAllTasksCompleteToast(toast: ToastController) {
+  toast.show('All tasks completed!', {
+    message: "You've finished all tasks. Ready to request job completion?",
+    duration: 5000,
+    native: false,
+    customData: { variant: 'success', icon: 'Trophy' },
+  })
+}
+
+// ============================================
+// HANDYMAN ERROR & RECOVERY TOASTS
+// ============================================
+
+export function showSessionTooShortToast(toast: ToastController) {
+  toast.show('Session too short', {
+    message: 'Minimum session is 15 minutes. Your session was not recorded.',
+    duration: 4000,
+    native: false,
+    customData: { variant: 'warning', icon: 'Timer' },
+  })
+}
+
+// ============================================
+// HANDYMAN ONBOARDING TOASTS (Essential)
+// ============================================
+
+export function showHandymanActiveJobOnboardingToast(toast: ToastController) {
+  toast.show('Your work hub', {
+    message: 'Track sessions, submit reports, and request reimbursements here',
+    duration: 4500,
+    native: false,
+    customData: { variant: 'info', icon: 'Briefcase' },
+  })
+}
+
+export function showHandymanSessionOnboardingToast(toast: ToastController) {
+  toast.show('Starting your work session', {
+    message: 'Allow location access and take a photo to track your time',
+    duration: 5000,
+    native: false,
+    customData: { variant: 'info', icon: 'Play' },
+  })
+}
+
+export function showHandymanReportOnboardingToast(toast: ToastController) {
+  toast.show('Submitting your daily report', {
+    message: 'Include work summary and completed tasks. Auto-approved after 3 days',
+    duration: 5000,
+    native: false,
+    customData: { variant: 'info', icon: 'FileText' },
+  })
+}
+
+export function showHandymanReimbursementOnboardingToast(toast: ToastController) {
+  toast.show('Requesting expense reimbursement', {
+    message: 'Receipts or proof of purchase are required. Upload at least one document',
+    duration: 5000,
+    native: false,
+    customData: { variant: 'info', icon: 'Receipt' },
   })
 }

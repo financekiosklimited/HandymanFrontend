@@ -6,7 +6,6 @@ import {
   type TamaguiProviderProps,
   ToastProvider,
   config,
-  isWeb,
 } from '@my/ui'
 import { ToastViewport } from './ToastViewport'
 import { queryClient } from './query-client'
@@ -31,7 +30,6 @@ export function Provider({
         <ToastProvider
           swipeDirection="horizontal"
           duration={6000}
-          native={isWeb ? [] : ['mobile']}
         >
           {children}
           <CustomToast />

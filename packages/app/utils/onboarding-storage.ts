@@ -8,6 +8,10 @@ const ONBOARDING_KEYS = {
   applications: 'onboarding_applications_seen',
   ongoing: 'onboarding_ongoing_seen',
   directOffer: 'onboarding_direct_offer_seen',
+  handymanActiveJob: 'onboarding_handyman_active_job_seen',
+  handymanSession: 'onboarding_handyman_session_seen',
+  handymanReport: 'onboarding_handyman_report_seen',
+  handymanReimbursement: 'onboarding_handyman_reimbursement_seen',
 } as const
 
 type OnboardingKey = keyof typeof ONBOARDING_KEYS

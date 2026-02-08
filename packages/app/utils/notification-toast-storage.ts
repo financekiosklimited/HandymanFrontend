@@ -9,6 +9,13 @@ const NOTIFICATION_TOAST_KEYS = {
   offerAccepted: (offerId: string) => `toast_shown_offer_accepted_${offerId}`,
   offerDeclined: (offerId: string) => `toast_shown_offer_declined_${offerId}`,
   noApplicants: (jobId: string) => `toast_shown_no_applicants_${jobId}`,
+  newDirectOffer: () => `toast_shown_new_direct_offer`,
+  handymanReportApproved: (reportId: string) => `toast_shown_handyman_report_approved_${reportId}`,
+  handymanReportRejected: (reportId: string) => `toast_shown_handyman_report_rejected_${reportId}`,
+  handymanReimbursementApproved: (reimbursementId: string) =>
+    `toast_shown_handyman_reimbursement_approved_${reimbursementId}`,
+  handymanReimbursementRejected: (reimbursementId: string) =>
+    `toast_shown_handyman_reimbursement_rejected_${reimbursementId}`,
 }
 
 type NotificationType =
@@ -18,6 +25,11 @@ type NotificationType =
   | 'offerAccepted'
   | 'offerDeclined'
   | 'noApplicants'
+  | 'newDirectOffer'
+  | 'handymanReportApproved'
+  | 'handymanReportRejected'
+  | 'handymanReimbursementApproved'
+  | 'handymanReimbursementRejected'
 
 interface PendingNotification {
   type: NotificationType
@@ -62,6 +74,25 @@ export async function hasNotificationToastBeenShown(
       case 'noApplicants':
         if (!ids.jobId) return false
         key = NOTIFICATION_TOAST_KEYS.noApplicants(ids.jobId)
+        break
+      case 'newDirectOffer':
+        key = NOTIFICATION_TOAST_KEYS.newDirectOffer()
+        break
+      case 'handymanReportApproved':
+        if (!ids.reportId) return false
+        key = NOTIFICATION_TOAST_KEYS.handymanReportApproved(ids.reportId)
+        break
+      case 'handymanReportRejected':
+        if (!ids.reportId) return false
+        key = NOTIFICATION_TOAST_KEYS.handymanReportRejected(ids.reportId)
+        break
+      case 'handymanReimbursementApproved':
+        if (!ids.reimbursementId) return false
+        key = NOTIFICATION_TOAST_KEYS.handymanReimbursementApproved(ids.reimbursementId)
+        break
+      case 'handymanReimbursementRejected':
+        if (!ids.reimbursementId) return false
+        key = NOTIFICATION_TOAST_KEYS.handymanReimbursementRejected(ids.reimbursementId)
         break
       default:
         return false
@@ -108,6 +139,25 @@ export async function markNotificationToastAsShown(
       case 'noApplicants':
         if (!ids.jobId) return
         key = NOTIFICATION_TOAST_KEYS.noApplicants(ids.jobId)
+        break
+      case 'newDirectOffer':
+        key = NOTIFICATION_TOAST_KEYS.newDirectOffer()
+        break
+      case 'handymanReportApproved':
+        if (!ids.reportId) return
+        key = NOTIFICATION_TOAST_KEYS.handymanReportApproved(ids.reportId)
+        break
+      case 'handymanReportRejected':
+        if (!ids.reportId) return
+        key = NOTIFICATION_TOAST_KEYS.handymanReportRejected(ids.reportId)
+        break
+      case 'handymanReimbursementApproved':
+        if (!ids.reimbursementId) return
+        key = NOTIFICATION_TOAST_KEYS.handymanReimbursementApproved(ids.reimbursementId)
+        break
+      case 'handymanReimbursementRejected':
+        if (!ids.reimbursementId) return
+        key = NOTIFICATION_TOAST_KEYS.handymanReimbursementRejected(ids.reimbursementId)
         break
       default:
         return

@@ -74,11 +74,28 @@ import { useToastController } from '@tamagui/toast'
 import {
   showReviewSubmittedToast,
   showSubmissionErrorToast,
-  showSessionStartedToast,
-  showSessionEndedToast,
   showCompletionRequestedToast,
   showValidationErrorToast,
+  showWorkSessionStartedToast,
+  showWorkSessionStoppedToast,
+  showHandymanReportSubmittedToast,
+  showHandymanReportRejectedToast,
+  showHandymanReportApprovedToast,
+  showHandymanReimbursementSubmittedToast,
+  showHandymanReimbursementApprovedToast,
+  showHandymanReimbursementRejectedToast,
+  showHandymanCompletionRequestedToast,
+  showHandymanJobCompletedToast,
+  showHandymanCompletionRejectedToast,
+  showLocationPermissionDeniedToast,
+  showHandymanActiveJobOnboardingToast,
+  showHandymanSessionOnboardingToast,
 } from 'app/utils/toast-messages'
+import {
+  hasNotificationToastBeenShown,
+  markNotificationToastAsShown,
+} from 'app/utils/notification-toast-storage'
+import { shouldShowOnboarding, markOnboardingSeen } from 'app/utils/onboarding-storage'
 import { colors } from '@my/config'
 import * as Location from 'expo-location'
 import * as ImagePicker from 'expo-image-picker'
@@ -2216,6 +2233,87 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
     }, [])
   )
 
+  // Show Active Job onboarding toast for first-time users
+  useEffect(() => {
+    const showOnboarding = async () => {
+      if (dashboardLoading || !dashboard) return
+
+      const shouldShow = await shouldShowOnboarding('handymanActiveJob')
+      if (!shouldShow) return
+
+      showHandymanActiveJobOnboardingToast(toast)
+      await markOnboardingSeen('handymanActiveJob')
+    }
+
+    showOnboarding()
+  }, [dashboardLoading, dashboard, toast])
+
+  // Check for report status changes and show toasts
+  useEffect(() => {
+    if (!reports) return
+
+    const checkReportStatuses = async () => {
+      for (const report of reports) {
+        if (report.status === 'approved') {
+          const hasShown = await hasNotificationToastBeenShown('handymanReportApproved', {
+            reportId: report.public_id,
+          })
+          if (!hasShown) {
+            showHandymanReportApprovedToast(toast)
+            await markNotificationToastAsShown('handymanReportApproved', {
+              reportId: report.public_id,
+            })
+          }
+        } else if (report.status === 'rejected') {
+          const hasShown = await hasNotificationToastBeenShown('handymanReportRejected', {
+            reportId: report.public_id,
+          })
+          if (!hasShown) {
+            showHandymanReportRejectedToast(toast)
+            await markNotificationToastAsShown('handymanReportRejected', {
+              reportId: report.public_id,
+            })
+          }
+        }
+      }
+    }
+
+    checkReportStatuses()
+  }, [reports, toast])
+
+  // Check for reimbursement status changes and show toasts
+  useEffect(() => {
+    if (!reimbursements) return
+
+    const checkReimbursementStatuses = async () => {
+      for (const reimbursement of reimbursements) {
+        if (reimbursement.status === 'approved') {
+          const hasShown = await hasNotificationToastBeenShown('handymanReimbursementApproved', {
+            reimbursementId: reimbursement.public_id,
+          })
+          if (!hasShown) {
+            showHandymanReimbursementApprovedToast(toast)
+            await markNotificationToastAsShown('handymanReimbursementApproved', {
+              reimbursementId: reimbursement.public_id,
+            })
+          }
+        } else if (reimbursement.status === 'rejected') {
+          const hasShown = await hasNotificationToastBeenShown('handymanReimbursementRejected', {
+            reimbursementId: reimbursement.public_id,
+          })
+          if (!hasShown) {
+            showHandymanReimbursementRejectedToast(toast)
+            await markNotificationToastAsShown('handymanReimbursementRejected', {
+              reimbursementId: reimbursement.public_id,
+            })
+          }
+        }
+      }
+    }
+
+    checkReimbursementStatuses()
+  }, [reimbursements, toast])
+
   // Mutations
   const startSessionMutation = useStartWorkSession()
   const stopSessionMutation = useStopWorkSession()
@@ -2247,6 +2345,14 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
 
   const confirmStartSession = async () => {
     if (!capturedImage) return
+
+    // Show session onboarding for first-time users
+    const shouldShowSessionOnboarding = await shouldShowOnboarding('handymanSession')
+    if (shouldShowSessionOnboarding) {
+      showHandymanSessionOnboardingToast(toast)
+      await markOnboardingSeen('handymanSession')
+    }
+
     setIsStartingSession(true)
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
@@ -2273,7 +2379,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
           start_photo: photoFile,
         },
       })
-      showSessionStartedToast(toast)
+      showWorkSessionStartedToast(toast)
       setShowStartPreview(false)
       setCapturedImage(null)
       refetch()
@@ -2316,7 +2422,10 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
           end_photo: endPhotoFile,
         },
       })
-      showSessionEndedToast(toast)
+      const startTime = new Date(dashboard.active_session.started_at).getTime()
+      const endTime = new Date().getTime()
+      const hoursWorked = Math.round(((endTime - startTime) / (1000 * 60 * 60)) * 10) / 10
+      showWorkSessionStoppedToast(toast, hoursWorked)
       setShowStopPreview(false)
       setCapturedImage(null)
       refetch()
