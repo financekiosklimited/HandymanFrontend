@@ -350,7 +350,7 @@ export function PhoneSendScreen() {
                   onChangeText={setSearchQuery}
                   placeholder="Search country..."
                   flex={1}
-                  bg="transparent"
+                  bg="white"
                   borderWidth={0}
                   px="$2"
                   py="$3"

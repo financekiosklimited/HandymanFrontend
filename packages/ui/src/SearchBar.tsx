@@ -22,7 +22,7 @@ export function SearchBar({
       alignItems="center"
       gap="$3"
       px="$2"
-      bg="$backgroundMuted"
+      bg="white"
       borderWidth={1}
       borderColor="$borderColor"
       borderRadius="$md"
@@ -42,7 +42,7 @@ export function SearchBar({
         onBlur={onBlur}
         size="$4"
         color="$color"
-        bg="transparent"
+        bg="white"
       />
     </XStack>
   )

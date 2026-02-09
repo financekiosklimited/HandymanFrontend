@@ -11,6 +11,8 @@ import Animated, {
   Easing,
   withDelay,
 } from 'react-native-reanimated'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Image } from 'expo-image'
 
 const AnimatedYStack = Animated.createAnimatedComponent(YStack)
 const AnimatedXStack = Animated.createAnimatedComponent(XStack)
@@ -21,6 +23,9 @@ interface FluidSplashScreenProps {
   minDisplayTime?: number
 }
 
+// Local splash screen background image
+const SPLASH_SCREEN_IMAGE = require('../../../handymankiosk-splash-screen.jpg')
+
 export function FluidSplashScreen({
   onAnimationComplete,
   minDisplayTime = 2500,
@@ -30,11 +35,15 @@ export function FluidSplashScreen({
   const textY = useSharedValue(30)
   const textOpacity = useSharedValue(0)
   const loaderOpacity = useSharedValue(0)
+  const bgOpacity = useSharedValue(0)
 
   // Subtle floating animation for background elements
   const floatY = useSharedValue(0)
 
   useEffect(() => {
+    // Background fade in
+    bgOpacity.value = withTiming(1, { duration: 800 })
+
     // Logo entrance animation
     logoScale.value = withDelay(200, withSpring(1, { damping: 12, stiffness: 100, mass: 0.8 }))
     logoOpacity.value = withDelay(200, withTiming(1, { duration: 600 }))
@@ -74,12 +83,12 @@ export function FluidSplashScreen({
     opacity: loaderOpacity.value,
   }))
 
-  const floatStyle1 = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(floatY.value, [0, 1], [-15, 15]) }],
+  const bgStyle = useAnimatedStyle(() => ({
+    opacity: bgOpacity.value,
   }))
 
-  const floatStyle2 = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(floatY.value, [0, 1], [10, -10]) }],
+  const floatStyle1 = useAnimatedStyle(() => ({
+    transform: [{ translateY: interpolate(floatY.value, [0, 1], [-15, 15]) }],
   }))
 
   return (
@@ -88,45 +97,40 @@ export function FluidSplashScreen({
       overflow="hidden"
       backgroundColor="#0C9A5C"
     >
-      {/* Elegant Gradient Background */}
-      <View
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        style={{
-          background: 'linear-gradient(160deg, #0C9A5C 0%, #10B981 40%, #059669 100%)',
-        }}
-      />
+      {/* Splash Screen Background with Green Tint */}
+      <AnimatedView
+        style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }, bgStyle]}
+      >
+        <Image
+          source={SPLASH_SCREEN_IMAGE}
+          style={{ width: '100%', height: '100%' }}
+          contentFit="cover"
+        />
+        {/* Subtle green gradient tint overlay */}
+        <LinearGradient
+          colors={['rgba(12,154,92,0.15)', 'rgba(12,154,92,0.25)', 'rgba(12,154,92,0.35)']}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        />
+        {/* Dark overlay for better text contrast */}
+        <LinearGradient
+          colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.3)']}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        />
+      </AnimatedView>
 
-      {/* Subtle Decorative Circles - Far Less Prominent */}
+      {/* Subtle Decorative Element */}
       <AnimatedView
         style={[
           {
             position: 'absolute',
-            top: '-10%',
-            right: '-15%',
-            width: 350,
-            height: 350,
-            borderRadius: 175,
-            backgroundColor: 'rgba(255,255,255,0.03)',
+            top: '15%',
+            right: '10%',
+            width: 200,
+            height: 200,
+            borderRadius: 100,
+            backgroundColor: 'rgba(255,255,255,0.05)',
           },
           floatStyle1,
-        ]}
-      />
-      <AnimatedView
-        style={[
-          {
-            position: 'absolute',
-            bottom: '-5%',
-            left: '-10%',
-            width: 280,
-            height: 280,
-            borderRadius: 140,
-            backgroundColor: 'rgba(255,255,255,0.02)',
-          },
-          floatStyle2,
         ]}
       />
 
@@ -145,7 +149,7 @@ export function FluidSplashScreen({
           alignItems="center"
           gap="$6"
         >
-          {/* Clean Logo Container */}
+          {/* Clean Logo Container with subtle shadow */}
           <View
             width={120}
             height={120}
@@ -153,7 +157,7 @@ export function FluidSplashScreen({
             borderRadius="$7"
             alignItems="center"
             justifyContent="center"
-            shadowColor="rgba(0,0,0,0.1)"
+            shadowColor="rgba(0,0,0,0.2)"
             shadowRadius={40}
             shadowOffset={{ width: 0, height: 8 }}
             elevation={8}
@@ -171,7 +175,7 @@ export function FluidSplashScreen({
                 backgroundColor="white"
                 padding="$1"
                 borderRadius="$2"
-                shadowColor="rgba(0,0,0,0.08)"
+                shadowColor="rgba(0,0,0,0.1)"
                 shadowRadius={6}
               >
                 <Wrench
@@ -192,19 +196,25 @@ export function FluidSplashScreen({
           marginTop="$8"
         >
           <Text
-            fontSize="$10"
+            fontSize="$9"
             fontWeight="700"
             color="white"
             textAlign="center"
             letterSpacing={-0.5}
+            textShadowColor="rgba(0,0,0,0.3)"
+            textShadowOffset={{ width: 0, height: 2 }}
+            textShadowRadius={4}
           >
             HandymanKiosk
           </Text>
           <Text
             fontSize="$4"
-            color="rgba(255,255,255,0.85)"
+            color="rgba(255,255,255,0.95)"
             textAlign="center"
             fontWeight="400"
+            textShadowColor="rgba(0,0,0,0.2)"
+            textShadowOffset={{ width: 0, height: 1 }}
+            textShadowRadius={2}
           >
             Your Home, Our Expertise
           </Text>
@@ -268,36 +278,54 @@ export function FluidSplashScreenExport() {
       backgroundColor="#0C9A5C"
       position="relative"
     >
-      {/* Static Gradient Background */}
+      {/* Background Image */}
       <View
         position="absolute"
         top={0}
         left={0}
         right={0}
         bottom={0}
-        style={{
-          background: 'linear-gradient(160deg, #0C9A5C 0%, #10B981 40%, #059669 100%)',
-        }}
-      />
+      >
+        <Image
+          source={SPLASH_SCREEN_IMAGE}
+          style={{ width: '100%', height: '100%' }}
+          contentFit="cover"
+        />
+        {/* Green gradient tint overlay */}
+        <View
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(12,154,92,0.15) 0%, rgba(12,154,92,0.25) 50%, rgba(12,154,92,0.35) 100%)',
+          }}
+        />
+        {/* Dark overlay for text contrast */}
+        <View
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.3) 100%)',
+          }}
+        />
+      </View>
 
-      {/* Subtle Decorative Circles */}
+      {/* Subtle Decorative Circle */}
       <View
         position="absolute"
-        top={-150}
-        right={-200}
-        width={500}
-        height={500}
-        borderRadius={250}
-        backgroundColor="rgba(255,255,255,0.03)"
-      />
-      <View
-        position="absolute"
-        bottom={-100}
-        left={-150}
-        width={400}
-        height={400}
-        borderRadius={200}
-        backgroundColor="rgba(255,255,255,0.02)"
+        top={300}
+        right={100}
+        width={300}
+        height={300}
+        borderRadius={150}
+        backgroundColor="rgba(255,255,255,0.05)"
       />
 
       {/* Logo Container */}
@@ -317,7 +345,7 @@ export function FluidSplashScreenExport() {
           borderRadius="$8"
           alignItems="center"
           justifyContent="center"
-          shadowColor="rgba(0,0,0,0.1)"
+          shadowColor="rgba(0,0,0,0.2)"
           shadowRadius={60}
           shadowOffset={{ width: 0, height: 12 }}
         >
@@ -334,7 +362,7 @@ export function FluidSplashScreenExport() {
               backgroundColor="white"
               padding="$2"
               borderRadius="$2"
-              shadowColor="rgba(0,0,0,0.08)"
+              shadowColor="rgba(0,0,0,0.1)"
               shadowRadius={8}
             >
               <Wrench
@@ -357,14 +385,20 @@ export function FluidSplashScreenExport() {
             color="white"
             textAlign="center"
             letterSpacing={-1}
+            textShadowColor="rgba(0,0,0,0.3)"
+            textShadowOffset={{ width: 0, height: 2 }}
+            textShadowRadius={4}
           >
             HandymanKiosk
           </Text>
           <Text
             fontSize="$6"
-            color="rgba(255,255,255,0.85)"
+            color="rgba(255,255,255,0.95)"
             textAlign="center"
             fontWeight="400"
+            textShadowColor="rgba(0,0,0,0.2)"
+            textShadowOffset={{ width: 0, height: 1 }}
+            textShadowRadius={2}
           >
             Your Home, Our Expertise
           </Text>

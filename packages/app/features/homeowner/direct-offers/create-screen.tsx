@@ -1338,7 +1338,7 @@ export function CreateDirectOfferScreen() {
                     value={categorySearch}
                     onChangeText={setCategorySearch}
                     placeholder="Search categories..."
-                    bg="transparent"
+                    bg="white"
                     borderWidth={0}
                     flex={1}
                     px={0}
@@ -1473,7 +1473,7 @@ export function CreateDirectOfferScreen() {
                     value={citySearch}
                     onChangeText={setCitySearch}
                     placeholder="Search cities..."
-                    bg="transparent"
+                    bg="white"
                     borderWidth={0}
                     flex={1}
                     px={0}

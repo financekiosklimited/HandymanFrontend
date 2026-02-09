@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import * as Location from 'expo-location'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View, ScrollIndicator } from '@my/ui'
 import {
   useHomeownerJobs,
   useNearbyHandymen,
@@ -441,7 +441,7 @@ export function HomeownerHomeScreen() {
           {/* Search Input Placeholder */}
           <XStack
             flex={1}
-            bg="$backgroundSubtle"
+            bg="white"
             borderColor="$borderColor"
             borderWidth={1}
             borderRadius="$4"
@@ -793,63 +793,138 @@ export function HomeownerHomeScreen() {
                       color="$primary"
                     />
                   ) : (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                    >
-                      <XStack
-                        flexWrap="wrap"
-                        width={320}
-                        gap="$3"
-                        alignContent="flex-start"
+                    <ScrollIndicator>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
                       >
-                        {categories?.map((cat) => {
-                          const IconComponent = iconMap[cat.icon] || Wrench
-                          const isSelected = selectedCategory === cat.slug
+                        <XStack
+                          gap="$3"
+                          height={170}
+                        >
+                          {(() => {
+                            // Split categories into two rows
+                            const evenCats = categories?.filter((_, i) => i % 2 === 0) || []
+                            const oddCats = categories?.filter((_, i) => i % 2 === 1) || []
+                            const maxCols = Math.max(evenCats.length, oddCats.length)
 
-                          return (
-                            <YStack
-                              key={cat.public_id}
-                              alignItems="center"
-                              gap="$2"
-                              width={70}
-                              onPress={() => setSelectedCategory(isSelected ? null : cat.slug)}
-                              animation="micro"
-                              pressStyle={{ scale: 0.9 }}
-                            >
-                              <View
-                                width={56}
-                                height={56}
-                                borderRadius="$6"
-                                alignItems="center"
-                                justifyContent="center"
-                                bg={isSelected ? '$primaryBackground' : '$backgroundSubtle'}
-                                borderWidth={isSelected ? 2 : 1}
-                                borderColor={isSelected ? '$primary' : '$borderColor'}
-                              >
-                                <IconComponent
-                                  size={24}
-                                  color={
-                                    isSelected ? '$primary' : categoryColors[cat.icon] || '#666666'
-                                  }
-                                  strokeWidth={2}
-                                />
-                              </View>
-                              <Text
-                                fontSize="$2"
-                                fontWeight="600"
-                                color="$color"
-                                textAlign="center"
-                                numberOfLines={1}
-                                mt="$1"
-                              >
-                                {cat.name}
-                              </Text>
-                            </YStack>
-                          )
-                        })}
-                      </XStack>
-                    </ScrollView>
+                            return Array.from({ length: maxCols }, (_, colIndex) => {
+                              const topCat = evenCats[colIndex]
+                              const bottomCat = oddCats[colIndex]
+
+                              return (
+                                <YStack
+                                  key={`col-${colIndex}`}
+                                  gap="$2"
+                                  width={70}
+                                >
+                                  {topCat &&
+                                    (() => {
+                                      const IconComponent = iconMap[topCat.icon] || Wrench
+                                      const isSelected = selectedCategory === topCat.slug
+                                      return (
+                                        <YStack
+                                          alignItems="center"
+                                          gap="$1"
+                                          onPress={() =>
+                                            setSelectedCategory(isSelected ? null : topCat.slug)
+                                          }
+                                          animation="micro"
+                                          pressStyle={{ scale: 0.9 }}
+                                        >
+                                          <View
+                                            width={56}
+                                            height={56}
+                                            borderRadius="$6"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            bg={
+                                              isSelected
+                                                ? '$primaryBackground'
+                                                : '$backgroundSubtle'
+                                            }
+                                            borderWidth={isSelected ? 2 : 1}
+                                            borderColor={isSelected ? '$primary' : '$borderColor'}
+                                          >
+                                            <IconComponent
+                                              size={24}
+                                              color={
+                                                isSelected
+                                                  ? '$primary'
+                                                  : categoryColors[topCat.icon] || '#666666'
+                                              }
+                                              strokeWidth={2}
+                                            />
+                                          </View>
+                                          <Text
+                                            fontSize="$2"
+                                            fontWeight="600"
+                                            color="$color"
+                                            textAlign="center"
+                                            numberOfLines={1}
+                                          >
+                                            {topCat.name}
+                                          </Text>
+                                        </YStack>
+                                      )
+                                    })()}
+                                  {bottomCat &&
+                                    (() => {
+                                      const IconComponent = iconMap[bottomCat.icon] || Wrench
+                                      const isSelected = selectedCategory === bottomCat.slug
+                                      return (
+                                        <YStack
+                                          alignItems="center"
+                                          gap="$1"
+                                          onPress={() =>
+                                            setSelectedCategory(isSelected ? null : bottomCat.slug)
+                                          }
+                                          animation="micro"
+                                          pressStyle={{ scale: 0.9 }}
+                                        >
+                                          <View
+                                            width={56}
+                                            height={56}
+                                            borderRadius="$6"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            bg={
+                                              isSelected
+                                                ? '$primaryBackground'
+                                                : '$backgroundSubtle'
+                                            }
+                                            borderWidth={isSelected ? 2 : 1}
+                                            borderColor={isSelected ? '$primary' : '$borderColor'}
+                                          >
+                                            <IconComponent
+                                              size={24}
+                                              color={
+                                                isSelected
+                                                  ? '$primary'
+                                                  : categoryColors[bottomCat.icon] || '#666666'
+                                              }
+                                              strokeWidth={2}
+                                            />
+                                          </View>
+                                          <Text
+                                            fontSize="$2"
+                                            fontWeight="600"
+                                            color="$color"
+                                            textAlign="center"
+                                            numberOfLines={1}
+                                          >
+                                            {bottomCat.name}
+                                          </Text>
+                                        </YStack>
+                                      )
+                                    })()}
+                                </YStack>
+                              )
+                            })
+                          })()}
+                        </XStack>
+                      </ScrollView>
+                    </ScrollIndicator>
                   )}
                 </YStack>
 
@@ -1189,18 +1264,6 @@ export function HomeownerHomeScreen() {
                           </Text>
                         </XStack>
                       </XStack>
-
-                      <Button
-                        size="$2"
-                        bg="$color"
-                        color="white"
-                        borderRadius="$4"
-                        mt="$2"
-                        fontWeight="bold"
-                        pressStyle={{ opacity: 0.9 }}
-                      >
-                        Invite to Job
-                      </Button>
                     </YStack>
                   </XStack>
                 ))

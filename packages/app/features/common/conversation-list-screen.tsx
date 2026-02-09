@@ -442,6 +442,10 @@ export function ConversationListScreen({ chatRole }: ConversationListScreenProps
             contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
             style={{ flex: 1 }}
             showsVerticalScrollIndicator={false}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            initialNumToRender={8}
           />
         )}
       </YStack>

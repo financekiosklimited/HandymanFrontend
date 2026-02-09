@@ -1,7 +1,18 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, Input } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Image,
+  Input,
+  ScrollIndicator,
+} from '@my/ui'
 import { GradientBackground, AttachmentGrid, ImageViewer } from '@my/ui'
 import { useJobChat, useChatMessages, useSendMessage, useMarkAsRead, chatQueryKeys } from '@my/api'
 import type { ChatMessage, ChatConversation, Attachment, AttachmentUpload } from '@my/api'
@@ -526,126 +537,128 @@ function AttachmentPreviewRow({
       borderTopWidth={1}
       borderTopColor="rgba(0,0,0,0.06)"
     >
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      >
-        <XStack gap="$sm">
-          {attachments.map((attachment) => (
-            <View
-              key={attachment.id}
-              position="relative"
-            >
+      <ScrollIndicator>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          <XStack gap="$sm">
+            {attachments.map((attachment) => (
               <View
-                width={64}
-                height={64}
-                borderRadius={12}
-                overflow="hidden"
-                bg="$backgroundMuted"
-                borderWidth={2}
-                borderColor="rgba(12, 154, 92, 0.3)"
+                key={attachment.id}
+                position="relative"
               >
-                {attachment.file_type === 'image' ? (
-                  <Image
-                    source={{ uri: attachment.uri }}
-                    width={64}
-                    height={64}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  // Video preview with thumbnail
-                  <View
-                    width={64}
-                    height={64}
-                  >
-                    {attachment.thumbnail_uri ? (
-                      <Image
-                        source={{ uri: attachment.thumbnail_uri }}
-                        width={64}
-                        height={64}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View
-                        flex={1}
-                        bg="$backgroundMuted"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        <Video
-                          size={24}
-                          color="#0C9A5C"
-                        />
-                      </View>
-                    )}
-                    {/* Play icon overlay */}
+                <View
+                  width={64}
+                  height={64}
+                  borderRadius={12}
+                  overflow="hidden"
+                  bg="$backgroundMuted"
+                  borderWidth={2}
+                  borderColor="rgba(12, 154, 92, 0.3)"
+                >
+                  {attachment.file_type === 'image' ? (
+                    <Image
+                      source={{ uri: attachment.uri }}
+                      width={64}
+                      height={64}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    // Video preview with thumbnail
                     <View
-                      position="absolute"
-                      top={0}
-                      left={0}
-                      right={0}
-                      bottom={0}
-                      alignItems="center"
-                      justifyContent="center"
-                      bg="rgba(0,0,0,0.3)"
+                      width={64}
+                      height={64}
                     >
-                      <Play
-                        size={20}
-                        color="white"
-                        fill="white"
-                      />
-                    </View>
-                    {/* Duration badge */}
-                    {attachment.duration_seconds !== undefined && (
+                      {attachment.thumbnail_uri ? (
+                        <Image
+                          source={{ uri: attachment.thumbnail_uri }}
+                          width={64}
+                          height={64}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View
+                          flex={1}
+                          bg="$backgroundMuted"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <Video
+                            size={24}
+                            color="#0C9A5C"
+                          />
+                        </View>
+                      )}
+                      {/* Play icon overlay */}
                       <View
                         position="absolute"
-                        bottom={2}
-                        right={2}
-                        bg="rgba(0,0,0,0.7)"
-                        px={4}
-                        py={1}
-                        borderRadius={4}
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        alignItems="center"
+                        justifyContent="center"
+                        bg="rgba(0,0,0,0.3)"
                       >
-                        <Text
-                          fontSize={8}
+                        <Play
+                          size={20}
                           color="white"
-                          fontWeight="600"
-                        >
-                          {formatDuration(attachment.duration_seconds)}
-                        </Text>
+                          fill="white"
+                        />
                       </View>
-                    )}
-                  </View>
-                )}
+                      {/* Duration badge */}
+                      {attachment.duration_seconds !== undefined && (
+                        <View
+                          position="absolute"
+                          bottom={2}
+                          right={2}
+                          bg="rgba(0,0,0,0.7)"
+                          px={4}
+                          py={1}
+                          borderRadius={4}
+                        >
+                          <Text
+                            fontSize={8}
+                            color="white"
+                            fontWeight="600"
+                          >
+                            {formatDuration(attachment.duration_seconds)}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </View>
+                {/* Remove button */}
+                <Pressable
+                  onPress={() => onRemove(attachment.id)}
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    width: 22,
+                    height: 22,
+                    borderRadius: 11,
+                    backgroundColor: '#EF4444',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 3,
+                  }}
+                >
+                  <X
+                    size={12}
+                    color="white"
+                  />
+                </Pressable>
               </View>
-              {/* Remove button */}
-              <Pressable
-                onPress={() => onRemove(attachment.id)}
-                style={{
-                  position: 'absolute',
-                  top: -6,
-                  right: -6,
-                  width: 22,
-                  height: 22,
-                  borderRadius: 11,
-                  backgroundColor: '#EF4444',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 3,
-                }}
-              >
-                <X
-                  size={12}
-                  color="white"
-                />
-              </Pressable>
-            </View>
-          ))}
-        </XStack>
-      </ScrollView>
+            ))}
+          </XStack>
+        </ScrollView>
+      </ScrollIndicator>
     </XStack>
   )
 }

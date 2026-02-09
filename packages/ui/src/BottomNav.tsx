@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react'
+import { memo, useCallback, useMemo, useRef } from 'react'
 import { XStack, YStack, Text, Button, View, Spinner, useTheme } from 'tamagui'
 import { Search, Bell, Plus, Briefcase, User } from '@tamagui/lucide-icons'
 import type { IconProps } from '@tamagui/helpers-icon'
@@ -14,7 +14,7 @@ interface BottomNavItem {
   requiresAuth?: boolean
 }
 
-// Nav items for each variant
+// Nav items for each variant - defined outside component for stable reference
 const guestNavItems: BottomNavItem[] = [
   { id: 'explore', label: 'Explore', icon: Search, route: '/' },
   { id: 'updates', label: 'Updates', icon: Bell, route: '/updates', requiresAuth: true },
@@ -60,27 +60,28 @@ interface BottomNavProps {
   notificationCount?: number
   /** Navigation handler - receives the route to navigate to */
   onNavigate: (route: string) => void
-  /** Delay in ms to prevent double taps (default: 500ms) */
+  /** Delay in ms to prevent double taps (default: 300ms) */
   tapDelay?: number
 }
 
-export function BottomNav({
+function BottomNavComponent({
   activeRoute = '/',
   variant = 'guest',
   onAddPress,
   isAddLoading,
   notificationCount = 0,
   onNavigate,
-  tapDelay = 500,
+  tapDelay = 300,
 }: BottomNavProps) {
-  const navItems = getNavItems(variant)
+  const navItems = useMemo(() => getNavItems(variant), [variant])
   const theme = useTheme()
   const insets = useSafeAreaInsets()
 
   // Local navigation lock to prevent rapid button presses
   const isNavigatingRef = useRef(false)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Memoized navigation handler
   const handleNavPress = useCallback(
     (item: BottomNavItem) => {
       // Prevent rapid button presses
@@ -94,12 +95,13 @@ export function BottomNav({
         return
       }
 
+      // Set navigation lock immediately
+      isNavigatingRef.current = true
+
       // If guest tries to access protected route, redirect to login
       if (variant === 'guest' && item.requiresAuth) {
-        isNavigatingRef.current = true
         onNavigate('/auth/login')
       } else {
-        isNavigatingRef.current = true
         onNavigate(item.route)
       }
 
@@ -114,6 +116,24 @@ export function BottomNav({
     [variant, onAddPress, onNavigate, tapDelay]
   )
 
+  // Memoized route matcher - determines if a nav item is active
+  const isRouteActive = useCallback(
+    (route: string, id: string) => {
+      return activeRoute === route || activeRoute === id
+    },
+    [activeRoute]
+  )
+
+  // Memoize theme colors to prevent recalculation
+  const themeColors = useMemo(
+    () => ({
+      primary: theme.primary?.val,
+      colorMuted: theme.colorMuted?.val,
+      backgroundStrong: theme.backgroundStrong?.val,
+    }),
+    [theme.primary?.val, theme.colorMuted?.val, theme.backgroundStrong?.val]
+  )
+
   return (
     <XStack
       bg="$backgroundStrong"
@@ -126,7 +146,7 @@ export function BottomNav({
       alignItems="flex-start"
     >
       {navItems.map((item) => {
-        const isActive = activeRoute === item.route || activeRoute === item.id
+        const isActive = isRouteActive(item.route, item.id)
         const Icon = item.icon
         const isAddButton = item.id === 'add'
         const isUpdatesButton = item.id === 'updates'
@@ -141,7 +161,6 @@ export function BottomNav({
             alignItems="center"
             gap="$1"
             flex={1}
-            animation="micro"
             pressStyle={{ scale: 0.9 }}
             disabled={isNavigatingRef.current && !isAddButton}
             opacity={isNavigatingRef.current && !isAddButton ? 0.7 : 1}
@@ -170,7 +189,7 @@ export function BottomNav({
                     <Plus
                       size={28}
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      color={theme.backgroundStrong?.val as any}
+                      color={themeColors.backgroundStrong as any}
                     />
                   )}
                 </View>
@@ -182,9 +201,9 @@ export function BottomNav({
                 <Icon
                   size={24}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  color={isActive ? (theme.primary?.val as any) : (theme.colorMuted?.val as any)}
+                  color={isActive ? (themeColors.primary as any) : (themeColors.colorMuted as any)}
                 />
-                {/* Notification Badge */}
+                {/* Notification Badge - simplified animation */}
                 {showBadge && (
                   <View
                     position="absolute"
@@ -197,10 +216,6 @@ export function BottomNav({
                     alignItems="center"
                     justifyContent="center"
                     px={4}
-                    animation="micro"
-                    scale={1}
-                    enterStyle={{ scale: 0, opacity: 0 }}
-                    exitStyle={{ scale: 0, opacity: 0 }}
                   >
                     <Text
                       fontSize={10}
@@ -226,3 +241,6 @@ export function BottomNav({
     </XStack>
   )
 }
+
+// Export memoized component to prevent unnecessary re-renders
+export const BottomNav = memo(BottomNavComponent)

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { YStack, XStack, Text, Button, View, Sheet, ScrollView } from 'tamagui'
 import { ArrowLeft, HelpCircle, X } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 interface PageHeaderProps {
   title: string
@@ -22,6 +23,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   const router = useRouter()
   const [helpOpen, setHelpOpen] = useState(false)
+  const insets = useSafeAreaInsets()
 
   const handleBack = () => {
     if (onBack) {
@@ -122,7 +124,9 @@ export function PageHeader({
           />
 
           <YStack
-            p="$4"
+            pt="$4"
+            px="$4"
+            pb={insets.bottom ? insets.bottom + 16 : '$4'}
             gap="$4"
             flex={1}
           >

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useCallback, useMemo } from 'react'
 import { useRouter, usePathname } from 'expo-router'
 import { YStack } from 'tamagui'
 import { BottomNav } from '@my/ui'
@@ -13,13 +13,14 @@ export default function HandymanLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const activeRole = useAuthStore((state) => state.activeRole)
 
-  // Use navigation guard to prevent double navigation
-  const { push, replace, isNavigating } = useNavigationGuard({ delay: 400 })
+  // Use navigation guard with reduced delay (300ms instead of 400ms)
+  const { push, replace, isNavigating } = useNavigationGuard({ delay: 300 })
 
   // Only fetch unread notification count when authenticated as handyman
   const shouldFetchNotifications = isAuthenticated && activeRole === 'handyman'
   const { data: unreadCount = 0 } = useHandymanUnreadCount(shouldFetchNotifications)
 
+  // Memoized auth check effect
   useEffect(() => {
     // Redirect to login if not authenticated
     if (!isAuthenticated) {
@@ -37,26 +38,43 @@ export default function HandymanLayout() {
     }
   }, [isAuthenticated, activeRole, replace])
 
-  // Map pathname to active route for bottom nav
-  // Note: usePathname() returns just the path without route groups, e.g. "/updates" not "/(handyman)/updates"
-  const getActiveRoute = () => {
-    if (pathname === '/updates' || pathname.startsWith('/updates/')) return '/(handyman)/updates'
-    if (pathname === '/jobs' || pathname.startsWith('/jobs/')) return '/(handyman)/jobs'
-    if (pathname === '/my-jobs' || pathname.startsWith('/my-jobs/')) return '/(handyman)/my-jobs'
-    if (pathname === '/profile' || pathname.startsWith('/profile/')) return '/(handyman)/profile'
-    if (pathname === '/' || pathname === '') return '/(handyman)/'
+  // Memoized route mapping - only recalculates when pathname changes
+  const activeRoute = useMemo(() => {
+    if (pathname === '/updates' || pathname.startsWith('/updates/')) {
+      return '/(handyman)/updates'
+    }
+    if (pathname === '/jobs' || pathname.startsWith('/jobs/')) {
+      return '/(handyman)/jobs'
+    }
+    if (pathname === '/my-jobs' || pathname.startsWith('/my-jobs/')) {
+      return '/(handyman)/my-jobs'
+    }
+    if (pathname === '/profile' || pathname.startsWith('/profile/')) {
+      return '/(handyman)/profile'
+    }
+    if (pathname === '/' || pathname === '') {
+      return '/(handyman)/'
+    }
     return '/(handyman)/'
-  }
+  }, [pathname])
 
-  // Check if we should show bottom nav (hide on certain screens)
-  const shouldShowBottomNav = () => {
+  // Memoized visibility check - only recalculates when pathname changes
+  const shouldShowNav = useMemo(() => {
     // Hide on detail/nested screens
     if (pathname.startsWith('/jobs/')) return false
     if (pathname.startsWith('/direct-offers')) return false
     if (pathname.startsWith('/bookmarks')) return false
     if (pathname.startsWith('/messages')) return false
     return true
-  }
+  }, [pathname])
+
+  // Memoized navigation handler to prevent recreating function on every render
+  const handleNavigate = useCallback(
+    (route: string) => {
+      push(route as any)
+    },
+    [push]
+  )
 
   return (
     <YStack
@@ -64,11 +82,6 @@ export default function HandymanLayout() {
       backgroundColor="$background"
     >
       <YStack flex={1}>
-        {/*
-          Nested Stack for handyman routes
-          Inherits animation config from root, but we explicitly set it here
-          to ensure consistency even if root config changes
-        */}
         <Stack
           screenOptions={{
             ...defaultScreenOptions,
@@ -76,12 +89,12 @@ export default function HandymanLayout() {
           }}
         />
       </YStack>
-      {shouldShowBottomNav() && (
+      {shouldShowNav && (
         <BottomNav
-          activeRoute={getActiveRoute()}
+          activeRoute={activeRoute}
           variant="handyman"
           notificationCount={unreadCount}
-          onNavigate={(route) => push(route as any)}
+          onNavigate={handleNavigate}
         />
       )}
     </YStack>

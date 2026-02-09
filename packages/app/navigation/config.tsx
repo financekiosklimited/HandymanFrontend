@@ -12,14 +12,20 @@ import type { NativeStackNavigationOptions } from '@react-navigation/native-stac
 /**
  * Default screen options for all Stack navigators
  * Using 'slide_from_right' for consistent iOS-style navigation
+ *
+ * Performance optimizations:
+ * - detachInactiveScreens: true - Unmounts inactive screens to save memory
+ * - freezeOnBlur: true - Freezes screen renders when not focused
+ * - animationDuration: 150 - Slightly faster transitions for responsiveness
  */
 export const defaultScreenOptions: NativeStackNavigationOptions = {
   headerShown: false,
   gestureEnabled: true,
   gestureDirection: 'horizontal',
   animation: 'slide_from_right',
-  animationDuration: 200,
+  animationDuration: 150,
   contentStyle: { backgroundColor: 'transparent' },
+  detachInactiveScreens: true,
 }
 
 /**

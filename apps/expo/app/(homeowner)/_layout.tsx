@@ -1,10 +1,9 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useCallback, useMemo } from 'react'
 import { useRouter, usePathname } from 'expo-router'
 import { YStack } from 'tamagui'
 import { BottomNav } from '@my/ui'
-import { useAuthStore, useHomeownerUnreadCount, useHomeownerProfile } from '@my/api'
+import { useAuthStore, useHomeownerUnreadCount } from '@my/api'
 import { useNavigationGuard } from 'app/hooks/useNavigationGuard'
-import { Alert } from 'react-native'
 import { Stack } from 'expo-router'
 import { defaultScreenOptions } from 'app/navigation/config'
 
@@ -14,69 +13,24 @@ export default function HomeownerLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const activeRole = useAuthStore((state) => state.activeRole)
 
-  // Use navigation guard to prevent double navigation
-  const { push, replace, isNavigating } = useNavigationGuard({ delay: 400 })
+  // Use navigation guard with reduced delay (300ms instead of 400ms)
+  // Navigation feels more responsive while still preventing double-taps
+  const { push, replace, isNavigating } = useNavigationGuard({ delay: 300 })
 
   // Only fetch unread notification count when authenticated as homeowner
   const shouldFetchNotifications = isAuthenticated && activeRole === 'homeowner'
   const { data: unreadCount = 0 } = useHomeownerUnreadCount(shouldFetchNotifications)
 
-  // Fetch profile to check phone verification
-  const { data: profile, refetch: refetchProfile } = useHomeownerProfile()
-  const [isCheckingPhone, setIsCheckingPhone] = useState(false)
-
   /**
-   * Handle Add Job button press - check phone verification first
+   * Handle Add Job button press - Navigate immediately, verification happens on the screen
+   * This is "optimistic navigation" - we don't wait for async operations
    */
-  const handleAddJobPress = useCallback(async () => {
-    setIsCheckingPhone(true)
+  const handleAddJobPress = useCallback(() => {
+    // Navigate immediately - phone verification check moved to add job screen
+    push('/(homeowner)/jobs/add' as any)
+  }, [push])
 
-    try {
-      // Refetch profile to get latest phone verification status
-      const { data: freshProfile } = await refetchProfile()
-
-      if (freshProfile?.is_phone_verified) {
-        // Phone verified, proceed to add job
-        push('/(homeowner)/jobs/add' as any)
-      } else {
-        // Phone not verified, show alert and redirect
-        Alert.alert(
-          'Phone Verification Required',
-          'Please verify your phone number before posting a job.',
-          [
-            {
-              text: 'Verify Now',
-              onPress: () => push('/user/phone/send' as any),
-            },
-            {
-              text: 'Cancel',
-              style: 'cancel',
-            },
-          ]
-        )
-      }
-    } catch (error) {
-      console.error('Error checking phone verification:', error)
-      // On error, still allow navigation but warn
-      Alert.alert(
-        'Could Not Verify Status',
-        'Unable to check phone verification status. Would you like to verify your phone?',
-        [
-          {
-            text: 'Verify Phone',
-            onPress: () => push('/user/phone/send' as any),
-          },
-          {
-            text: 'Try Again',
-            onPress: () => push('/(homeowner)/jobs/add' as any),
-          },
-        ]
-      )
-    } finally {
-      setIsCheckingPhone(false)
-    }
-  }, [refetchProfile, push])
-
+  // Memoized auth check effect
   useEffect(() => {
     // Redirect to login if not authenticated
     if (!isAuthenticated) {
@@ -94,19 +48,28 @@ export default function HomeownerLayout() {
     }
   }, [isAuthenticated, activeRole, replace])
 
-  // Map pathname to active route for bottom nav
-  // Note: usePathname() returns just the path without route groups, e.g. "/updates" not "/(homeowner)/updates"
-  const getActiveRoute = () => {
-    if (pathname === '/updates' || pathname.startsWith('/updates/')) return '/(homeowner)/updates'
-    if (pathname === '/jobs/add' || pathname.startsWith('/jobs/add/')) return 'add'
-    if (pathname === '/jobs' || pathname.startsWith('/jobs/')) return '/(homeowner)/jobs'
-    if (pathname === '/profile' || pathname.startsWith('/profile/')) return '/(homeowner)/profile'
-    if (pathname === '/' || pathname === '') return '/(homeowner)/'
+  // Memoized route mapping - only recalculates when pathname changes
+  const activeRoute = useMemo(() => {
+    if (pathname === '/updates' || pathname.startsWith('/updates/')) {
+      return '/(homeowner)/updates'
+    }
+    if (pathname === '/jobs/add' || pathname.startsWith('/jobs/add/')) {
+      return 'add'
+    }
+    if (pathname === '/jobs' || pathname.startsWith('/jobs/')) {
+      return '/(homeowner)/jobs'
+    }
+    if (pathname === '/profile' || pathname.startsWith('/profile/')) {
+      return '/(homeowner)/profile'
+    }
+    if (pathname === '/' || pathname === '') {
+      return '/(homeowner)/'
+    }
     return '/(homeowner)/'
-  }
+  }, [pathname])
 
-  // Check if we should show bottom nav (hide on certain screens)
-  const shouldShowBottomNav = () => {
+  // Memoized visibility check - only recalculates when pathname changes
+  const shouldShowNav = useMemo(() => {
     // Hide on add job listing
     if (pathname.startsWith('/jobs/add')) return false
     // Hide on edit job listing
@@ -119,7 +82,15 @@ export default function HomeownerLayout() {
     if (pathname.startsWith('/bookmarks')) return false
     if (pathname.startsWith('/messages')) return false
     return true
-  }
+  }, [pathname])
+
+  // Memoized navigation handler to prevent recreating function on every render
+  const handleNavigate = useCallback(
+    (route: string) => {
+      push(route as any)
+    },
+    [push]
+  )
 
   return (
     <YStack
@@ -127,11 +98,6 @@ export default function HomeownerLayout() {
       backgroundColor="$background"
     >
       <YStack flex={1}>
-        {/*
-          Nested Stack for homeowner routes
-          Inherits animation config from root, but we explicitly set it here
-          to ensure consistency even if root config changes
-        */}
         <Stack
           screenOptions={{
             ...defaultScreenOptions,
@@ -139,14 +105,14 @@ export default function HomeownerLayout() {
           }}
         />
       </YStack>
-      {shouldShowBottomNav() && (
+      {shouldShowNav && (
         <BottomNav
-          activeRoute={getActiveRoute()}
+          activeRoute={activeRoute}
           variant="homeowner"
           notificationCount={unreadCount}
           onAddPress={handleAddJobPress}
-          isAddLoading={isCheckingPhone || isNavigating}
-          onNavigate={(route) => push(route as any)}
+          isAddLoading={isNavigating}
+          onNavigate={handleNavigate}
         />
       )}
     </YStack>

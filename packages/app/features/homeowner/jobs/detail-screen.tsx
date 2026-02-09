@@ -14,6 +14,7 @@ import {
   VideoPlayer,
   DocumentThumbnail,
   PageHeader,
+  ScrollIndicator,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'

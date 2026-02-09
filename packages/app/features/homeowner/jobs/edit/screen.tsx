@@ -1473,7 +1473,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                     value={categorySearch}
                     onChangeText={setCategorySearch}
                     placeholder="Search categories..."
-                    bg="transparent"
+                    bg="white"
                     borderWidth={0}
                     flex={1}
                     px={0}
@@ -1608,7 +1608,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                     value={citySearch}
                     onChangeText={setCitySearch}
                     placeholder="Search cities..."
-                    bg="transparent"
+                    bg="white"
                     borderWidth={0}
                     flex={1}
                     px={0}

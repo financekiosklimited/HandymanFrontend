@@ -17,7 +17,7 @@ import {
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
-import { useCategories, useCities, useCreateJob } from '@my/api'
+import { useCategories, useCities, useCreateJob, useHomeownerProfile } from '@my/api'
 import type { Category } from '@my/api'
 import type { City } from '@my/api'
 import type { CreateJobRequest, CreateJobValidationError, LocalAttachment } from '@my/api'
@@ -45,7 +45,7 @@ import { useEffect } from 'react'
 import * as VideoThumbnails from 'expo-video-thumbnails'
 import * as ImageManipulator from 'expo-image-manipulator'
 import { HTTPError } from 'ky'
-import { KeyboardAvoidingView, Platform, TextInput, ActionSheetIOS } from 'react-native'
+import { KeyboardAvoidingView, Platform, TextInput, ActionSheetIOS, Alert } from 'react-native'
 
 interface JobTask {
   id: string
@@ -145,8 +145,34 @@ export function AddJobScreen() {
   const scrollViewRef = useRef<ScrollView>(null)
   const { data: categories, isLoading: categoriesLoading } = useCategories()
   const { data: cities, isLoading: citiesLoading } = useCities()
+  const { data: profile, isLoading: profileLoading } = useHomeownerProfile()
   const createJobMutation = useCreateJob()
   const toast = useToastController()
+
+  // Phone verification check - redirects to verification if needed
+  useEffect(() => {
+    // Skip if still loading profile data
+    if (profileLoading) return
+
+    // If phone is not verified, show alert and redirect
+    if (profile && !profile.is_phone_verified) {
+      Alert.alert(
+        'Phone Verification Required',
+        'Please verify your phone number before posting a job.',
+        [
+          {
+            text: 'Verify Now',
+            onPress: () => router.push('/user/phone/send' as any),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => router.back(),
+          },
+        ]
+      )
+    }
+  }, [profile, profileLoading, router])
 
   // Show create job onboarding toast for first-time users
   useEffect(() => {
@@ -1244,7 +1270,7 @@ export function AddJobScreen() {
                     value={categorySearch}
                     onChangeText={setCategorySearch}
                     placeholder="Search categories..."
-                    bg="transparent"
+                    bg="white"
                     borderWidth={0}
                     flex={1}
                     px={0}
@@ -1378,7 +1404,7 @@ export function AddJobScreen() {
                     value={citySearch}
                     onChangeText={setCitySearch}
                     placeholder="Search cities..."
-                    bg="transparent"
+                    bg="white"
                     borderWidth={0}
                     flex={1}
                     px={0}

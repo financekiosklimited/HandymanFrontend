@@ -634,7 +634,7 @@ export function HandymanProfileEditScreen() {
                 value={categorySearch}
                 onChangeText={setCategorySearch}
                 placeholder="Search categories..."
-                bg="transparent"
+                bg="white"
                 borderWidth={0}
                 p={0}
                 size="$4"

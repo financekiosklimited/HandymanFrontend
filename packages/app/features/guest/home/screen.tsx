@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import * as Location from 'expo-location'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View, ScrollIndicator } from '@my/ui'
 import { useGuestJobs, useGuestHandymen, useCategories, useCities } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
@@ -555,58 +555,62 @@ export function GuestHomeScreen() {
                       color="$primary"
                     />
                   ) : (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                    >
-                      <XStack gap="$3">
-                        {categories?.map((cat) => {
-                          const IconComponent = iconMap[cat.icon] || Wrench
-                          const isSelected = selectedCategory === cat.slug
+                    <ScrollIndicator>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                      >
+                        <XStack gap="$3">
+                          {categories?.map((cat) => {
+                            const IconComponent = iconMap[cat.icon] || Wrench
+                            const isSelected = selectedCategory === cat.slug
 
-                          return (
-                            <YStack
-                              key={cat.public_id}
-                              alignItems="center"
-                              gap="$2"
-                              width={70}
-                              onPress={() => setSelectedCategory(isSelected ? null : cat.slug)}
-                              animation="micro"
-                              pressStyle={{ scale: 0.9 }}
-                            >
-                              <View
-                                width={56}
-                                height={56}
-                                borderRadius="$6"
+                            return (
+                              <YStack
+                                key={cat.public_id}
                                 alignItems="center"
-                                justifyContent="center"
-                                bg={isSelected ? '$primaryBackground' : '$backgroundSubtle'}
-                                borderWidth={isSelected ? 2 : 1}
-                                borderColor={isSelected ? '$primary' : '$borderColor'}
+                                gap="$2"
+                                width={70}
+                                onPress={() => setSelectedCategory(isSelected ? null : cat.slug)}
+                                animation="micro"
+                                pressStyle={{ scale: 0.9 }}
                               >
-                                <IconComponent
-                                  size={24}
-                                  color={
-                                    isSelected ? '$primary' : categoryColors[cat.icon] || '#666666'
-                                  }
-                                  strokeWidth={2}
-                                />
-                              </View>
-                              <Text
-                                fontSize="$2"
-                                fontWeight="600"
-                                color="$color"
-                                textAlign="center"
-                                numberOfLines={1}
-                                mt="$1"
-                              >
-                                {cat.name}
-                              </Text>
-                            </YStack>
-                          )
-                        })}
-                      </XStack>
-                    </ScrollView>
+                                <View
+                                  width={56}
+                                  height={56}
+                                  borderRadius="$6"
+                                  alignItems="center"
+                                  justifyContent="center"
+                                  bg={isSelected ? '$primaryBackground' : '$backgroundSubtle'}
+                                  borderWidth={isSelected ? 2 : 1}
+                                  borderColor={isSelected ? '$primary' : '$borderColor'}
+                                >
+                                  <IconComponent
+                                    size={24}
+                                    color={
+                                      isSelected
+                                        ? '$primary'
+                                        : categoryColors[cat.icon] || '#666666'
+                                    }
+                                    strokeWidth={2}
+                                  />
+                                </View>
+                                <Text
+                                  fontSize="$2"
+                                  fontWeight="600"
+                                  color="$color"
+                                  textAlign="center"
+                                  numberOfLines={1}
+                                  mt="$1"
+                                >
+                                  {cat.name}
+                                </Text>
+                              </YStack>
+                            )
+                          })}
+                        </XStack>
+                      </ScrollView>
+                    </ScrollIndicator>
                   )}
                 </YStack>
 
@@ -983,118 +987,120 @@ export function GuestHomeScreen() {
                 </YStack>
               ) : (
                 // Horizontal scroll list
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                >
-                  <XStack gap="$3">
-                    {handymen.slice(0, 5).map((pro) => (
-                      <YStack
-                        key={pro.public_id}
-                        bg="white"
-                        borderRadius="$6"
-                        p="$3"
-                        borderColor="$borderSubtle"
-                        borderWidth={1}
-                        shadowColor="rgba(0,0,0,0.03)"
-                        shadowRadius={5}
-                        shadowOpacity={1}
-                        width={160}
-                        onPress={redirectToLogin}
-                      >
+                <ScrollIndicator>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                  >
+                    <XStack gap="$3">
+                      {handymen.slice(0, 5).map((pro) => (
                         <YStack
-                          alignItems="center"
-                          gap="$2"
+                          key={pro.public_id}
+                          bg="white"
+                          borderRadius="$6"
+                          p="$3"
+                          borderColor="$borderSubtle"
+                          borderWidth={1}
+                          shadowColor="rgba(0,0,0,0.03)"
+                          shadowRadius={5}
+                          shadowOpacity={1}
+                          width={160}
+                          onPress={redirectToLogin}
                         >
-                          <View position="relative">
-                            <View
-                              width={64}
-                              height={64}
-                              borderRadius="$4"
-                              bg="$backgroundSubtle"
-                              alignItems="center"
-                              justifyContent="center"
-                              borderWidth={2}
-                              borderColor="white"
-                            >
-                              <Text
-                                fontSize="$6"
-                                fontWeight="bold"
-                                color="$colorSubtle"
-                              >
-                                {pro.display_name.charAt(0)}
-                              </Text>
-                            </View>
-                            <View
-                              position="absolute"
-                              bottom={-4}
-                              right={-4}
-                              bg="$primary"
-                              p={2}
-                              borderRadius={100}
-                              borderWidth={2}
-                              borderColor="white"
-                            >
-                              <ShieldCheck
-                                size={10}
-                                color="white"
-                              />
-                            </View>
-                          </View>
-
-                          <Text
-                            fontSize="$3"
-                            fontWeight="bold"
-                            color="$color"
-                            textAlign="center"
-                            numberOfLines={1}
-                          >
-                            {pro.display_name}
-                          </Text>
-
-                          <XStack
-                            bg="$warningBackground"
-                            px="$1.5"
-                            py="$0.5"
-                            borderRadius="$2"
-                            borderColor="$warningBackground"
-                            borderWidth={1}
+                          <YStack
                             alignItems="center"
-                            gap="$1"
+                            gap="$2"
                           >
-                            <Star
-                              size={10}
-                              color="$accent"
-                              fill="$accent"
-                            />
-                            <Text
-                              fontSize={10}
-                              fontWeight="bold"
-                              color="$accent"
-                            >
-                              {pro.rating || 0}
-                            </Text>
-                            <Text
-                              fontSize={10}
-                              color="$accent"
-                              opacity={0.7}
-                            >
-                              ({pro.review_count || 0})
-                            </Text>
-                          </XStack>
+                            <View position="relative">
+                              <View
+                                width={64}
+                                height={64}
+                                borderRadius="$4"
+                                bg="$backgroundSubtle"
+                                alignItems="center"
+                                justifyContent="center"
+                                borderWidth={2}
+                                borderColor="white"
+                              >
+                                <Text
+                                  fontSize="$6"
+                                  fontWeight="bold"
+                                  color="$colorSubtle"
+                                >
+                                  {pro.display_name.charAt(0)}
+                                </Text>
+                              </View>
+                              <View
+                                position="absolute"
+                                bottom={-4}
+                                right={-4}
+                                bg="$primary"
+                                p={2}
+                                borderRadius={100}
+                                borderWidth={2}
+                                borderColor="white"
+                              >
+                                <ShieldCheck
+                                  size={10}
+                                  color="white"
+                                />
+                              </View>
+                            </View>
 
-                          <Text
-                            fontSize="$2"
-                            fontWeight="bold"
-                            color="$color"
-                          >
-                            ${pro.hourly_rate || 'N/A'}/hr
-                          </Text>
+                            <Text
+                              fontSize="$3"
+                              fontWeight="bold"
+                              color="$color"
+                              textAlign="center"
+                              numberOfLines={1}
+                            >
+                              {pro.display_name}
+                            </Text>
+
+                            <XStack
+                              bg="$warningBackground"
+                              px="$1.5"
+                              py="$0.5"
+                              borderRadius="$2"
+                              borderColor="$warningBackground"
+                              borderWidth={1}
+                              alignItems="center"
+                              gap="$1"
+                            >
+                              <Star
+                                size={10}
+                                color="$accent"
+                                fill="$accent"
+                              />
+                              <Text
+                                fontSize={10}
+                                fontWeight="bold"
+                                color="$accent"
+                              >
+                                {pro.rating || 0}
+                              </Text>
+                              <Text
+                                fontSize={10}
+                                color="$accent"
+                                opacity={0.7}
+                              >
+                                ({pro.review_count || 0})
+                              </Text>
+                            </XStack>
+
+                            <Text
+                              fontSize="$2"
+                              fontWeight="bold"
+                              color="$color"
+                            >
+                              ${pro.hourly_rate || 'N/A'}/hr
+                            </Text>
+                          </YStack>
                         </YStack>
-                      </YStack>
-                    ))}
-                  </XStack>
-                </ScrollView>
+                      ))}
+                    </XStack>
+                  </ScrollView>
+                </ScrollIndicator>
               )
             ) : (
               <YStack
@@ -1317,94 +1323,96 @@ export function GuestHomeScreen() {
                 </YStack>
               ) : (
                 // Horizontal scroll list
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                >
-                  <XStack gap="$3">
-                    {jobs.slice(0, 5).map((job) => (
-                      <YStack
-                        key={job.public_id}
-                        bg="white"
-                        borderRadius="$6"
-                        p="$4"
-                        borderColor="$borderSubtle"
-                        borderWidth={1}
-                        shadowColor="rgba(0,0,0,0.03)"
-                        shadowRadius={5}
-                        shadowOpacity={1}
-                        width={280}
-                        onPress={redirectToLogin}
-                      >
-                        <Text
-                          fontSize="$4"
-                          fontWeight="bold"
-                          color="$color"
-                          numberOfLines={2}
-                          mb="$2"
+                <ScrollIndicator>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                  >
+                    <XStack gap="$3">
+                      {jobs.slice(0, 5).map((job) => (
+                        <YStack
+                          key={job.public_id}
+                          bg="white"
+                          borderRadius="$6"
+                          p="$4"
+                          borderColor="$borderSubtle"
+                          borderWidth={1}
+                          shadowColor="rgba(0,0,0,0.03)"
+                          shadowRadius={5}
+                          shadowOpacity={1}
+                          width={280}
+                          onPress={redirectToLogin}
                         >
-                          {job.title}
-                        </Text>
-
-                        <XStack
-                          justifyContent="space-between"
-                          alignItems="center"
-                          mb="$2"
-                        >
-                          <Text
-                            fontSize="$2"
-                            color="$colorSubtle"
-                          >
-                            {job.city?.name || 'Location N/A'}
-                          </Text>
                           <Text
                             fontSize="$4"
                             fontWeight="bold"
-                            color="#FFB800"
+                            color="$color"
+                            numberOfLines={2}
+                            mb="$2"
                           >
-                            ${job.estimated_budget}
+                            {job.title}
                           </Text>
-                        </XStack>
 
-                        <XStack
-                          gap="$2"
-                          mt="$2"
-                        >
-                          {job.category && (
+                          <XStack
+                            justifyContent="space-between"
+                            alignItems="center"
+                            mb="$2"
+                          >
+                            <Text
+                              fontSize="$2"
+                              color="$colorSubtle"
+                            >
+                              {job.city?.name || 'Location N/A'}
+                            </Text>
+                            <Text
+                              fontSize="$4"
+                              fontWeight="bold"
+                              color="#FFB800"
+                            >
+                              ${job.estimated_budget}
+                            </Text>
+                          </XStack>
+
+                          <XStack
+                            gap="$2"
+                            mt="$2"
+                          >
+                            {job.category && (
+                              <XStack
+                                bg="rgba(12,154,92,0.1)"
+                                px="$2"
+                                py="$1"
+                                borderRadius="$2"
+                              >
+                                <Text
+                                  fontSize="$1"
+                                  color="$primary"
+                                  fontWeight="500"
+                                >
+                                  {job.category.name}
+                                </Text>
+                              </XStack>
+                            )}
                             <XStack
-                              bg="rgba(12,154,92,0.1)"
+                              bg="rgba(255,184,0,0.1)"
                               px="$2"
                               py="$1"
                               borderRadius="$2"
                             >
                               <Text
                                 fontSize="$1"
-                                color="$primary"
+                                color="#FFB800"
                                 fontWeight="500"
                               >
-                                {job.category.name}
+                                Open
                               </Text>
                             </XStack>
-                          )}
-                          <XStack
-                            bg="rgba(255,184,0,0.1)"
-                            px="$2"
-                            py="$1"
-                            borderRadius="$2"
-                          >
-                            <Text
-                              fontSize="$1"
-                              color="#FFB800"
-                              fontWeight="500"
-                            >
-                              Open
-                            </Text>
                           </XStack>
-                        </XStack>
-                      </YStack>
-                    ))}
-                  </XStack>
-                </ScrollView>
+                        </YStack>
+                      ))}
+                    </XStack>
+                  </ScrollView>
+                </ScrollIndicator>
               )
             ) : (
               <YStack
