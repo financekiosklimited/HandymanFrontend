@@ -244,7 +244,7 @@ export function JobPreviewScreen() {
             gap="$5"
           >
             {/* Error Alert */}
-            {errorMessage && (
+            {!!errorMessage && (
               <XStack
                 bg="$errorBackground"
                 p="$4"
@@ -1012,7 +1012,7 @@ export function JobPreviewScreen() {
         )}
 
         {/* Fullscreen Video Player */}
-        {selectedVideo && (
+        {!!selectedVideo && (
           <VideoPlayer
             uri={selectedVideo.uri}
             thumbnailUri={selectedVideo.thumbnail}

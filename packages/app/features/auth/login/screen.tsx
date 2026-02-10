@@ -287,7 +287,7 @@ export function LoginScreen() {
             </YStack>
 
             {/* Error message */}
-            {error && (
+            {!!error && (
               <XStack
                 bg="$errorBackground"
                 p="$3"

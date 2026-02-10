@@ -555,7 +555,7 @@ export function HandymanHomeScreen() {
                 >
                   <Briefcase
                     size={16}
-                    color="primary"
+                    color="$primary"
                   />
                   <Text
                     fontSize="$3"
@@ -654,7 +654,7 @@ export function HandymanHomeScreen() {
                     >
                       <MapPin
                         size={14}
-                        color="primary"
+                        color="$primary"
                       />
                     </View>
                     <YStack flex={1}>
@@ -702,7 +702,7 @@ export function HandymanHomeScreen() {
                         {citiesLoading ? (
                           <Spinner
                             size="small"
-                            color="primary"
+                            color="$primary"
                           />
                         ) : (
                           <>
@@ -717,7 +717,7 @@ export function HandymanHomeScreen() {
                               py="$1.5"
                             >
                               <Text
-                                color={!selectedCity ? 'primary' : '$color'}
+                                color={!selectedCity ? '$primary' : '$color'}
                                 fontWeight={!selectedCity ? 'bold' : 'normal'}
                               >
                                 All Locations
@@ -736,7 +736,7 @@ export function HandymanHomeScreen() {
                                 py="$1.5"
                               >
                                 <Text
-                                  color={selectedCity === city.public_id ? 'primary' : '$color'}
+                                  color={selectedCity === city.public_id ? '$primary' : '$color'}
                                   fontWeight={selectedCity === city.public_id ? 'bold' : 'normal'}
                                 >
                                   {city.name}, {city.province}
@@ -758,9 +758,9 @@ export function HandymanHomeScreen() {
                       flex={1}
                       size="$2"
                       bg={selectedCategory ? 'rgba(12, 154, 92, 0.1)' : 'white'}
-                      borderColor={selectedCategory ? 'primary' : '$borderColor'}
+                      borderColor={selectedCategory ? '$primary' : '$borderColor'}
                       borderWidth={1}
-                      color={selectedCategory ? 'primary' : '$colorSubtle'}
+                      color={selectedCategory ? '$primary' : '$colorSubtle'}
                       borderRadius="$3"
                       fontSize="$1"
                       fontWeight="bold"
@@ -780,9 +780,9 @@ export function HandymanHomeScreen() {
                       flex={1}
                       size="$2"
                       bg={maxBudget ? 'rgba(12, 154, 92, 0.1)' : 'white'}
-                      borderColor={maxBudget ? 'primary' : '$borderColor'}
+                      borderColor={maxBudget ? '$primary' : '$borderColor'}
                       borderWidth={1}
-                      color={maxBudget ? 'primary' : '$colorSubtle'}
+                      color={maxBudget ? '$primary' : '$colorSubtle'}
                       borderRadius="$3"
                       fontSize="$1"
                       fontWeight="bold"
@@ -819,7 +819,7 @@ export function HandymanHomeScreen() {
                         py="$1.5"
                       >
                         <Text
-                          color={!selectedCategory ? 'primary' : '$color'}
+                          color={!selectedCategory ? '$primary' : '$color'}
                           fontWeight={!selectedCategory ? 'bold' : 'normal'}
                         >
                           All Categories
@@ -838,7 +838,7 @@ export function HandymanHomeScreen() {
                           py="$1.5"
                         >
                           <Text
-                            color={selectedCategory === category.slug ? 'primary' : '$color'}
+                            color={selectedCategory === category.slug ? '$primary' : '$color'}
                             fontWeight={selectedCategory === category.slug ? 'bold' : 'normal'}
                           >
                             {category.name}
@@ -871,7 +871,7 @@ export function HandymanHomeScreen() {
                           py="$1.5"
                         >
                           <Text
-                            color={maxBudget === option.value ? 'primary' : '$color'}
+                            color={maxBudget === option.value ? '$primary' : '$color'}
                             fontWeight={maxBudget === option.value ? 'bold' : 'normal'}
                           >
                             {option.label}
@@ -912,7 +912,7 @@ export function HandymanHomeScreen() {
                 <Text
                   fontSize="$2"
                   fontWeight="bold"
-                  color="primary"
+                  color="$primary"
                 >
                   See All
                 </Text>
@@ -923,7 +923,7 @@ export function HandymanHomeScreen() {
               {jobsLoading ? (
                 <Spinner
                   size="large"
-                  color="primary"
+                  color="$primary"
                   m="$4"
                 />
               ) : filteredJobs.length > 0 ? (
@@ -969,7 +969,7 @@ export function HandymanHomeScreen() {
                     >
                       <Spinner
                         size="small"
-                        color="primary"
+                        color="$primary"
                       />
                       <Text
                         color="$colorSubtle"
@@ -980,7 +980,7 @@ export function HandymanHomeScreen() {
                     </XStack>
                   ) : (
                     <Text
-                      color="primary"
+                      color="$primary"
                       fontSize="$3"
                       fontWeight="500"
                     >

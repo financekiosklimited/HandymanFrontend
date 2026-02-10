@@ -906,7 +906,7 @@ export function JobDetailScreen({ jobId }: JobDetailScreenProps) {
         )}
 
         {/* Fullscreen Video Player */}
-        {selectedVideo && (
+        {!!selectedVideo && (
           <VideoPlayer
             uri={selectedVideo.uri}
             thumbnailUri={selectedVideo.thumbnail}

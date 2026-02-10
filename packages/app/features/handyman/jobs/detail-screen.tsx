@@ -1032,7 +1032,7 @@ export function HandymanJobDetailScreen({ jobId }: HandymanJobDetailScreenProps)
         )}
 
         {/* Fullscreen Video Player */}
-        {selectedVideo && (
+        {!!selectedVideo && (
           <VideoPlayer
             uri={selectedVideo.uri}
             thumbnailUri={selectedVideo.thumbnail}

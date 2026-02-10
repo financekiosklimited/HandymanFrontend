@@ -322,7 +322,7 @@ export function ApplicationDetailScreen() {
                       color="$primary"
                     />
                   </XStack>
-                  {handyman.job_title && (
+                  {!!handyman.job_title && (
                     <Text
                       fontSize="$3"
                       color="$colorSubtle"
@@ -351,7 +351,7 @@ export function ApplicationDetailScreen() {
                       >
                         {handyman.rating?.toFixed(1) || 'N/A'}
                       </Text>
-                      {handyman.review_count && (
+                      {!!handyman.review_count && (
                         <Text
                           fontSize="$2"
                           color="$colorSubtle"
@@ -373,7 +373,7 @@ export function ApplicationDetailScreen() {
               </XStack>
 
               {/* Hourly Rate */}
-              {handyman.hourly_rate && (
+              {!!handyman.hourly_rate && (
                 <YStack
                   bg="rgba(12,154,92,0.08)"
                   borderRadius={12}
@@ -397,7 +397,7 @@ export function ApplicationDetailScreen() {
               )}
 
               {/* Bio */}
-              {handyman.bio && (
+              {!!handyman.bio && (
                 <YStack gap="$xs">
                   <Text
                     fontSize="$2"
@@ -489,7 +489,7 @@ export function ApplicationDetailScreen() {
                     flexWrap="wrap"
                     gap="$sm"
                   >
-                    {application.predicted_hours && (
+                    {!!application.predicted_hours && (
                       <YStack
                         flex={1}
                         minWidth={120}
@@ -520,7 +520,7 @@ export function ApplicationDetailScreen() {
                         </XStack>
                       </YStack>
                     )}
-                    {application.estimated_total_price && (
+                    {!!application.estimated_total_price && (
                       <YStack
                         flex={1}
                         minWidth={120}
@@ -543,7 +543,7 @@ export function ApplicationDetailScreen() {
                   </XStack>
 
                   {/* Negotiation Reasoning */}
-                  {application.negotiation_reasoning && (
+                  {!!application.negotiation_reasoning && (
                     <YStack
                       pt="$sm"
                       borderTopWidth={1}
@@ -604,7 +604,7 @@ export function ApplicationDetailScreen() {
                               >
                                 {material.name}
                               </Text>
-                              {material.description && (
+                              {!!material.description && (
                                 <Text
                                   fontSize="$2"
                                   color="$colorSubtle"
@@ -687,7 +687,7 @@ export function ApplicationDetailScreen() {
             </YStack>
 
             {/* Application Message */}
-            {application.message && (
+            {!!application.message && (
               <YStack
                 bg="rgba(255,255,255,0.9)"
                 borderRadius={16}
@@ -715,7 +715,7 @@ export function ApplicationDetailScreen() {
             )}
 
             {/* Proposed Rate */}
-            {application.proposed_rate && (
+            {!!application.proposed_rate && (
               <YStack
                 bg="rgba(255,255,255,0.9)"
                 borderRadius={16}

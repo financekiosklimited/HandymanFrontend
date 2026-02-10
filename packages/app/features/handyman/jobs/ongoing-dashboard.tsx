@@ -1071,7 +1071,7 @@ function UploadPreviewModal({
                 </Text>
               </YStack>
 
-              {imageUri && (
+              {!!imageUri && (
                 <View
                   borderRadius={20}
                   overflow="hidden"
@@ -1112,7 +1112,7 @@ function UploadPreviewModal({
                       >
                         Video Preview
                       </Text>
-                      {duration && (
+                      {!!duration && (
                         <View
                           bg="rgba(0,0,0,0.6)"
                           px="$sm"
@@ -2079,7 +2079,7 @@ function CameraPreviewModal({
           >
             {title}
           </Text>
-          {imageUri && (
+          {!!imageUri && (
             <View
               borderRadius={16}
               overflow="hidden"
@@ -3606,7 +3606,7 @@ export function OngoingJobDashboard({ jobId }: OngoingJobDashboardProps) {
                   </YStack>
 
                   {/* Homeowner's review of Handyman */}
-                  {homeowner_review && (
+                  {!!homeowner_review && (
                     <YStack gap="$md">
                       <XStack
                         alignItems="center"

@@ -248,7 +248,7 @@ export function RegisterScreen() {
             </YStack>
 
             {/* Error message */}
-            {error && (
+            {!!error && (
               <XStack
                 bg="$errorBackground"
                 p="$3"

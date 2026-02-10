@@ -321,7 +321,7 @@ function ChatHeader({
         )}
 
         {/* Status Badge */}
-        {statusBadge && (
+        {!!statusBadge && (
           <View
             bg={statusBadge.bg}
             px="$sm"

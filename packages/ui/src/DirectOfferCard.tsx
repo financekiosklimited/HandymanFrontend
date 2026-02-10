@@ -1,5 +1,13 @@
 import { YStack, XStack, Text, Image, View } from 'tamagui'
-import { User, MapPin, DollarSign } from '@tamagui/lucide-icons'
+import {
+  User,
+  MapPin,
+  DollarSign,
+  Clock,
+  RefreshCw,
+  CheckCircle2,
+  ChevronRight,
+} from '@tamagui/lucide-icons'
 import type { HomeownerDirectOffer, HandymanDirectOffer } from '@my/api'
 import { formatOfferDate } from '@my/api'
 import { OfferStatusBadge } from './OfferStatusBadge'
@@ -33,6 +41,10 @@ function isHandymanOffer(offer: DirectOffer): offer is HandymanDirectOffer {
  */
 export function DirectOfferCard({ offer, onPress, variant }: DirectOfferCardProps) {
   const isPending = offer.offer_status === 'pending'
+  const isRejected = offer.offer_status === 'rejected'
+  const isExpired = offer.offer_status === 'expired'
+  const isAccepted = offer.offer_status === 'accepted'
+  const needsAction = isRejected || isExpired
 
   // Get person info based on variant
   const person =
@@ -44,6 +56,13 @@ export function DirectOfferCard({ offer, onPress, variant }: DirectOfferCardProp
 
   const personLabel = variant === 'homeowner' ? 'To' : 'From'
 
+  // Get border color based on status
+  const getBorderColor = () => {
+    if (isAccepted) return '$success'
+    if (needsAction) return '$warning'
+    return '$borderColor'
+  }
+
   return (
     <YStack
       bg="$backgroundStrong"
@@ -54,13 +73,43 @@ export function DirectOfferCard({ offer, onPress, variant }: DirectOfferCardProp
       cursor="pointer"
       p="$md"
       gap="$sm"
+      borderWidth={2}
+      borderColor={getBorderColor()}
     >
       {/* Header: Status and Time */}
       <XStack
         justifyContent="space-between"
         alignItems="center"
       >
-        <OfferStatusBadge status={offer.offer_status} />
+        <XStack
+          alignItems="center"
+          gap="$xs"
+        >
+          <OfferStatusBadge status={offer.offer_status} />
+          {/* Action needed indicator */}
+          {needsAction && (
+            <XStack
+              bg="$warningBackground"
+              px="$xs"
+              py={2}
+              borderRadius="$sm"
+              alignItems="center"
+              gap={2}
+            >
+              <RefreshCw
+                size={10}
+                color="$warning"
+              />
+              <Text
+                fontSize={9}
+                color="$warning"
+                fontWeight="600"
+              >
+                Convert to Job
+              </Text>
+            </XStack>
+          )}
+        </XStack>
         {isPending && <TimeRemainingBadge expiresAt={offer.offer_expires_at} />}
         {!isPending && (
           <Text
@@ -213,9 +262,12 @@ export function DirectOfferCard({ offer, onPress, variant }: DirectOfferCardProp
         </XStack>
       )}
 
-      {/* Category Badge */}
-      {offer.category && (
-        <XStack>
+      {/* Category Badge and Chevron */}
+      <XStack
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        {offer.category && (
           <Text
             fontSize={10}
             color="$colorSubtle"
@@ -226,8 +278,12 @@ export function DirectOfferCard({ offer, onPress, variant }: DirectOfferCardProp
           >
             {offer.category.name}
           </Text>
-        </XStack>
-      )}
+        )}
+        <ChevronRight
+          size={18}
+          color="$colorMuted"
+        />
+      </XStack>
     </YStack>
   )
 }

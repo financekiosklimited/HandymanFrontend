@@ -160,7 +160,6 @@ export function FluidSplashScreen({
             shadowColor="rgba(0,0,0,0.2)"
             shadowRadius={40}
             shadowOffset={{ width: 0, height: 8 }}
-            elevation={8}
           >
             <YStack alignItems="center">
               <Home

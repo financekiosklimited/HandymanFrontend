@@ -499,7 +499,7 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
               borderColor="rgba(0,0,0,0.08)"
               position="relative"
             >
-              {previewImage && (
+              {!!previewImage && (
                 <Image
                   source={{ uri: previewImage }}
                   width="100%"

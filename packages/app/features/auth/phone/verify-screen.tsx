@@ -254,7 +254,7 @@ export function PhoneVerifyScreen() {
           </XStack>
 
           {/* Error message */}
-          {error && (
+          {!!error && (
             <XStack
               bg="$errorBackground"
               p="$3"

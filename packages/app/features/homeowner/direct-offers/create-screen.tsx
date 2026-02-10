@@ -708,7 +708,7 @@ export function CreateDirectOfferScreen() {
               </XStack>
 
               {/* General Error */}
-              {generalError && (
+              {!!generalError && (
                 <XStack
                   bg="$errorBackground"
                   p="$3"
@@ -743,7 +743,7 @@ export function CreateDirectOfferScreen() {
                   <Input
                     value={formData.title}
                     onChangeText={(text) => updateField('title', text)}
-                    placeholder="e.g. Fix leaking faucet"
+                    placeholder="e.g., Install ceiling fan, Repair drywall, Assemble IKEA furniture..."
                     {...inputStyles}
                     borderColor={
                       getFieldErrors(errors, 'title').length > 0 ? '$error' : '$borderColorHover'
@@ -779,7 +779,7 @@ export function CreateDirectOfferScreen() {
                     <Input
                       value={formData.estimated_budget}
                       onChangeText={(text) => updateField('estimated_budget', text)}
-                      placeholder="0.00"
+                      placeholder="Enter estimated amount (e.g., 150)"
                       bg="transparent"
                       borderWidth={0}
                       flex={1}
@@ -868,7 +868,7 @@ export function CreateDirectOfferScreen() {
                   <Input
                     value={formData.address}
                     onChangeText={(text) => updateField('address', text)}
-                    placeholder="Enter your address"
+                    placeholder="Street address where work will be done"
                     {...inputStyles}
                     borderColor={
                       getFieldErrors(errors, 'address').length > 0 ? '$error' : '$borderColorHover'
@@ -885,7 +885,7 @@ export function CreateDirectOfferScreen() {
                   <Input
                     value={formData.postal_code}
                     onChangeText={(text) => updateField('postal_code', text)}
-                    placeholder="Enter postal code (optional)"
+                    placeholder="e.g., A1A 1A1 (optional)"
                     {...inputStyles}
                     borderColor="$borderColorHover"
                     placeholderTextColor="$placeholderColor"
@@ -946,7 +946,7 @@ export function CreateDirectOfferScreen() {
                     <TextArea
                       value={formData.description}
                       onChangeText={(text) => updateField('description', text.slice(0, 500))}
-                      placeholder="Describe what you need help with..."
+                      placeholder="Describe the job in detail. Include dimensions, materials you have, preferred timing, access instructions..."
                       {...inputStyles}
                       borderColor={
                         getFieldErrors(errors, 'description').length > 0
@@ -1046,7 +1046,7 @@ export function CreateDirectOfferScreen() {
                     <Input
                       value={newTaskTitle}
                       onChangeText={setNewTaskTitle}
-                      placeholder="Add a task item"
+                      placeholder="e.g., Purchase materials, Remove old fixture, Install new part..."
                       bg="transparent"
                       borderWidth={0}
                       flex={1}

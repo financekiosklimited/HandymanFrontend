@@ -1354,7 +1354,7 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
         )}
 
         {/* Fullscreen Video Player */}
-        {selectedVideo && (
+        {!!selectedVideo && (
           <VideoPlayer
             uri={selectedVideo.uri}
             thumbnailUri={selectedVideo.thumbnail}

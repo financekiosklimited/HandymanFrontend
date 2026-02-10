@@ -225,7 +225,7 @@ export function HomeownerProfileEditScreen() {
               pt="$2"
             >
               {/* General Error */}
-              {generalError && (
+              {!!generalError && (
                 <XStack
                   bg="$errorBackground"
                   p="$3.5"

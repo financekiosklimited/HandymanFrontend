@@ -134,7 +134,7 @@ function RatingSummaryCard({ ratingStats }: { ratingStats: RatingStats }) {
         </YStack>
 
         {/* Rating Distribution */}
-        {distribution && (
+        {!!distribution && (
           <YStack
             flex={1}
             gap={0}

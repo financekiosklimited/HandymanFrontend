@@ -241,7 +241,7 @@ export function DirectOfferSuccessScreen() {
           px="$4"
           gap="$3"
         >
-          {offerId && (
+          {!!offerId && (
             <Button
               bg="$primary"
               borderRadius="$4"

@@ -6,4 +6,4 @@ export {
   fullScreenModalOptions,
   AppStack,
   RootStack,
-} from './config.tsx'
+} from './config'

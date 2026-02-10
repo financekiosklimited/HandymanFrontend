@@ -35,7 +35,7 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
   const [isNavigating, setIsNavigating] = useState(false)
 
   // Store timeout to clear it if needed
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const setNavigating = useCallback(
     (value: boolean) => {

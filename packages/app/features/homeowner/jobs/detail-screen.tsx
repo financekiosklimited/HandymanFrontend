@@ -549,49 +549,60 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
             </YStack>
 
             {/* Applications Card (if any) */}
-            {!!job.applicant_count && job.applicant_count > 0 && (
-              <YStack
-                bg="$infoBackground"
-                borderRadius={20}
-                p="$lg"
-                mb="$lg"
-                borderWidth={1}
-                borderColor="rgba(59, 130, 246, 0.2)"
+            {!!job.applicant_count && job.applicant_count > 0 && job.status === 'open' && (
+              <Button
+                unstyled
+                onPress={() => router.push(`/(homeowner)/jobs/${jobId}`)}
               >
-                <XStack
-                  alignItems="center"
-                  gap="$md"
+                <YStack
+                  bg="$infoBackground"
+                  borderRadius={20}
+                  p="$lg"
+                  mb="$lg"
+                  borderWidth={1}
+                  borderColor="rgba(59, 130, 246, 0.2)"
+                  pressStyle={{ opacity: 0.9, scale: 0.99 }}
                 >
-                  <YStack
-                    width={40}
-                    height={40}
-                    borderRadius="$full"
-                    bg="rgba(59, 130, 246, 0.2)"
+                  <XStack
                     alignItems="center"
-                    justifyContent="center"
+                    gap="$md"
                   >
-                    <Users
-                      size={18}
+                    <YStack
+                      width={40}
+                      height={40}
+                      borderRadius="$full"
+                      bg="rgba(59, 130, 246, 0.2)"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Users
+                        size={18}
+                        color="$info"
+                      />
+                    </YStack>
+                    <YStack flex={1}>
+                      <Text
+                        fontSize="$4"
+                        fontWeight="600"
+                        color="$info"
+                      >
+                        🎉 {job.applicant_count} Applicant{job.applicant_count > 1 ? 's' : ''}{' '}
+                        Waiting
+                      </Text>
+                      <Text
+                        fontSize="$3"
+                        color="$info"
+                      >
+                        Review applications to find the right handyman
+                      </Text>
+                    </YStack>
+                    <ChevronRight
+                      size={20}
                       color="$info"
                     />
-                  </YStack>
-                  <YStack flex={1}>
-                    <Text
-                      fontSize="$4"
-                      fontWeight="600"
-                      color="$info"
-                    >
-                      {job.applicant_count} Application{job.applicant_count > 1 ? 's' : ''}
-                    </Text>
-                    <Text
-                      fontSize="$3"
-                      color="$info"
-                    >
-                      Handymen have applied to this job
-                    </Text>
-                  </YStack>
-                </XStack>
-              </YStack>
+                  </XStack>
+                </YStack>
+              </Button>
             )}
 
             {/* Description Card */}
@@ -1066,7 +1077,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
         )}
 
         {/* Fullscreen Video Player */}
-        {selectedVideo && (
+        {!!selectedVideo && (
           <VideoPlayer
             uri={selectedVideo.uri}
             thumbnailUri={selectedVideo.thumbnail}

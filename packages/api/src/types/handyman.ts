@@ -165,6 +165,8 @@ export interface HandymanProfile {
   phone_number: string | null
   is_phone_verified: boolean
   address: string | null
+  total_earnings: number
+  completed_jobs_count: number
 }
 
 export interface HandymanProfileUpdateRequest {

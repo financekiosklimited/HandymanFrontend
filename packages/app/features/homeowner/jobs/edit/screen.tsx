@@ -735,7 +735,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
               </YStack>
 
               {/* General Error */}
-              {generalError && (
+              {!!generalError && (
                 <XStack
                   bg="$errorBackground"
                   p="$3"
@@ -770,7 +770,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                   <Input
                     value={formData.title}
                     onChangeText={(text) => updateField('title', text)}
-                    placeholder="e.g. Fixing AC"
+                    placeholder="e.g., Fix leaking kitchen faucet, Paint bedroom walls..."
                     {...inputStyles}
                     borderColor={
                       getFieldErrors(errors, 'title').length > 0 ? '$error' : '$borderColorHover'
@@ -816,7 +816,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                           parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : numericValue
                         updateField('estimated_budget', sanitized)
                       }}
-                      placeholder="e.g. 150"
+                      placeholder="Enter estimated amount (e.g., 150)"
                       keyboardType="decimal-pad"
                       bg="transparent"
                       borderWidth={0}
@@ -911,7 +911,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                   <Input
                     value={formData.address}
                     onChangeText={(text) => updateField('address', text)}
-                    placeholder="Please write your detailed address"
+                    placeholder="Street address where work will be done"
                     {...inputStyles}
                     borderColor={
                       getFieldErrors(errors, 'address').length > 0 ? '$error' : '$borderColorHover'
@@ -931,7 +931,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                       const sanitized = text.toUpperCase().replace(/[^A-Z0-9 ]/g, '')
                       updateField('postal_code', sanitized.slice(0, 7))
                     }}
-                    placeholder="e.g. A1A 1A1"
+                    placeholder="e.g., A1A 1A1 (optional)"
                     {...inputStyles}
                     borderColor={
                       getFieldErrors(errors, 'postal_code').length > 0
@@ -959,7 +959,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                           updateField('description', text)
                         }
                       }}
-                      placeholder="Describe the job in detail..."
+                      placeholder="What needs to be done? Include dimensions, materials you have, preferred timing..."
                       {...inputStyles}
                       borderColor={
                         getFieldErrors(errors, 'description').length > 0
@@ -1065,7 +1065,7 @@ export function EditJobScreen({ jobId }: EditJobScreenProps) {
                     <Input
                       value={newTaskTitle}
                       onChangeText={setNewTaskTitle}
-                      placeholder="Add a task item"
+                      placeholder="e.g., Remove old fixture, Install new part, Clean up..."
                       bg="transparent"
                       borderWidth={0}
                       flex={1}

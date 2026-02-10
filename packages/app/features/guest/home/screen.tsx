@@ -789,7 +789,6 @@ export function GuestHomeScreen() {
                 <XStack
                   alignItems="center"
                   gap="$1"
-                  color="$primary"
                 >
                   <Text
                     fontSize="$2"

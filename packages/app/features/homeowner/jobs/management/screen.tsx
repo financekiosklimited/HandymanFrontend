@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, PageHeader } from '@my/ui'
 import { GradientBackground, SearchBar, DirectOfferCard } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -454,7 +454,7 @@ function ExpandableJobCard({
           )}
         </XStack>
 
-        {/* Expand indicator */}
+        {/* Expand indicator with status-based CTA */}
         <XStack
           mt="$sm"
           pt="$sm"
@@ -464,27 +464,112 @@ function ExpandableJobCard({
           justifyContent="center"
           gap="$xs"
         >
-          <Users
-            size={14}
-            color="$primary"
-          />
-          <Text
-            fontSize="$2"
-            color="$primary"
-            fontWeight="500"
-          >
-            {job.applicant_count || 0} {job.applicant_count === 1 ? 'Applicant' : 'Applicants'}
-          </Text>
-          {isExpanded ? (
-            <ChevronUp
-              size={16}
-              color="$primary"
-            />
+          {job.status === 'open' && job.applicant_count && job.applicant_count > 0 ? (
+            <>
+              <View
+                bg="$primary"
+                px="$xs"
+                py="$1"
+                borderRadius="$full"
+              >
+                <Text
+                  fontSize="$1"
+                  color="white"
+                  fontWeight="700"
+                >
+                  {job.applicant_count}
+                </Text>
+              </View>
+              <Text
+                fontSize="$2"
+                color="$primary"
+                fontWeight="600"
+              >
+                {job.applicant_count === 1 ? 'Applicant' : 'Applicants'} to Review
+              </Text>
+              <ChevronDown
+                size={16}
+                color="$primary"
+              />
+            </>
+          ) : job.status === 'open' && (!job.applicant_count || job.applicant_count === 0) ? (
+            <>
+              <Users
+                size={14}
+                color="$colorSubtle"
+              />
+              <Text
+                fontSize="$2"
+                color="$colorSubtle"
+                fontWeight="500"
+              >
+                Waiting for applications...
+              </Text>
+              {isExpanded ? (
+                <ChevronUp
+                  size={16}
+                  color="$colorSubtle"
+                />
+              ) : (
+                <ChevronDown
+                  size={16}
+                  color="$colorSubtle"
+                />
+              )}
+            </>
+          ) : job.status === 'assigned' ? (
+            <>
+              <Text
+                fontSize="$2"
+                color="$info"
+                fontWeight="600"
+              >
+                Work in progress - Track in Reports
+              </Text>
+              <ChevronDown
+                size={16}
+                color="$info"
+              />
+            </>
+          ) : job.status === 'pending_completion' ? (
+            <>
+              <Text
+                fontSize="$2"
+                color="$warning"
+                fontWeight="600"
+              >
+                Review completion report
+              </Text>
+              <ChevronDown
+                size={16}
+                color="$warning"
+              />
+            </>
           ) : (
-            <ChevronDown
-              size={16}
-              color="$primary"
-            />
+            <>
+              <Users
+                size={14}
+                color="$primary"
+              />
+              <Text
+                fontSize="$2"
+                color="$primary"
+                fontWeight="500"
+              >
+                {job.applicant_count || 0} {job.applicant_count === 1 ? 'Applicant' : 'Applicants'}
+              </Text>
+              {isExpanded ? (
+                <ChevronUp
+                  size={16}
+                  color="$primary"
+                />
+              ) : (
+                <ChevronDown
+                  size={16}
+                  color="$primary"
+                />
+              )}
+            </>
           )}
         </XStack>
       </Button>
@@ -520,17 +605,29 @@ function ExpandableJobCard({
             <YStack
               py="$md"
               alignItems="center"
+              px="$lg"
             >
               <Users
-                size={24}
+                size={28}
                 color="$colorMuted"
               />
+              <Text
+                fontSize="$4"
+                fontWeight="600"
+                color="$color"
+                mt="$sm"
+                textAlign="center"
+              >
+                No applications yet
+              </Text>
               <Text
                 fontSize="$3"
                 color="$colorSubtle"
                 mt="$xs"
+                textAlign="center"
               >
-                No applications yet
+                Jobs typically receive responses within 2-24 hours. Make sure your description is
+                detailed!
               </Text>
             </YStack>
           ) : (
@@ -921,7 +1018,7 @@ export function JobManagementScreen() {
                 </YStack>
 
                 {/* Filter indicator */}
-                {statusFilter && (
+                {!!statusFilter && (
                   <XStack
                     alignItems="center"
                     gap="$xs"
@@ -1044,7 +1141,7 @@ export function JobManagementScreen() {
                     >
                       {statusFilter || searchQuery
                         ? 'Try adjusting your filters or search query.'
-                        : 'Post your first job to start receiving applications from skilled handymen.'}
+                        : 'Ready to get help? Post your first job and receive quotes from skilled handymen in your area.'}
                     </Text>
                     {!statusFilter && !searchQuery && (
                       <Button
@@ -1220,9 +1317,24 @@ export function JobManagementScreen() {
                       fontSize="$3"
                       textAlign="center"
                     >
-                      Send direct offers to handymen you'd like to work with from their profile
-                      page.
+                      Skip the waiting! Send direct offers to handymen you like and get faster
+                      responses.
                     </Text>
+                    <Button
+                      mt="$sm"
+                      bg="$primary"
+                      color="white"
+                      borderRadius="$lg"
+                      px="$xl"
+                      onPress={() => router.push('/(homeowner)')}
+                    >
+                      <Text
+                        color="white"
+                        fontWeight="600"
+                      >
+                        Browse Handymen
+                      </Text>
+                    </Button>
                   </YStack>
                 ) : (
                   <YStack gap="$md">

@@ -36,6 +36,7 @@ import {
   Play,
   AlertCircle,
   MessageCircle,
+  CheckCircle2,
 } from '@tamagui/lucide-icons'
 import { PageHeader } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -332,7 +333,151 @@ export function HomeownerDirectOfferDetailScreen({
               )}
             </XStack>
 
-            {/* Rejection Reason */}
+            {/* Pending Status - Waiting for Response */}
+            {offer.offer_status === 'pending' && (
+              <YStack
+                bg="$infoBackground"
+                borderRadius="$4"
+                p="$4"
+                borderWidth={1}
+                borderColor="$infoBackground"
+                gap="$2"
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                >
+                  <Clock
+                    size={20}
+                    color="$info"
+                  />
+                  <Text
+                    fontSize="$3"
+                    fontWeight="600"
+                    color="$info"
+                  >
+                    Waiting for Response
+                  </Text>
+                </XStack>
+                <Text
+                  fontSize="$3"
+                  color="$colorSubtle"
+                >
+                  Handymen typically respond within 2-24 hours. You'll receive a notification when
+                  they accept or decline.
+                </Text>
+              </YStack>
+            )}
+
+            {/* Rejected Status - Guidance */}
+            {offer.offer_status === 'rejected' && (
+              <YStack
+                bg="$warningBackground"
+                borderRadius="$4"
+                p="$4"
+                borderWidth={1}
+                borderColor="$warningBackground"
+                gap="$2"
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                >
+                  <RefreshCw
+                    size={20}
+                    color="$warning"
+                  />
+                  <Text
+                    fontSize="$3"
+                    fontWeight="600"
+                    color="$warning"
+                  >
+                    Offer Declined
+                  </Text>
+                </XStack>
+                <Text
+                  fontSize="$3"
+                  color="$colorSubtle"
+                >
+                  Don't worry! You can convert this to a public job listing and receive applications
+                  from other skilled handymen in your area.
+                </Text>
+              </YStack>
+            )}
+
+            {/* Expired Status - Guidance */}
+            {offer.offer_status === 'expired' && (
+              <YStack
+                bg="$warningBackground"
+                borderRadius="$4"
+                p="$4"
+                borderWidth={1}
+                borderColor="$warningBackground"
+                gap="$2"
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                >
+                  <Clock
+                    size={20}
+                    color="$warning"
+                  />
+                  <Text
+                    fontSize="$3"
+                    fontWeight="600"
+                    color="$warning"
+                  >
+                    Offer Expired
+                  </Text>
+                </XStack>
+                <Text
+                  fontSize="$3"
+                  color="$colorSubtle"
+                >
+                  This offer expired without a response. Convert it to a public job to reach more
+                  handymen and get the help you need.
+                </Text>
+              </YStack>
+            )}
+
+            {/* Accepted Status - Success */}
+            {offer.offer_status === 'accepted' && (
+              <YStack
+                bg="$successBackground"
+                borderRadius="$4"
+                p="$4"
+                borderWidth={1}
+                borderColor="$successBackground"
+                gap="$2"
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                >
+                  <CheckCircle2
+                    size={20}
+                    color="$success"
+                  />
+                  <Text
+                    fontSize="$3"
+                    fontWeight="600"
+                    color="$success"
+                  >
+                    Offer Accepted!
+                  </Text>
+                </XStack>
+                <Text
+                  fontSize="$3"
+                  color="$colorSubtle"
+                >
+                  Great news! {offer.target_handyman.display_name} has accepted your offer. Use the
+                  chat button above to coordinate details and get started.
+                </Text>
+              </YStack>
+            )}
+
+            {/* Rejection Reason Detail */}
             {offer.offer_status === 'rejected' && offer.offer_rejection_reason && (
               <YStack
                 bg="$errorBackground"
@@ -1142,7 +1287,7 @@ export function HomeownerDirectOfferDetailScreen({
         )}
 
         {/* Video Player */}
-        {selectedVideo && (
+        {!!selectedVideo && (
           <VideoPlayer
             uri={selectedVideo.uri}
             thumbnailUri={selectedVideo.thumbnail}

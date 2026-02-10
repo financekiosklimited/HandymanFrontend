@@ -25,7 +25,6 @@ export const defaultScreenOptions: NativeStackNavigationOptions = {
   animation: 'slide_from_right',
   animationDuration: 150,
   contentStyle: { backgroundColor: 'transparent' },
-  detachInactiveScreens: true,
 }
 
 /**

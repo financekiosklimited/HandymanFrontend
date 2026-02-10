@@ -646,7 +646,7 @@ export function AddJobScreen() {
               </YStack>
 
               {/* General Error */}
-              {generalError && (
+              {!!generalError && (
                 <XStack
                   bg="$errorBackground"
                   p="$3"
@@ -681,7 +681,7 @@ export function AddJobScreen() {
                   <Input
                     value={formData.title}
                     onChangeText={(text) => updateField('title', text)}
-                    placeholder="e.g. Fixing AC"
+                    placeholder="e.g., Fix leaking kitchen faucet, Paint bedroom walls..."
                     {...inputStyles}
                     borderColor={
                       getFieldErrors(errors, 'title').length > 0 ? '$error' : '$borderColorHover'
@@ -717,7 +717,7 @@ export function AddJobScreen() {
                     <Input
                       value={formData.estimated_budget}
                       onChangeText={(text) => updateField('estimated_budget', text)}
-                      placeholder="0.00"
+                      placeholder="Enter estimated amount (e.g., 150)"
                       bg="transparent"
                       borderWidth={0}
                       flex={1}
@@ -807,7 +807,7 @@ export function AddJobScreen() {
                   <Input
                     value={formData.address}
                     onChangeText={(text) => updateField('address', text)}
-                    placeholder="Enter your address"
+                    placeholder="Street address where work will be done"
                     {...inputStyles}
                     borderColor={
                       getFieldErrors(errors, 'address').length > 0 ? '$error' : '$borderColorHover'
@@ -824,7 +824,7 @@ export function AddJobScreen() {
                   <Input
                     value={formData.postal_code}
                     onChangeText={(text) => updateField('postal_code', text)}
-                    placeholder="Enter postal code (optional)"
+                    placeholder="e.g., A1A 1A1 (optional)"
                     {...inputStyles}
                     borderColor="$borderColorHover"
                     placeholderTextColor="$placeholderColor"
@@ -842,7 +842,7 @@ export function AddJobScreen() {
                     <TextArea
                       value={formData.description}
                       onChangeText={(text) => updateField('description', text.slice(0, 500))}
-                      placeholder="Describe your job in detail..."
+                      placeholder="What needs to be done? Include dimensions, materials you have, preferred timing..."
                       {...inputStyles}
                       borderColor={
                         getFieldErrors(errors, 'description').length > 0
@@ -953,7 +953,7 @@ export function AddJobScreen() {
                     <Input
                       value={newTaskTitle}
                       onChangeText={setNewTaskTitle}
-                      placeholder="Add a task item"
+                      placeholder="e.g., Remove old fixture, Install new part, Clean up..."
                       bg="transparent"
                       borderWidth={0}
                       flex={1}

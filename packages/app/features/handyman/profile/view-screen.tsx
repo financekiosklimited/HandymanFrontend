@@ -412,7 +412,7 @@ export function HandymanProfileViewScreen() {
                 >
                   <TrendingUp
                     size={18}
-                    color="primary"
+                    color="$primary"
                   />
                   <Text
                     fontSize={15}

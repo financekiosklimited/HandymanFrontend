@@ -1018,7 +1018,7 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
         )}
 
         {/* Video Player */}
-        {selectedVideo && (
+        {!!selectedVideo && (
           <VideoPlayer
             uri={selectedVideo.uri}
             thumbnailUri={selectedVideo.thumbnail}

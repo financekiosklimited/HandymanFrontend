@@ -251,7 +251,7 @@ export function ForgotPasswordResetScreen() {
             </YStack>
 
             {/* Error message */}
-            {error && (
+            {!!error && (
               <XStack
                 bg="$errorBackground"
                 p="$3"

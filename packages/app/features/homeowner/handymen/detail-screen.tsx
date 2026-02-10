@@ -15,6 +15,7 @@ import {
   MessageCircle,
   Briefcase,
   ChevronRight,
+  Zap,
 } from '@tamagui/lucide-icons'
 import { PageHeader } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -381,6 +382,27 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                   </Text>
                 </XStack>
               </Button>
+
+              {/* Direct Offer Helper Text */}
+              <XStack
+                alignItems="center"
+                justifyContent="center"
+                gap="$xs"
+                mb="$xs"
+              >
+                <Zap
+                  size={14}
+                  color="yellow"
+                  fill="yellow"
+                />
+                <Text
+                  fontSize="$2"
+                  color="yellow"
+                  textAlign="center"
+                >
+                  Skip the wait! Send a direct job offer and get a faster response.
+                </Text>
+              </XStack>
 
               {/* Chat Button */}
               <Button

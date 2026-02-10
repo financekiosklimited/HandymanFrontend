@@ -570,7 +570,7 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
       alignItems="center"
       mb="$2"
     >
-      {Icon && (
+      {!!Icon && (
         <Icon
           size={16}
           color="$primary"
