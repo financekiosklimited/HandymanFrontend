@@ -9,7 +9,10 @@
     "ios": "yarn fix-xcode-env && npx expo run:ios",
     "eject": "npx expo eject",
     "fix-xcode-env": "node scripts/fix-xcode-env.mjs",
-    "prebuild": "yarn expo prebuild"
+    "prebuild": "yarn expo prebuild",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@babel/runtime": "^7.26.0",
@@ -53,8 +56,15 @@
   "devDependencies": {
     "@babel/core": "^7.24.6",
     "@tamagui/babel-plugin": "^1.143.1",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^12.9.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "babel-preset-expo": "~54.0.10",
+    "jest-expo": "~52.0.6",
+    "jsdom": "^26.0.0",
     "metro-minify-terser": "^0.82.0",
-    "typescript": "~5.9.2"
+    "react-test-renderer": "19.1.0",
+    "typescript": "~5.9.2",
+    "vitest": "^2.1.1"
   }
 }
