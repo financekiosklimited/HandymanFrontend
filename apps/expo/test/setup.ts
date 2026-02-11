@@ -1,3 +1,4 @@
+import type React from 'react'
 import { vi } from 'vitest'
 
 // Mock matchMedia for Tamagui
@@ -61,8 +62,8 @@ vi.mock('expo-location', () => ({
 
 // Mock SafeAreaContext
 vi.mock('react-native-safe-area-context', () => ({
-  SafeAreaProvider: ({ children }) => children,
-  SafeAreaView: ({ children }) => children,
+  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
 }))
 
@@ -76,7 +77,7 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 // Mock tamagui toast
 vi.mock('@tamagui/toast', () => ({
   Toast: () => null,
-  ToastProvider: ({ children }) => children,
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
   useToast: () => ({
     show: vi.fn(),
     hide: vi.fn(),

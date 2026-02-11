@@ -229,7 +229,7 @@ export function PhoneVerifyScreen() {
             {otp.map((digit, index) => (
               <Input
                 key={index}
-                ref={(ref) => {
+                ref={(ref: unknown) => {
                   inputRefs.current[index] = ref as TextInput | null
                 }}
                 value={digit}

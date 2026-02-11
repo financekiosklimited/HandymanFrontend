@@ -1,6 +1,7 @@
 import type React from 'react'
 import { render as rtlRender, type RenderOptions } from '@testing-library/react-native'
-import { TamaguiProvider, config } from '@my/config'
+import { TamaguiProvider } from 'tamagui'
+import { config } from '@my/config'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // Create a test query client

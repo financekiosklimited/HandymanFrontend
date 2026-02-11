@@ -17,6 +17,7 @@ import { Image } from 'expo-image'
 const AnimatedYStack = Animated.createAnimatedComponent(YStack)
 const AnimatedXStack = Animated.createAnimatedComponent(XStack)
 const AnimatedView = Animated.createAnimatedComponent(View)
+const AnimatedText = Animated.createAnimatedComponent(Text)
 
 interface FluidSplashScreenProps {
   onAnimationComplete?: () => void
@@ -32,13 +33,22 @@ export function FluidSplashScreen({
 }: FluidSplashScreenProps) {
   const logoScale = useSharedValue(0)
   const logoOpacity = useSharedValue(0)
+  const logoFloatY = useSharedValue(0)
   const textY = useSharedValue(30)
   const textOpacity = useSharedValue(0)
   const loaderOpacity = useSharedValue(0)
   const bgOpacity = useSharedValue(0)
+  const bgZoom = useSharedValue(1)
+  const glowOpacity = useSharedValue(0)
 
   // Subtle floating animation for background elements
   const floatY = useSharedValue(0)
+
+  // Word-by-word animation values for tagline
+  const word1Opacity = useSharedValue(0)
+  const word2Opacity = useSharedValue(0)
+  const word3Opacity = useSharedValue(0)
+  const word4Opacity = useSharedValue(0)
 
   useEffect(() => {
     // Background fade in
@@ -62,11 +72,41 @@ export function FluidSplashScreen({
       true
     )
 
+    // Logo floating animation (gentle up/down)
+    logoFloatY.value = withDelay(
+      1500,
+      withRepeat(withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.sin) }), -1, true)
+    )
+
+    // Background Ken Burns effect (slow zoom)
+    bgZoom.value = withTiming(1.08, { duration: 12000, easing: Easing.out(Easing.ease) })
+
+    // Logo glow pulse animation
+    glowOpacity.value = withDelay(
+      2000,
+      withRepeat(withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.sin) }), -1, true)
+    )
+
+    // Word-by-word tagline reveal with stagger
+    const wordBaseDelay = 800
+    const wordStagger = 120
+    word1Opacity.value = withDelay(wordBaseDelay, withTiming(1, { duration: 400 }))
+    word2Opacity.value = withDelay(wordBaseDelay + wordStagger, withTiming(1, { duration: 400 }))
+    word3Opacity.value = withDelay(
+      wordBaseDelay + wordStagger * 2,
+      withTiming(1, { duration: 400 })
+    )
+    word4Opacity.value = withDelay(
+      wordBaseDelay + wordStagger * 3,
+      withTiming(1, { duration: 400 })
+    )
+
     // Call completion callback after minimum display time
     if (onAnimationComplete) {
       const timer = setTimeout(onAnimationComplete, minDisplayTime)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [])
 
   const logoStyle = useAnimatedStyle(() => ({
@@ -87,8 +127,36 @@ export function FluidSplashScreen({
     opacity: bgOpacity.value,
   }))
 
+  const bgZoomStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: bgZoom.value }],
+  }))
+
   const floatStyle1 = useAnimatedStyle(() => ({
     transform: [{ translateY: interpolate(floatY.value, [0, 1], [-15, 15]) }],
+  }))
+
+  const logoFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: interpolate(logoFloatY.value, [0, 1], [-3, 3]) }],
+  }))
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(glowOpacity.value, [0, 1], [0.08, 0.18]),
+  }))
+
+  const word1Style = useAnimatedStyle(() => ({
+    opacity: word1Opacity.value,
+  }))
+
+  const word2Style = useAnimatedStyle(() => ({
+    opacity: word2Opacity.value,
+  }))
+
+  const word3Style = useAnimatedStyle(() => ({
+    opacity: word3Opacity.value,
+  }))
+
+  const word4Style = useAnimatedStyle(() => ({
+    opacity: word4Opacity.value,
   }))
 
   return (
@@ -101,11 +169,13 @@ export function FluidSplashScreen({
       <AnimatedView
         style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }, bgStyle]}
       >
-        <Image
-          source={SPLASH_SCREEN_IMAGE}
-          style={{ width: '100%', height: '100%' }}
-          contentFit="cover"
-        />
+        <AnimatedView style={[{ width: '100%', height: '100%' }, bgZoomStyle]}>
+          <Image
+            source={SPLASH_SCREEN_IMAGE}
+            style={{ width: '100%', height: '100%' }}
+            contentFit="cover"
+          />
+        </AnimatedView>
         {/* Subtle green gradient tint overlay */}
         <LinearGradient
           colors={['rgba(12,154,92,0.15)', 'rgba(12,154,92,0.25)', 'rgba(12,154,92,0.35)']}
@@ -149,42 +219,59 @@ export function FluidSplashScreen({
           alignItems="center"
           gap="$6"
         >
+          {/* Glow effect behind logo */}
+          <AnimatedView
+            style={[
+              {
+                position: 'absolute',
+                width: 140,
+                height: 140,
+                borderRadius: 70,
+                backgroundColor: 'white',
+              },
+              glowStyle,
+            ]}
+          />
           {/* Clean Logo Container with subtle shadow */}
-          <View
-            width={120}
-            height={120}
-            backgroundColor="white"
-            borderRadius="$7"
-            alignItems="center"
-            justifyContent="center"
-            shadowColor="rgba(0,0,0,0.2)"
-            shadowRadius={40}
-            shadowOffset={{ width: 0, height: 8 }}
+          <AnimatedView
+            style={[{ alignItems: 'center', justifyContent: 'center' }, logoFloatStyle]}
           >
-            <YStack alignItems="center">
-              <Home
-                size={52}
-                color="#0C9A5C"
-                strokeWidth={2}
-              />
-              <View
-                position="absolute"
-                bottom={22}
-                right={26}
-                backgroundColor="white"
-                padding="$1"
-                borderRadius="$2"
-                shadowColor="rgba(0,0,0,0.1)"
-                shadowRadius={6}
-              >
-                <Wrench
-                  size={28}
-                  color="#FFB800"
-                  strokeWidth={2.5}
+            <View
+              width={120}
+              height={120}
+              backgroundColor="white"
+              borderRadius="$7"
+              alignItems="center"
+              justifyContent="center"
+              shadowColor="rgba(0,0,0,0.2)"
+              shadowRadius={40}
+              shadowOffset={{ width: 0, height: 8 }}
+            >
+              <YStack alignItems="center">
+                <Home
+                  size={52}
+                  color="#0C9A5C"
+                  strokeWidth={2}
                 />
-              </View>
-            </YStack>
-          </View>
+                <View
+                  position="absolute"
+                  bottom={22}
+                  right={26}
+                  backgroundColor="white"
+                  padding="$1"
+                  borderRadius="$2"
+                  shadowColor="rgba(0,0,0,0.1)"
+                  shadowRadius={6}
+                >
+                  <Wrench
+                    size={28}
+                    color="#FFB800"
+                    strokeWidth={2.5}
+                  />
+                </View>
+              </YStack>
+            </View>
+          </AnimatedView>
         </AnimatedYStack>
 
         {/* App Name & Tagline */}
@@ -206,17 +293,72 @@ export function FluidSplashScreen({
           >
             HandymanKiosk
           </Text>
-          <Text
-            fontSize="$4"
-            color="rgba(255,255,255,0.95)"
-            textAlign="center"
-            fontWeight="400"
-            textShadowColor="rgba(0,0,0,0.2)"
-            textShadowOffset={{ width: 0, height: 1 }}
-            textShadowRadius={2}
+          <XStack
+            gap="$1"
+            flexWrap="wrap"
+            justifyContent="center"
           >
-            Your Home, Our Expertise
-          </Text>
+            <AnimatedText
+              style={[
+                {
+                  fontSize: 16,
+                  color: 'rgba(255,255,255,0.95)',
+                  fontWeight: '400',
+                  textShadowColor: 'rgba(0,0,0,0.2)',
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 2,
+                },
+                word1Style,
+              ]}
+            >
+              Your{' '}
+            </AnimatedText>
+            <AnimatedText
+              style={[
+                {
+                  fontSize: 16,
+                  color: 'rgba(255,255,255,0.95)',
+                  fontWeight: '400',
+                  textShadowColor: 'rgba(0,0,0,0.2)',
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 2,
+                },
+                word2Style,
+              ]}
+            >
+              Home,{' '}
+            </AnimatedText>
+            <AnimatedText
+              style={[
+                {
+                  fontSize: 16,
+                  color: 'rgba(255,255,255,0.95)',
+                  fontWeight: '400',
+                  textShadowColor: 'rgba(0,0,0,0.2)',
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 2,
+                },
+                word3Style,
+              ]}
+            >
+              Our{' '}
+            </AnimatedText>
+            <AnimatedText
+              style={[
+                {
+                  fontSize: 16,
+                  color: 'rgba(255,255,255,0.95)',
+                  fontWeight: '400',
+                  textShadowColor: 'rgba(0,0,0,0.2)',
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 2,
+                },
+                word4Style,
+              ]}
+            >
+              Expertise
+            </AnimatedText>
+          </XStack>
         </AnimatedYStack>
 
         {/* Minimal Loading Indicator */}
