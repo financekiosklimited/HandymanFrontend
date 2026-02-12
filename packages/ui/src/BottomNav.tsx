@@ -1,8 +1,17 @@
-import { memo, useCallback, useMemo, useRef } from 'react'
+import { memo, useCallback, useMemo, useRef, useEffect } from 'react'
 import { XStack, YStack, Text, Button, View, Spinner, useTheme } from 'tamagui'
 import { Search, Bell, Plus, Briefcase, User } from '@tamagui/lucide-icons'
 import type { IconProps } from '@tamagui/helpers-icon'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  Easing,
+  interpolate,
+} from 'react-native-reanimated'
+import { LinearGradient } from 'expo-linear-gradient'
 
 type NavVariant = 'guest' | 'homeowner' | 'handyman'
 
@@ -134,6 +143,34 @@ function BottomNavComponent({
     [theme.primary?.val, theme.colorMuted?.val, theme.backgroundStrong?.val]
   )
 
+  // Continuous shimmer animation for Add button
+  const shimmerProgress = useSharedValue(0)
+  const rotationProgress = useSharedValue(0)
+
+  useEffect(() => {
+    // Continuous shimmer loop - slower (2.5 seconds)
+    shimmerProgress.value = withRepeat(
+      withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      false
+    )
+    // Rotation pulsing animation - gentle pulse (800ms)
+    rotationProgress.value = withRepeat(
+      withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    )
+  }, [shimmerProgress, rotationProgress])
+
+  const shimmerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: interpolate(shimmerProgress.value, [0, 1], [-150, 350]) }],
+    opacity: interpolate(shimmerProgress.value, [0, 0.3, 0.7, 1], [0, 0.7, 0.7, 0]),
+  }))
+
+  const rotationAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(rotationProgress.value, [0, 1], [-1.5, 1.5])}deg` }],
+  }))
+
   return (
     <XStack
       bg="$backgroundStrong"
@@ -167,32 +204,64 @@ function BottomNavComponent({
           >
             {isAddButton ? (
               <>
-                <View
-                  width={60}
-                  height={60}
-                  borderRadius={30}
-                  bg="$primary"
-                  alignItems="center"
-                  justifyContent="center"
-                  opacity={isAddLoading ? 0.7 : 1}
-                  top={-30}
-                  borderWidth={4}
-                  borderColor="$backgroundStrong"
-                  position="absolute"
-                >
-                  {isAddLoading ? (
-                    <Spinner
-                      size="small"
-                      color="$backgroundStrong"
-                    />
-                  ) : (
-                    <Plus
-                      size={28}
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      color={themeColors.backgroundStrong as any}
-                    />
-                  )}
-                </View>
+                <Animated.View style={rotationAnimatedStyle}>
+                  <View
+                    width={60}
+                    height={60}
+                    borderRadius={30}
+                    bg="$primary"
+                    alignItems="center"
+                    justifyContent="center"
+                    opacity={isAddLoading ? 0.7 : 1}
+                    top={-30}
+                    borderWidth={4}
+                    borderColor="$backgroundStrong"
+                    position="absolute"
+                    alignSelf="center"
+                    overflow="hidden"
+                  >
+                    {isAddLoading ? (
+                      <Spinner
+                        size="small"
+                        color="$backgroundStrong"
+                      />
+                    ) : (
+                      <Plus
+                        size={28}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        color={themeColors.backgroundStrong as any}
+                      />
+                    )}
+                    {/* Shimmer Overlay */}
+                    <Animated.View
+                      style={[
+                        {
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          width: 80,
+                        },
+                        shimmerAnimatedStyle,
+                      ]}
+                      pointerEvents="none"
+                    >
+                      <LinearGradient
+                        colors={[
+                          'rgba(255,255,255,0)',
+                          'rgba(255,255,255,0.85)',
+                          'rgba(255,255,255,0.85)',
+                          'rgba(255,255,255,0)',
+                        ]}
+                        locations={[0, 0.4, 0.6, 1]}
+                        start={[0, 0.5]}
+                        end={[1, 0.5]}
+                        style={{ width: 80, height: '100%' }}
+                      />
+                    </Animated.View>
+                  </View>
+                </Animated.View>
                 {/* Spacer to align text with other tabs that have 24px icons */}
                 <View height={24} />
               </>

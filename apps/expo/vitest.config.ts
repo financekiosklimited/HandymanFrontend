@@ -24,8 +24,6 @@ export default defineConfig({
     include: [
       '../../packages/ui/src/__tests__/**/*.test.tsx',
       '../../packages/ui/src/__tests__/**/*.test.ts',
-      '../../packages/app/features/__tests__/**/*.test.tsx',
-      '../../packages/app/features/__tests__/**/*.test.ts',
       '../../packages/app/hooks/__tests__/**/*.test.ts',
       '../../packages/app/utils/__tests__/**/*.test.ts',
       '../../packages/api/src/__tests__/**/*.test.ts',

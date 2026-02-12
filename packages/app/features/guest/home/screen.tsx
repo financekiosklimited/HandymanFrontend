@@ -15,10 +15,13 @@ import Animated, {
   withSpring,
   withDelay,
   withSequence,
+  withRepeat,
   Easing,
   interpolate,
   useAnimatedScrollHandler,
+  LinearTransition,
 } from 'react-native-reanimated'
+import { Animated as AnimatedRN, Easing as EasingRN, View as RNView } from 'react-native'
 import {
   Search,
   MessageCircle,
@@ -176,10 +179,48 @@ function AnimatedCard({
   )
 }
 
+// Collapsible Section using JS-driven Layout Animation for proper sibling reflow
+function CollapsibleSection({
+  children,
+  expanded,
+}: { children: React.ReactNode; expanded: boolean }) {
+  const [contentHeight, setContentHeight] = useState(0)
+  const animatedHeight = useRef(new AnimatedRN.Value(0)).current
+
+  useEffect(() => {
+    AnimatedRN.timing(animatedHeight, {
+      toValue: expanded ? contentHeight : 0,
+      duration: 300,
+      easing: EasingRN.bezier(0.4, 0.0, 0.2, 1), // Standard easing
+      useNativeDriver: false, // Critical: this triggers layout updates
+    }).start()
+  }, [expanded, contentHeight, animatedHeight])
+
+  return (
+    <AnimatedRN.View
+      style={{
+        height: animatedHeight,
+        overflow: 'hidden',
+      }}
+    >
+      <RNView
+        style={{ position: 'absolute', width: '100%' }}
+        onLayout={(event) => {
+          const height = event.nativeEvent.layout.height
+          if (height > 0 && Math.abs(contentHeight - height) > 1) {
+            setContentHeight(height)
+          }
+        }}
+      >
+        {children}
+      </RNView>
+    </AnimatedRN.View>
+  )
+}
+
 // Animated category icon with spring feedback
 function AnimatedCategoryIcon({
   children,
-  isSelected,
   onPress,
 }: {
   children: React.ReactNode
@@ -187,11 +228,6 @@ function AnimatedCategoryIcon({
   onPress: () => void
 }) {
   const scale = useSharedValue(1)
-  const borderWidth = useSharedValue(1)
-
-  useEffect(() => {
-    borderWidth.value = withSpring(isSelected ? 2 : 1, SPRING_CONFIG)
-  }, [isSelected, borderWidth])
 
   const handlePress = useCallback(() => {
     scale.value = withSequence(withTiming(0.9, { duration: 80 }), withSpring(1, SPRING_CONFIG))
@@ -200,7 +236,6 @@ function AnimatedCategoryIcon({
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    borderWidth: borderWidth.value,
   }))
 
   return (
@@ -334,6 +369,28 @@ export function GuestHomeScreen() {
     opacity: jobsOpacity.value,
     transform: [{ translateY: jobsTranslateY.value }],
   }))
+
+  // Continuous CTA pulse animation (gentle scale + shadow)
+  const ctaPulseProgress = useSharedValue(0)
+
+  useEffect(() => {
+    // Gentle continuous pulse: 4 second loop
+    ctaPulseProgress.value = withRepeat(
+      withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
+      -1, // Infinite
+      true // Reverse
+    )
+  }, [ctaPulseProgress])
+
+  const ctaPulseAnimatedStyle = useAnimatedStyle(() => {
+    const scale = interpolate(ctaPulseProgress.value, [0, 0.5, 1], [1, 1.1, 1])
+    const shadowOpacity = interpolate(ctaPulseProgress.value, [0, 0.5, 1], [0.1, 0.25, 0.1])
+
+    return {
+      transform: [{ scale }],
+      shadowOpacity,
+    }
+  })
 
   // Request location permission and get current location
   useEffect(() => {
@@ -526,8 +583,8 @@ export function GuestHomeScreen() {
               overflow="hidden"
               borderRadius="$8"
               p="$5"
-              shadowColor="$shadowColor"
-              shadowRadius={10}
+              shadowColor="#0C9A5C"
+              shadowRadius={12}
               shadowOffset={{ width: 0, height: 4 }}
               shadowOpacity={0.1}
               position="relative"
@@ -578,32 +635,34 @@ export function GuestHomeScreen() {
                   What needs fixing?
                 </Text>
 
-                {/* Minimalist CTA Button */}
-                <Button
-                  size="$5"
-                  bg="white"
-                  color="#0C9A5C"
-                  borderRadius="$6"
-                  fontWeight="bold"
-                  px="$6"
-                  py="$3"
-                  pressStyle={{ scale: 0.98, opacity: 0.9 }}
-                  onPress={redirectToLogin}
-                  shadowColor="rgba(0,0,0,0.15)"
-                  shadowRadius={8}
-                  shadowOffset={{ width: 0, height: 2 }}
-                  icon={
-                    <Plus
-                      size={22}
-                      color="white"
-                      strokeWidth={2.5}
-                      bg="#0C9A5C"
-                      borderRadius={100}
-                    />
-                  }
-                >
-                  Describe Your Task
-                </Button>
+                {/* Minimalist CTA Button with Pulse Animation */}
+                <AnimatedView style={ctaPulseAnimatedStyle}>
+                  <Button
+                    size="$5"
+                    bg="white"
+                    color="#0C9A5C"
+                    borderRadius="$6"
+                    fontWeight="bold"
+                    px="$6"
+                    py="$3"
+                    pressStyle={{ scale: 0.98, opacity: 0.9 }}
+                    onPress={redirectToLogin}
+                    shadowColor="rgba(0,0,0,0.15)"
+                    shadowRadius={8}
+                    shadowOffset={{ width: 0, height: 2 }}
+                    icon={
+                      <Plus
+                        size={22}
+                        color="white"
+                        strokeWidth={2.5}
+                        bg="#0C9A5C"
+                        borderRadius={100}
+                      />
+                    }
+                  >
+                    Describe Your Task
+                  </Button>
+                </AnimatedView>
 
                 <Text
                   fontSize="$2"
@@ -652,9 +711,10 @@ export function GuestHomeScreen() {
                 </Text>
 
                 {/* Location Filter with City Dropdown */}
-                <YStack
+                <AnimatedYStack
                   gap="$2"
                   mb="$3"
+                  layout={LinearTransition}
                 >
                   <XStack
                     alignItems="center"
@@ -707,8 +767,8 @@ export function GuestHomeScreen() {
                     </YStack>
                   </XStack>
 
-                  {/* City Dropdown */}
-                  {showCityDropdown && (
+                  {/* City Dropdown - Collapsible */}
+                  <CollapsibleSection expanded={showCityDropdown}>
                     <YStack
                       bg="white"
                       borderRadius="$4"
@@ -716,9 +776,12 @@ export function GuestHomeScreen() {
                       borderColor="$borderColor"
                       p="$2"
                       gap="$1"
-                      maxHeight={200}
+                      overflow="hidden"
                     >
-                      <ScrollView showsVerticalScrollIndicator={false}>
+                      <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        style={{ maxHeight: 200 }}
+                      >
                         {citiesLoading ? (
                           <Spinner
                             size="small"
@@ -767,8 +830,8 @@ export function GuestHomeScreen() {
                         )}
                       </ScrollView>
                     </YStack>
-                  )}
-                </YStack>
+                  </CollapsibleSection>
+                </AnimatedYStack>
 
                 {/* Category Icons - Prominent Filter for Trades */}
                 <YStack
@@ -894,7 +957,7 @@ export function GuestHomeScreen() {
                   </XStack>
 
                   {/* Hourly Rate Dropdown - Expand Layout */}
-                  {showHourlyRateDropdown && (
+                  <CollapsibleSection expanded={showHourlyRateDropdown}>
                     <YStack
                       bg="white"
                       borderRadius="$4"
@@ -902,6 +965,7 @@ export function GuestHomeScreen() {
                       borderColor="$borderColor"
                       p="$2"
                       gap="$1"
+                      mt="$1"
                     >
                       <Button
                         size="$2"
@@ -941,10 +1005,10 @@ export function GuestHomeScreen() {
                         </Button>
                       ))}
                     </YStack>
-                  )}
+                  </CollapsibleSection>
 
                   {/* Rating Dropdown - Expand Layout */}
-                  {showRatingDropdown && (
+                  <CollapsibleSection expanded={showRatingDropdown}>
                     <YStack
                       bg="white"
                       borderRadius="$4"
@@ -952,6 +1016,7 @@ export function GuestHomeScreen() {
                       borderColor="$borderColor"
                       p="$2"
                       gap="$1"
+                      mt="$1"
                     >
                       <Button
                         size="$2"
@@ -991,7 +1056,7 @@ export function GuestHomeScreen() {
                         </Button>
                       ))}
                     </YStack>
-                  )}
+                  </CollapsibleSection>
                 </YStack>
               </YStack>
             </YStack>
@@ -1055,246 +1120,109 @@ export function GuestHomeScreen() {
                 m="$4"
               />
             ) : handymen.length > 0 ? (
-              expandHandymen ? (
-                // Expanded vertical list
-                <YStack gap="$3">
-                  {handymen.map((pro) => (
-                    <XStack
-                      key={pro.public_id}
-                      bg="white"
-                      borderRadius="$6"
-                      p="$3"
-                      borderColor="$borderSubtle"
-                      borderWidth={1}
-                      shadowColor="rgba(0,0,0,0.03)"
-                      shadowRadius={5}
-                      shadowOpacity={1}
-                      gap="$3"
-                      onPress={redirectToLogin}
-                    >
-                      <View position="relative">
-                        <View
-                          width={56}
-                          height={56}
-                          borderRadius="$4"
-                          bg="$backgroundSubtle"
-                          alignItems="center"
-                          justifyContent="center"
-                          borderWidth={2}
-                          borderColor="white"
-                          shadowColor="rgba(0,0,0,0.1)"
-                          shadowRadius={3}
-                        >
-                          <Text
-                            fontSize="$5"
-                            fontWeight="bold"
-                            color="$colorSubtle"
-                          >
-                            {pro.display_name.charAt(0)}
-                          </Text>
-                        </View>
-                        <View
-                          position="absolute"
-                          bottom={-4}
-                          right={-4}
-                          bg="$primary"
-                          p={2}
-                          borderRadius={100}
-                          borderWidth={2}
-                          borderColor="white"
-                        >
-                          <ShieldCheck
-                            size={10}
-                            color="white"
-                          />
-                        </View>
-                      </View>
-
-                      <YStack
-                        flex={1}
-                        justifyContent="space-between"
+              <YStack>
+                {/* Expanded vertical list */}
+                <CollapsibleSection expanded={expandHandymen}>
+                  <YStack gap="$3">
+                    {handymen.map((pro) => (
+                      <XStack
+                        key={pro.public_id}
+                        bg="white"
+                        borderRadius="$6"
+                        p="$3"
+                        borderColor="$borderSubtle"
+                        borderWidth={1}
+                        shadowColor="rgba(0,0,0,0.03)"
+                        shadowRadius={5}
+                        shadowOpacity={1}
+                        gap="$3"
+                        onPress={redirectToLogin}
                       >
-                        <XStack
+                        <View position="relative">
+                          <View
+                            width={56}
+                            height={56}
+                            borderRadius="$4"
+                            bg="$backgroundSubtle"
+                            alignItems="center"
+                            justifyContent="center"
+                            borderWidth={2}
+                            borderColor="white"
+                            shadowColor="rgba(0,0,0,0.1)"
+                            shadowRadius={3}
+                          >
+                            <Text
+                              fontSize="$5"
+                              fontWeight="bold"
+                              color="$colorSubtle"
+                            >
+                              {pro.display_name.charAt(0)}
+                            </Text>
+                          </View>
+                          <View
+                            position="absolute"
+                            bottom={-4}
+                            right={-4}
+                            bg="$primary"
+                            p={2}
+                            borderRadius={100}
+                            borderWidth={2}
+                            borderColor="white"
+                          >
+                            <ShieldCheck
+                              size={10}
+                              color="white"
+                            />
+                          </View>
+                        </View>
+
+                        <YStack
+                          flex={1}
                           justifyContent="space-between"
-                          alignItems="flex-start"
-                        >
-                          <YStack flex={1}>
-                            <Text
-                              fontSize="$3"
-                              fontWeight="bold"
-                              color="$color"
-                              numberOfLines={1}
-                            >
-                              {pro.display_name}
-                            </Text>
-                            <Text
-                              fontSize={10}
-                              color="$colorSubtle"
-                            >
-                              Specialist
-                            </Text>
-                          </YStack>
-                          <YStack alignItems="flex-end">
-                            <Text
-                              fontSize="$3"
-                              fontWeight="bold"
-                              color="$color"
-                            >
-                              ${pro.hourly_rate || 'N/A'}
-                            </Text>
-                            <Text
-                              fontSize={9}
-                              color="$colorSubtle"
-                              fontWeight="500"
-                            >
-                              /hr
-                            </Text>
-                          </YStack>
-                        </XStack>
-
-                        <XStack
-                          gap="$3"
-                          mt="$1"
-                          alignItems="center"
                         >
                           <XStack
-                            bg="$warningBackground"
-                            px="$1.5"
-                            py="$0.5"
-                            borderRadius="$2"
-                            borderColor="$warningBackground"
-                            borderWidth={1}
-                            alignItems="center"
-                            gap="$1"
+                            justifyContent="space-between"
+                            alignItems="flex-start"
                           >
-                            <Star
-                              size={10}
-                              color="$accent"
-                              fill="$accent"
-                            />
-                            <Text
-                              fontSize={10}
-                              fontWeight="bold"
-                              color="$accent"
-                            >
-                              {pro.rating || 0}
-                            </Text>
-                            <Text
-                              fontSize={10}
-                              color="$accent"
-                              opacity={0.7}
-                            >
-                              ({pro.review_count || 0})
-                            </Text>
+                            <YStack flex={1}>
+                              <Text
+                                fontSize="$3"
+                                fontWeight="bold"
+                                color="$color"
+                                numberOfLines={1}
+                              >
+                                {pro.display_name}
+                              </Text>
+                              <Text
+                                fontSize={10}
+                                color="$colorSubtle"
+                              >
+                                Specialist
+                              </Text>
+                            </YStack>
+                            <YStack alignItems="flex-end">
+                              <Text
+                                fontSize="$3"
+                                fontWeight="bold"
+                                color="$color"
+                              >
+                                ${pro.hourly_rate || 'N/A'}
+                              </Text>
+                              <Text
+                                fontSize={9}
+                                color="$colorSubtle"
+                                fontWeight="500"
+                              >
+                                /hr
+                              </Text>
+                            </YStack>
                           </XStack>
+
                           <XStack
+                            gap="$3"
+                            mt="$1"
                             alignItems="center"
-                            gap="$1"
                           >
-                            <Briefcase
-                              size={10}
-                              color="$colorSubtle"
-                            />
-                            <Text
-                              fontSize={10}
-                              color="$colorSubtle"
-                            >
-                              34 jobs
-                            </Text>
-                          </XStack>
-                        </XStack>
-
-                        <Button
-                          size="$2"
-                          bg="$color"
-                          color="white"
-                          borderRadius="$4"
-                          mt="$2"
-                          fontWeight="bold"
-                          pressStyle={{ opacity: 0.9 }}
-                          onPress={redirectToLogin}
-                        >
-                          Invite to Job
-                        </Button>
-                      </YStack>
-                    </XStack>
-                  ))}
-                </YStack>
-              ) : (
-                // Horizontal scroll list with virtualized rendering
-                <ScrollIndicator>
-                  <Animated.ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                  >
-                    <XStack gap="$3">
-                      {handymen.slice(0, 6).map((pro, index) => (
-                        <AnimatedCard
-                          key={pro.public_id}
-                          index={index}
-                          onPress={redirectToLogin}
-                          style={{
-                            backgroundColor: 'white',
-                            borderRadius: 12,
-                            padding: 12,
-                            borderWidth: 1,
-                            borderColor: '#E5E5EA',
-                            shadowColor: 'rgba(0,0,0,0.03)',
-                            shadowRadius: 5,
-                            shadowOpacity: 1,
-                            width: 160,
-                          }}
-                        >
-                          <YStack
-                            alignItems="center"
-                            gap="$2"
-                          >
-                            <View position="relative">
-                              <View
-                                width={64}
-                                height={64}
-                                borderRadius="$4"
-                                bg="$backgroundSubtle"
-                                alignItems="center"
-                                justifyContent="center"
-                                borderWidth={2}
-                                borderColor="white"
-                              >
-                                <Text
-                                  fontSize="$6"
-                                  fontWeight="bold"
-                                  color="$colorSubtle"
-                                >
-                                  {pro.display_name.charAt(0)}
-                                </Text>
-                              </View>
-                              <View
-                                position="absolute"
-                                bottom={-4}
-                                right={-4}
-                                bg="$primary"
-                                p={2}
-                                borderRadius={100}
-                                borderWidth={2}
-                                borderColor="white"
-                              >
-                                <ShieldCheck
-                                  size={10}
-                                  color="white"
-                                />
-                              </View>
-                            </View>
-
-                            <Text
-                              fontSize="$3"
-                              fontWeight="bold"
-                              color="$color"
-                              textAlign="center"
-                              numberOfLines={1}
-                            >
-                              {pro.display_name}
-                            </Text>
-
                             <XStack
                               bg="$warningBackground"
                               px="$1.5"
@@ -1325,21 +1253,162 @@ export function GuestHomeScreen() {
                                 ({pro.review_count || 0})
                               </Text>
                             </XStack>
-
-                            <Text
-                              fontSize="$2"
-                              fontWeight="bold"
-                              color="$color"
+                            <XStack
+                              alignItems="center"
+                              gap="$1"
                             >
-                              ${pro.hourly_rate || 'N/A'}/hr
-                            </Text>
-                          </YStack>
-                        </AnimatedCard>
-                      ))}
-                    </XStack>
-                  </Animated.ScrollView>
-                </ScrollIndicator>
-              )
+                              <Briefcase
+                                size={10}
+                                color="$colorSubtle"
+                              />
+                              <Text
+                                fontSize={10}
+                                color="$colorSubtle"
+                              >
+                                34 jobs
+                              </Text>
+                            </XStack>
+                          </XStack>
+
+                          <Button
+                            size="$2"
+                            bg="$color"
+                            color="white"
+                            borderRadius="$4"
+                            mt="$2"
+                            fontWeight="bold"
+                            pressStyle={{ opacity: 0.9 }}
+                            onPress={redirectToLogin}
+                          >
+                            Invite to Job
+                          </Button>
+                        </YStack>
+                      </XStack>
+                    ))}
+                  </YStack>
+                </CollapsibleSection>
+
+                {/* Horizontal scroll list with virtualized rendering */}
+                <CollapsibleSection expanded={!expandHandymen}>
+                  <ScrollIndicator>
+                    <Animated.ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                    >
+                      <XStack gap="$3">
+                        {handymen.slice(0, 6).map((pro, index) => (
+                          <AnimatedCard
+                            key={pro.public_id}
+                            index={index}
+                            onPress={redirectToLogin}
+                            style={{
+                              backgroundColor: 'white',
+                              borderRadius: 12,
+                              padding: 12,
+                              borderWidth: 1,
+                              borderColor: '#E5E5EA',
+                              shadowColor: 'rgba(0,0,0,0.03)',
+                              shadowRadius: 5,
+                              shadowOpacity: 1,
+                              width: 160,
+                            }}
+                          >
+                            <YStack
+                              alignItems="center"
+                              gap="$2"
+                            >
+                              <View position="relative">
+                                <View
+                                  width={64}
+                                  height={64}
+                                  borderRadius="$4"
+                                  bg="$backgroundSubtle"
+                                  alignItems="center"
+                                  justifyContent="center"
+                                  borderWidth={2}
+                                  borderColor="white"
+                                >
+                                  <Text
+                                    fontSize="$6"
+                                    fontWeight="bold"
+                                    color="$colorSubtle"
+                                  >
+                                    {pro.display_name.charAt(0)}
+                                  </Text>
+                                </View>
+                                <View
+                                  position="absolute"
+                                  bottom={-4}
+                                  right={-4}
+                                  bg="$primary"
+                                  p={2}
+                                  borderRadius={100}
+                                  borderWidth={2}
+                                  borderColor="white"
+                                >
+                                  <ShieldCheck
+                                    size={10}
+                                    color="white"
+                                  />
+                                </View>
+                              </View>
+
+                              <Text
+                                fontSize="$3"
+                                fontWeight="bold"
+                                color="$color"
+                                textAlign="center"
+                                numberOfLines={1}
+                              >
+                                {pro.display_name}
+                              </Text>
+
+                              <XStack
+                                bg="$warningBackground"
+                                px="$1.5"
+                                py="$0.5"
+                                borderRadius="$2"
+                                borderColor="$warningBackground"
+                                borderWidth={1}
+                                alignItems="center"
+                                gap="$1"
+                              >
+                                <Star
+                                  size={10}
+                                  color="$accent"
+                                  fill="$accent"
+                                />
+                                <Text
+                                  fontSize={10}
+                                  fontWeight="bold"
+                                  color="$accent"
+                                >
+                                  {pro.rating || 0}
+                                </Text>
+                                <Text
+                                  fontSize={10}
+                                  color="$accent"
+                                  opacity={0.7}
+                                >
+                                  ({pro.review_count || 0})
+                                </Text>
+                              </XStack>
+
+                              <Text
+                                fontSize="$2"
+                                fontWeight="bold"
+                                color="$color"
+                              >
+                                ${pro.hourly_rate || 'N/A'}/hr
+                              </Text>
+                            </YStack>
+                          </AnimatedCard>
+                        ))}
+                      </XStack>
+                    </Animated.ScrollView>
+                  </ScrollIndicator>
+                </CollapsibleSection>
+              </YStack>
             ) : (
               <YStack
                 py="$8"
@@ -1462,69 +1531,87 @@ export function GuestHomeScreen() {
                 m="$4"
               />
             ) : jobs.length > 0 ? (
-              expandJobs ? (
-                // Expanded vertical list
-                <YStack gap="$3">
-                  {jobs.map((job) => (
-                    <YStack
-                      key={job.public_id}
-                      bg="white"
-                      borderRadius="$6"
-                      p="$4"
-                      borderColor="$borderSubtle"
-                      borderWidth={1}
-                      shadowColor="rgba(0,0,0,0.03)"
-                      shadowRadius={5}
-                      shadowOpacity={1}
-                      onPress={redirectToLogin}
-                    >
-                      <XStack
-                        justifyContent="space-between"
-                        alignItems="flex-start"
-                        mb="$2"
+              <YStack>
+                {/* Expanded vertical list */}
+                <CollapsibleSection expanded={expandJobs}>
+                  <YStack gap="$3">
+                    {jobs.map((job) => (
+                      <YStack
+                        key={job.public_id}
+                        bg="white"
+                        borderRadius="$6"
+                        p="$4"
+                        borderColor="$borderSubtle"
+                        borderWidth={1}
+                        shadowColor="rgba(0,0,0,0.03)"
+                        shadowRadius={5}
+                        shadowOpacity={1}
+                        onPress={redirectToLogin}
                       >
-                        <YStack flex={1}>
-                          <Text
-                            fontSize="$4"
-                            fontWeight="bold"
-                            color="$color"
-                            numberOfLines={2}
-                          >
-                            {job.title}
-                          </Text>
-                          <Text
-                            fontSize="$2"
-                            color="$colorSubtle"
-                            mt="$1"
-                          >
-                            {job.city?.name || 'Location N/A'}
-                          </Text>
-                        </YStack>
-                        <YStack alignItems="flex-end">
-                          <Text
-                            fontSize="$4"
-                            fontWeight="bold"
-                            color="#FFB800"
-                          >
-                            ${job.estimated_budget}
-                          </Text>
-                          <Text
-                            fontSize="$1"
-                            color="$colorSubtle"
-                          >
-                            budget
-                          </Text>
-                        </YStack>
-                      </XStack>
+                        <XStack
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                          mb="$2"
+                        >
+                          <YStack flex={1}>
+                            <Text
+                              fontSize="$4"
+                              fontWeight="bold"
+                              color="$color"
+                              numberOfLines={2}
+                            >
+                              {job.title}
+                            </Text>
+                            <Text
+                              fontSize="$2"
+                              color="$colorSubtle"
+                              mt="$1"
+                            >
+                              {job.city?.name || 'Location N/A'}
+                            </Text>
+                          </YStack>
+                          <YStack alignItems="flex-end">
+                            <Text
+                              fontSize="$4"
+                              fontWeight="bold"
+                              color="#FFB800"
+                            >
+                              ${job.estimated_budget}
+                            </Text>
+                            <Text
+                              fontSize="$1"
+                              color="$colorSubtle"
+                            >
+                              budget
+                            </Text>
+                          </YStack>
+                        </XStack>
 
-                      <XStack
-                        gap="$2"
-                        mt="$2"
-                        flexWrap="wrap"
-                      >
-                        {job.category && (
+                        <XStack
+                          gap="$2"
+                          mt="$2"
+                          flexWrap="wrap"
+                        >
+                          {job.category && (
+                            <XStack
+                              bg="rgba(12,154,92,0.1)"
+                              px="$2"
+                              py="$1"
+                              borderRadius="$2"
+                              alignItems="center"
+                              gap="$1"
+                            >
+                              <Text
+                                fontSize="$1"
+                                color="$primary"
+                                fontWeight="500"
+                              >
+                                {job.category.name}
+                              </Text>
+                            </XStack>
+                          )}
                           <XStack
-                            bg="rgba(12,154,92,0.1)"
+                            bg="rgba(255,184,0,0.1)"
                             px="$2"
                             py="$1"
                             borderRadius="$2"
@@ -1533,129 +1620,103 @@ export function GuestHomeScreen() {
                           >
                             <Text
                               fontSize="$1"
-                              color="$primary"
+                              color="#FFB800"
                               fontWeight="500"
                             >
-                              {job.category.name}
+                              Open
                             </Text>
                           </XStack>
-                        )}
-                        <XStack
-                          bg="rgba(255,184,0,0.1)"
-                          px="$2"
-                          py="$1"
-                          borderRadius="$2"
-                          alignItems="center"
-                          gap="$1"
-                        >
-                          <Text
-                            fontSize="$1"
-                            color="#FFB800"
-                            fontWeight="500"
-                          >
-                            Open
-                          </Text>
                         </XStack>
-                      </XStack>
-                    </YStack>
-                  ))}
-                </YStack>
-              ) : (
-                // Horizontal scroll list with virtualized rendering
-                <ScrollIndicator>
-                  <Animated.ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                  >
-                    <XStack gap="$3">
-                      {jobs.slice(0, 6).map((job, index) => (
-                        <AnimatedCard
-                          key={job.public_id}
-                          index={index}
-                          onPress={redirectToLogin}
-                          style={{
-                            backgroundColor: 'white',
-                            borderRadius: 12,
-                            padding: 16,
-                            borderWidth: 1,
-                            borderColor: '#E5E5EA',
-                            shadowColor: 'rgba(0,0,0,0.03)',
-                            shadowRadius: 5,
-                            shadowOpacity: 1,
-                            width: 280,
-                          }}
-                        >
-                          <Text
-                            fontSize="$4"
-                            fontWeight="bold"
-                            color="$color"
-                            numberOfLines={2}
-                            mb="$2"
-                          >
-                            {job.title}
-                          </Text>
+                      </YStack>
+                    ))}
+                  </YStack>
+                </CollapsibleSection>
 
-                          <XStack
-                            justifyContent="space-between"
-                            alignItems="center"
-                            mb="$2"
+                {/* Horizontal scroll list with virtualized rendering */}
+                <CollapsibleSection expanded={!expandJobs}>
+                  <ScrollIndicator>
+                    <Animated.ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                    >
+                      <XStack gap="$3">
+                        {jobs.slice(0, 6).map((job, index) => (
+                          <AnimatedCard
+                            key={job.public_id}
+                            index={index}
+                            onPress={redirectToLogin}
+                            style={{
+                              backgroundColor: 'white',
+                              borderRadius: 12,
+                              padding: 16,
+                              borderWidth: 1,
+                              borderColor: '#E5E5EA',
+                              shadowColor: 'rgba(0,0,0,0.03)',
+                              shadowRadius: 5,
+                              shadowOpacity: 1,
+                              width: 280,
+                            }}
                           >
-                            <Text
-                              fontSize="$2"
-                              color="$colorSubtle"
-                            >
-                              {job.city?.name || 'Location N/A'}
-                            </Text>
-                            <Text
-                              fontSize="$4"
-                              fontWeight="bold"
-                              color="#FFB800"
-                            >
-                              ${job.estimated_budget}
-                            </Text>
-                          </XStack>
-
-                          <XStack
-                            gap="$2"
-                            mt="$2"
-                          >
-                            {job.category && (
-                              <XStack
-                                bg="rgba(12,154,92,0.1)"
-                                px="$2"
-                                py="$1"
-                                borderRadius="$2"
-                              >
-                                <Text
-                                  fontSize="$1"
-                                  color="$primary"
-                                  fontWeight="500"
-                                >
-                                  {job.category.name}
-                                </Text>
-                              </XStack>
-                            )}
                             <XStack
-                              bg="rgba(255,184,0,0.1)"
-                              px="$2"
-                              py="$1"
-                              borderRadius="$2"
+                              justifyContent="space-between"
+                              alignItems="flex-start"
+                              mb="$2"
+                            >
+                              <YStack flex={1}>
+                                <Text
+                                  fontSize="$4"
+                                  fontWeight="bold"
+                                  color="$color"
+                                  numberOfLines={2}
+                                >
+                                  {job.title}
+                                </Text>
+                                <Text
+                                  fontSize="$2"
+                                  color="$colorSubtle"
+                                  mt="$1"
+                                >
+                                  {job.city?.name || 'Location N/A'}
+                                </Text>
+                              </YStack>
+                            </XStack>
+
+                            <XStack
+                              justifyContent="space-between"
+                              alignItems="center"
+                              mt="$2"
                             >
                               <Text
-                                fontSize="$1"
+                                fontSize="$4"
+                                fontWeight="bold"
                                 color="#FFB800"
-                                fontWeight="500"
                               >
-                                Open
+                                ${job.estimated_budget}
                               </Text>
+                              {job.category && (
+                                <XStack
+                                  bg="rgba(12,154,92,0.1)"
+                                  px="$2"
+                                  py="$1"
+                                  borderRadius="$2"
+                                >
+                                  <Text
+                                    fontSize="$1"
+                                    color="$primary"
+                                    fontWeight="500"
+                                  >
+                                    {job.category.name}
+                                  </Text>
+                                </XStack>
+                              )}
                             </XStack>
-                          </XStack>
-                        </AnimatedCard>
-                      ))}
-                    </XStack>
-                  </Animated.ScrollView>
-                </ScrollIndicator>
-              )
+                          </AnimatedCard>
+                        ))}
+                      </XStack>
+                    </Animated.ScrollView>
+                  </ScrollIndicator>
+                </CollapsibleSection>
+              </YStack>
             ) : (
               <YStack
                 py="$8"

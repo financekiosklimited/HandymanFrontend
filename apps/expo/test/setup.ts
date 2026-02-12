@@ -35,6 +35,11 @@ vi.mock('expo-constants', () => ({
   },
 }))
 
+// Mock expo-linear-gradient
+vi.mock('expo-linear-gradient', () => ({
+  LinearGradient: ({ children }: { children: React.ReactNode }) => children,
+}))
+
 // Mock expo modules that use native code
 vi.mock('expo-image-picker', () => ({
   requestMediaLibraryPermissionsAsync: vi.fn(() => Promise.resolve({ granted: true })),
@@ -126,9 +131,24 @@ vi.mock('react-native-reanimated', () => ({
   useAnimatedGestureHandler: vi.fn(() => ({})),
   withSpring: vi.fn((value) => value),
   withDelay: vi.fn((delay, value) => value),
-  withTiming: vi.fn((value) => value),
+  withTiming: vi.fn((value, config, callback) => {
+    // Call the callback if provided to test animation completion
+    if (callback) {
+      callback(true)
+    }
+    return value
+  }),
+  withRepeat: vi.fn((animation) => animation),
+  withSequence: vi.fn((...animations) => animations[animations.length - 1]),
   interpolate: vi.fn((value, inputRange, outputRange) => outputRange[0]),
   runOnJS: vi.fn((fn) => fn),
+  Easing: {
+    out: vi.fn(() => (t: number) => t),
+    inOut: vi.fn(() => (t: number) => t),
+    ease: vi.fn(() => (t: number) => t),
+    sin: vi.fn(() => (t: number) => t),
+    cubic: vi.fn(() => (t: number) => t),
+  },
   default: {
     useSharedValue: vi.fn(() => ({ value: 0 })),
     useAnimatedStyle: vi.fn(() => ({})),
