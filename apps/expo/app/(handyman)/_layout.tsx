@@ -95,6 +95,7 @@ export default function HandymanLayout() {
           variant="handyman"
           notificationCount={unreadCount}
           onNavigate={handleNavigate}
+          isNavigating={isNavigating}
         />
       )}
     </YStack>

@@ -112,6 +112,7 @@ export default function HomeownerLayout() {
           notificationCount={unreadCount}
           onAddPress={handleAddJobPress}
           isAddLoading={isNavigating}
+          isNavigating={isNavigating}
           onNavigate={handleNavigate}
         />
       )}

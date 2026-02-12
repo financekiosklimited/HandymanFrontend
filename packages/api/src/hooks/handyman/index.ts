@@ -43,13 +43,19 @@ interface HandymanJobsForYouParams {
   latitude?: number
   longitude?: number
   search?: string
+  initialPageSize?: number
+  pageSize?: number
 }
 
 /**
  * Hook to fetch jobs for handymen to browse and apply to.
  * Jobs are sorted by distance (if coordinates provided) and recency.
+ * Supports different page sizes for initial load vs subsequent loads.
  */
 export function useHandymanJobsForYou(params?: HandymanJobsForYouParams) {
+  const initialPageSize = params?.initialPageSize ?? 5
+  const pageSize = params?.pageSize ?? 20
+
   return useInfiniteQuery({
     queryKey: ['handyman', 'jobs', 'for-you', params],
     queryFn: async ({ pageParam = 1 }) => {
@@ -61,6 +67,9 @@ export function useHandymanJobsForYou(params?: HandymanJobsForYouParams) {
         if (params?.longitude) searchParams.set('longitude', params.longitude.toString())
         if (params?.search) searchParams.set('search', params.search)
         searchParams.set('page', pageParam.toString())
+        // Use initialPageSize for page 1, pageSize for subsequent pages
+        const currentPageSize = pageParam === 1 ? initialPageSize : pageSize
+        searchParams.set('page_size', currentPageSize.toString())
 
         const url = `handyman/jobs/for-you/?${searchParams.toString()}`
         const response = await apiClient.get(url).json<PaginatedArrayResponse<HandymanJobForYou>>()

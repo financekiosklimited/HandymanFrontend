@@ -14,7 +14,7 @@ export default function GuestLayout() {
   const activeRole = useAuthStore((state) => state.activeRole)
 
   // Use navigation guard to prevent double navigation
-  const { push, replace } = useNavigationGuard({ delay: 400 })
+  const { push, replace, isNavigating } = useNavigationGuard({ delay: 400 })
 
   useEffect(() => {
     // If user is already authenticated, redirect to their homepage
@@ -68,6 +68,7 @@ export default function GuestLayout() {
           activeRoute={getActiveRoute()}
           variant="guest"
           onNavigate={(route) => push(route as any)}
+          isNavigating={isNavigating}
         />
       )}
     </YStack>

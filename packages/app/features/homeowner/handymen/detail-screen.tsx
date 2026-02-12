@@ -315,7 +315,7 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                     <Star
                       size={18}
                       fill="#FFB800"
-                      color="#FFB800"
+                      color="$accent"
                     />
                     <Text
                       fontSize="$5"

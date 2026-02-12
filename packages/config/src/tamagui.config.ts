@@ -53,6 +53,7 @@ const lightTheme = {
   infoBackground: '#DBEAFE',
 
   accent: colors.accent,
+  accentBackground: 'rgba(255,184,0,0.1)',
 }
 
 // Dark theme definition
@@ -100,6 +101,7 @@ const darkTheme: typeof lightTheme = {
   infoBackground: 'rgba(0,122,255,0.15)',
 
   accent: colors.accent,
+  accentBackground: 'rgba(255,184,0,0.15)',
 }
 
 export const config = createTamagui({
@@ -143,8 +145,6 @@ export const config = createTamagui({
       warningBackground: '#FEF3C7',
       errorBackground: '#FEE2E2',
       infoBackground: '#DBEAFE',
-      // Accent color for star ratings and highlights
-      accent: colors.accent,
     },
   },
   themes: {
@@ -161,5 +161,6 @@ export const config = createTamagui({
   settings: {
     ...defaultConfig.settings,
     onlyAllowShorthands: false,
+    allowedStyleValues: 'somewhat-strict-web',
   },
 })

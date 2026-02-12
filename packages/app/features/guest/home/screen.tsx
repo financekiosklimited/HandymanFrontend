@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import * as Location from 'expo-location'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, ScrollIndicator } from '@my/ui'
+import { Pressable } from 'react-native'
 import { useGuestJobs, useGuestHandymen, useCategories, useCities } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
@@ -264,6 +265,20 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'halifax-ns': { lat: 44.648764, lng: -63.575239 },
 }
 
+// Search suggestions for typewriter animation
+const SEARCH_SUGGESTIONS = [
+  'fix my broken ac',
+  'patch my walls',
+  'install new lights',
+  'repair my plumbing',
+  'paint my living room',
+  'fix leaky faucet',
+  'assemble furniture',
+  'repair door hinges',
+  'install ceiling fan',
+  'clean my gutters',
+]
+
 export function GuestHomeScreen() {
   const router = useRouter()
   const insets = useSafeArea()
@@ -272,6 +287,109 @@ export function GuestHomeScreen() {
     latitude: number
     longitude: number
   } | null>(null)
+
+  // Navigation Helper - define early for use in callbacks
+  const redirectToLogin = useCallback(() => {
+    router.push('/auth/login')
+  }, [router])
+
+  //TODO : move typerwriter animation to reanimated-based
+  // Typewriter animation state
+  const [displayText, setDisplayText] = useState('Search handyman or jobs here!')
+  const [showCursor, setShowCursor] = useState(false)
+  const animationStateRef = useRef({
+    currentSuggestionIndex: 0,
+    isTyping: false,
+    isPaused: true,
+    currentText: 'Search handyman or jobs here!',
+  })
+
+  // Blinking cursor effect
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setShowCursor((prev) => !prev)
+  //   }, 530)
+  //   return () => clearInterval(interval)
+  // }, [])
+
+  // Typewriter animation - batched updates for performance
+  // useEffect(() => {
+  //   let animationFrameId: number
+  //   let timeoutId: ReturnType<typeof setTimeout> | null = null
+  //   let isActive = true
+
+  //   const animate = () => {
+  //     if (!isActive || animationStateRef.current.isPaused) {
+  //       timeoutId = setTimeout(animate, 100)
+  //       return
+  //     }
+
+  //     const { currentSuggestionIndex, isTyping, currentText } = animationStateRef.current
+  //     const currentSuggestion = SEARCH_SUGGESTIONS[currentSuggestionIndex]
+
+  //     if (!currentSuggestion) {
+  //       timeoutId = setTimeout(animate, 100)
+  //       return
+  //     }
+
+  //     if (isTyping) {
+  //       // Typing phase
+  //       if (currentText.length < currentSuggestion.length) {
+  //         // Type next 2-3 characters at once for performance
+  //         const charsToType = Math.min(3, currentSuggestion.length - currentText.length)
+  //         const newText = currentSuggestion.slice(0, currentText.length + charsToType)
+  //         animationStateRef.current.currentText = newText
+  //         setDisplayText(newText)
+
+  //         // Quick delay (batching characters reduces updates)
+  //         timeoutId = setTimeout(animate, 30)
+  //       } else {
+  //         // Finished typing, pause before deleting
+  //         animationStateRef.current.isTyping = false
+  //         timeoutId = setTimeout(animate, 800)
+  //       }
+  //     } else {
+  //       // Deleting phase
+  //       if (currentText.length > 0) {
+  //         // Delete 2-3 characters at once
+  //         const charsToDelete = Math.min(3, currentText.length)
+  //         const newText = currentText.slice(0, -charsToDelete)
+  //         animationStateRef.current.currentText = newText
+  //         setDisplayText(newText)
+
+  //         timeoutId = setTimeout(animate, 20)
+  //       } else {
+  //         // Finished deleting, pick next suggestion with random delay
+  //         const nextIndex = Math.floor(Math.random() * SEARCH_SUGGESTIONS.length)
+  //         animationStateRef.current.currentSuggestionIndex = nextIndex
+  //         animationStateRef.current.isTyping = true
+
+  //         // Random delay: 1-2 seconds
+  //         timeoutId = setTimeout(animate, 1000 + Math.random() * 1000)
+  //       }
+  //     }
+  //   }
+
+  //   // Start animation
+  //   animate()
+
+  //   return () => {
+  //     isActive = false
+  //     if (timeoutId) {
+  //       clearTimeout(timeoutId)
+  //     }
+  //   }
+  // }, [])
+
+  // Handle search press - redirect to login and pause for 5 seconds
+  const handleSearchPress = useCallback(() => {
+    animationStateRef.current.isPaused = true
+    redirectToLogin()
+    // Resume after 5 seconds
+    setTimeout(() => {
+      animationStateRef.current.isPaused = false
+    }, 5000)
+  }, [redirectToLogin])
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [locationError, setLocationError] = useState<string | null>(null)
@@ -473,11 +591,6 @@ export function GuestHomeScreen() {
   // Fetch categories from API
   const { data: categories, isLoading: categoriesLoading } = useCategories()
 
-  // Navigation Helper
-  const redirectToLogin = () => {
-    router.push('/auth/login')
-  }
-
   // Get display labels for filters
   const selectedCityName = selectedCity
     ? cities?.find((c) => c.public_id === selectedCity)?.name
@@ -504,29 +617,40 @@ export function GuestHomeScreen() {
           justifyContent="space-between"
         >
           {/* Search Input Placeholder */}
-          <XStack
-            flex={1}
-            bg="$backgroundSubtle"
-            borderColor="$borderColor"
-            borderWidth={1}
-            borderRadius="$4"
-            px="$3"
-            py="$2.5"
-            alignItems="center"
-            gap="$2"
+          <Pressable
+            onPress={handleSearchPress}
+            style={{ flex: 1 }}
           >
-            <Search
-              pointerEvents="none"
-              size={18}
-              color="$colorSubtle"
-            />
-            <Text
-              color="$colorSubtle"
-              fontSize="$3"
+            <XStack
+              bg="$backgroundSubtle"
+              borderColor="$borderColor"
+              borderWidth={1}
+              borderRadius="$4"
+              px="$3"
+              py="$2.5"
+              alignItems="center"
+              gap="$2"
             >
-              Search HandymanKiosk
-            </Text>
-          </XStack>
+              <Search
+                pointerEvents="none"
+                size={18}
+                color="$colorSubtle"
+              />
+              <Text
+                color="$colorSubtle"
+                fontSize="$3"
+              >
+                {displayText || ' '}
+                <Text
+                  color="$colorSubtle"
+                  fontSize="$3"
+                  opacity={showCursor ? 1 : 0}
+                >
+                  |
+                </Text>
+              </Text>
+            </XStack>
+          </Pressable>
 
           <XStack
             alignItems="center"
@@ -1236,7 +1360,7 @@ export function GuestHomeScreen() {
                               <Star
                                 size={10}
                                 color="$accent"
-                                fill="$accent"
+                                fill="$color9"
                               />
                               <Text
                                 fontSize={10}
@@ -1376,7 +1500,7 @@ export function GuestHomeScreen() {
                                 <Star
                                   size={10}
                                   color="$accent"
-                                  fill="$accent"
+                                  fill="$color9"
                                 />
                                 <Text
                                   fontSize={10}
@@ -1468,7 +1592,7 @@ export function GuestHomeScreen() {
               </YStack>
               <ArrowRight
                 size={20}
-                color="#FFB800"
+                color="$accent"
               />
             </XStack>
           </YStack>
@@ -1574,7 +1698,7 @@ export function GuestHomeScreen() {
                             <Text
                               fontSize="$4"
                               fontWeight="bold"
-                              color="#FFB800"
+                              color="$accent"
                             >
                               ${job.estimated_budget}
                             </Text>
@@ -1611,7 +1735,7 @@ export function GuestHomeScreen() {
                             </XStack>
                           )}
                           <XStack
-                            bg="rgba(255,184,0,0.1)"
+                            bg="$accentBackground"
                             px="$2"
                             py="$1"
                             borderRadius="$2"
@@ -1620,7 +1744,7 @@ export function GuestHomeScreen() {
                           >
                             <Text
                               fontSize="$1"
-                              color="#FFB800"
+                              color="$accent"
                               fontWeight="500"
                             >
                               Open
@@ -1689,7 +1813,7 @@ export function GuestHomeScreen() {
                               <Text
                                 fontSize="$4"
                                 fontWeight="bold"
-                                color="#FFB800"
+                                color="$accent"
                               >
                                 ${job.estimated_budget}
                               </Text>

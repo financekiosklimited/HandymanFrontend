@@ -69,8 +69,8 @@ interface BottomNavProps {
   notificationCount?: number
   /** Navigation handler - receives the route to navigate to */
   onNavigate: (route: string) => void
-  /** Delay in ms to prevent double taps (default: 300ms) */
-  tapDelay?: number
+  /** Whether navigation is in progress (from useNavigationGuard) - disables all nav buttons */
+  isNavigating?: boolean
 }
 
 function BottomNavComponent({
@@ -80,32 +80,20 @@ function BottomNavComponent({
   isAddLoading,
   notificationCount = 0,
   onNavigate,
-  tapDelay = 300,
+  isNavigating = false,
 }: BottomNavProps) {
   const navItems = useMemo(() => getNavItems(variant), [variant])
   const theme = useTheme()
   const insets = useSafeAreaInsets()
 
-  // Local navigation lock to prevent rapid button presses
-  const isNavigatingRef = useRef(false)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Memoized navigation handler
+  // Memoized navigation handler - navigation locking is handled by useNavigationGuard
   const handleNavPress = useCallback(
     (item: BottomNavItem) => {
-      // Prevent rapid button presses
-      if (isNavigatingRef.current) {
-        return
-      }
-
       // If it's the Add button and we have a custom handler, use it
       if (item.id === 'add' && onAddPress) {
         onAddPress()
         return
       }
-
-      // Set navigation lock immediately
-      isNavigatingRef.current = true
 
       // If guest tries to access protected route, redirect to login
       if (variant === 'guest' && item.requiresAuth) {
@@ -113,16 +101,8 @@ function BottomNavComponent({
       } else {
         onNavigate(item.route)
       }
-
-      // Reset the lock after delay
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-      timeoutRef.current = setTimeout(() => {
-        isNavigatingRef.current = false
-      }, tapDelay)
     },
-    [variant, onAddPress, onNavigate, tapDelay]
+    [variant, onAddPress, onNavigate]
   )
 
   // Memoized route matcher - determines if a nav item is active
@@ -147,6 +127,10 @@ function BottomNavComponent({
   const shimmerProgress = useSharedValue(0)
   const rotationProgress = useSharedValue(0)
 
+  // Bell shake animation for Updates button when there are unread notifications
+  const bellShakeProgress = useSharedValue(0)
+  const bellRingCount = useRef(0)
+
   useEffect(() => {
     // Continuous shimmer loop - slower (2.5 seconds)
     shimmerProgress.value = withRepeat(
@@ -162,6 +146,43 @@ function BottomNavComponent({
     )
   }, [shimmerProgress, rotationProgress])
 
+  // Trigger bell shake animation periodically when there are unread notifications
+  useEffect(() => {
+    if (notificationCount <= 0) {
+      return
+    }
+
+    // Function to trigger the bell shake animation
+    const triggerBellAnimation = () => {
+      bellShakeProgress.value = 0
+      bellShakeProgress.value = withRepeat(
+        withTiming(1, { duration: 300, easing: Easing.inOut(Easing.ease) }),
+        3, // Ring 3 times
+        true,
+        (finished) => {
+          if (finished) {
+            bellShakeProgress.value = 0
+          }
+        }
+      )
+    }
+
+    // Initial animation
+    triggerBellAnimation()
+
+    // Set up interval to repeat animation every 5-10 seconds (random)
+    const intervalId = setInterval(
+      () => {
+        triggerBellAnimation()
+      },
+      5000 + Math.random() * 5000
+    )
+
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [notificationCount, bellShakeProgress])
+
   const shimmerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: interpolate(shimmerProgress.value, [0, 1], [-150, 350]) }],
     opacity: interpolate(shimmerProgress.value, [0, 0.3, 0.7, 1], [0, 0.7, 0.7, 0]),
@@ -169,6 +190,16 @@ function BottomNavComponent({
 
   const rotationAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${interpolate(rotationProgress.value, [0, 1], [-1.5, 1.5])}deg` }],
+  }))
+
+  // Bell shake animation style - creates ringing effect with rotation and scale
+  const bellShakeAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        rotate: `${interpolate(bellShakeProgress.value, [0, 0.25, 0.5, 0.75, 1], [0, -15, 15, -15, 0])}deg`,
+      },
+      { scale: interpolate(bellShakeProgress.value, [0, 0.5, 1], [1, 1.1, 1]) },
+    ],
   }))
 
   return (
@@ -199,8 +230,8 @@ function BottomNavComponent({
             gap="$1"
             flex={1}
             pressStyle={{ scale: 0.9 }}
-            disabled={isNavigatingRef.current && !isAddButton}
-            opacity={isNavigatingRef.current && !isAddButton ? 0.7 : 1}
+            disabled={isNavigating && !isAddButton}
+            opacity={isNavigating && !isAddButton ? 0.7 : 1}
           >
             {isAddButton ? (
               <>
@@ -267,11 +298,26 @@ function BottomNavComponent({
               </>
             ) : (
               <View position="relative">
-                <Icon
-                  size={24}
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  color={isActive ? (themeColors.primary as any) : (themeColors.colorMuted as any)}
-                />
+                {/* Bell shake animation wrapper for Updates button */}
+                {isUpdatesButton && showBadge ? (
+                  <Animated.View style={bellShakeAnimatedStyle}>
+                    <Icon
+                      size={24}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      color={
+                        isActive ? (themeColors.primary as any) : (themeColors.colorMuted as any)
+                      }
+                    />
+                  </Animated.View>
+                ) : (
+                  <Icon
+                    size={24}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    color={
+                      isActive ? (themeColors.primary as any) : (themeColors.colorMuted as any)
+                    }
+                  />
+                )}
                 {/* Notification Badge - simplified animation */}
                 {showBadge && (
                   <View

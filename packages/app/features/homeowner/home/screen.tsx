@@ -1,8 +1,17 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import * as Location from 'expo-location'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, ScrollIndicator } from '@my/ui'
+import { Animated as AnimatedRN, View as RNView, Easing as EasingRN } from 'react-native'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  Easing,
+  interpolate,
+} from 'react-native-reanimated'
 import {
   useHomeownerJobs,
   useNearbyHandymen,
@@ -48,6 +57,7 @@ import {
   Star,
   MapPin,
   ChevronDown,
+  ChevronUp,
   ShieldCheck,
   Sparkles,
   Hammer,
@@ -157,6 +167,45 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'halifax-ns': { lat: 44.648764, lng: -63.575239 },
 }
 
+// Collapsible Section using JS-driven Layout Animation for proper sibling reflow
+function CollapsibleSection({
+  children,
+  expanded,
+}: { children: React.ReactNode; expanded: boolean }) {
+  const [contentHeight, setContentHeight] = useState(0)
+  const animatedHeight = useRef(new AnimatedRN.Value(0)).current
+
+  useEffect(() => {
+    AnimatedRN.timing(animatedHeight, {
+      toValue: expanded ? contentHeight : 0,
+      duration: 300,
+      easing: EasingRN.bezier(0.4, 0.0, 0.2, 1), // Standard easing
+      useNativeDriver: false, // Critical: this triggers layout updates
+    }).start()
+  }, [expanded, contentHeight, animatedHeight])
+
+  return (
+    <AnimatedRN.View
+      style={{
+        height: animatedHeight,
+        overflow: 'hidden',
+      }}
+    >
+      <RNView
+        style={{ position: 'absolute', width: '100%' }}
+        onLayout={(event) => {
+          const height = event.nativeEvent.layout.height
+          if (height > 0 && Math.abs(contentHeight - height) > 1) {
+            setContentHeight(height)
+          }
+        }}
+      >
+        {children}
+      </RNView>
+    </AnimatedRN.View>
+  )
+}
+
 export function HomeownerHomeScreen() {
   const router = useRouter()
   const insets = useSafeArea()
@@ -179,6 +228,9 @@ export function HomeownerHomeScreen() {
   const [showCityDropdown, setShowCityDropdown] = useState(false)
   const [showRatingDropdown, setShowRatingDropdown] = useState(false)
   const [showHourlyRateDropdown, setShowHourlyRateDropdown] = useState(false)
+
+  // Toggle state for handymen list expansion
+  const [expandHandymen, setExpandHandymen] = useState(false)
 
   // Request location permission and get current location
   useEffect(() => {
@@ -410,6 +462,28 @@ export function HomeownerHomeScreen() {
     }
   }, [refetchProfile, router])
 
+  // Continuous CTA pulse animation (gentle scale + shadow)
+  const ctaPulseProgress = useSharedValue(0)
+
+  useEffect(() => {
+    // Gentle continuous pulse: 4 second loop
+    ctaPulseProgress.value = withRepeat(
+      withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
+      -1, // Infinite
+      true // Reverse
+    )
+  }, [ctaPulseProgress])
+
+  const ctaPulseAnimatedStyle = useAnimatedStyle(() => {
+    const scale = interpolate(ctaPulseProgress.value, [0, 0.5, 1], [1, 1.1, 1])
+    const shadowOpacity = interpolate(ctaPulseProgress.value, [0, 0.5, 1], [0.1, 0.25, 0.1])
+
+    return {
+      transform: [{ scale }],
+      shadowOpacity,
+    }
+  })
+
   return (
     <View
       flex={1}
@@ -568,32 +642,34 @@ export function HomeownerHomeScreen() {
                   What needs fixing?
                 </Text>
 
-                {/* Minimalist CTA Button */}
-                <Button
-                  size="$5"
-                  bg="white"
-                  color="#0C9A5C"
-                  borderRadius="$6"
-                  fontWeight="bold"
-                  px="$6"
-                  py="$3"
-                  pressStyle={{ scale: 0.98, opacity: 0.9 }}
-                  onPress={() => router.push('/(homeowner)/jobs/add')}
-                  shadowColor="rgba(0,0,0,0.15)"
-                  shadowRadius={8}
-                  shadowOffset={{ width: 0, height: 2 }}
-                  icon={
-                    <Plus
-                      size={22}
-                      color="white"
-                      strokeWidth={2.5}
-                      bg="#0C9A5C"
-                      borderRadius={100}
-                    />
-                  }
-                >
-                  Describe Your Task
-                </Button>
+                {/* Minimalist CTA Button with Pulse Animation */}
+                <Animated.View style={ctaPulseAnimatedStyle}>
+                  <Button
+                    size="$5"
+                    bg="white"
+                    color="#0C9A5C"
+                    borderRadius="$6"
+                    fontWeight="bold"
+                    px="$6"
+                    py="$3"
+                    pressStyle={{ scale: 0.98, opacity: 0.9 }}
+                    onPress={() => router.push('/(homeowner)/jobs/add')}
+                    shadowColor="rgba(0,0,0,0.15)"
+                    shadowRadius={8}
+                    shadowOffset={{ width: 0, height: 2 }}
+                    icon={
+                      <Plus
+                        size={22}
+                        color="white"
+                        strokeWidth={2.5}
+                        bg="#0C9A5C"
+                        borderRadius={100}
+                      />
+                    }
+                  >
+                    Describe Your Task
+                  </Button>
+                </Animated.View>
 
                 <Text
                   fontSize="$2"
@@ -712,7 +788,7 @@ export function HomeownerHomeScreen() {
                   </XStack>
 
                   {/* City Dropdown */}
-                  {showCityDropdown && (
+                  <CollapsibleSection expanded={showCityDropdown}>
                     <YStack
                       bg="white"
                       borderRadius="$4"
@@ -771,7 +847,7 @@ export function HomeownerHomeScreen() {
                         )}
                       </ScrollView>
                     </YStack>
-                  )}
+                  </CollapsibleSection>
                 </YStack>
 
                 {/* Category Icons - Prominent Filter for Trades */}
@@ -973,7 +1049,7 @@ export function HomeownerHomeScreen() {
                   </XStack>
 
                   {/* Hourly Rate Dropdown - Expand Layout */}
-                  {showHourlyRateDropdown && (
+                  <CollapsibleSection expanded={showHourlyRateDropdown}>
                     <YStack
                       bg="white"
                       borderRadius="$4"
@@ -1020,10 +1096,10 @@ export function HomeownerHomeScreen() {
                         </Button>
                       ))}
                     </YStack>
-                  )}
+                  </CollapsibleSection>
 
                   {/* Rating Dropdown - Expand Layout */}
-                  {showRatingDropdown && (
+                  <CollapsibleSection expanded={showRatingDropdown}>
                     <YStack
                       bg="white"
                       borderRadius="$4"
@@ -1070,7 +1146,7 @@ export function HomeownerHomeScreen() {
                         </Button>
                       ))}
                     </YStack>
-                  )}
+                  </CollapsibleSection>
                 </YStack>
               </YStack>
             </YStack>
@@ -1096,17 +1172,33 @@ export function HomeownerHomeScreen() {
               </Text>
               <Button
                 unstyled
-                onPress={() => router.push('/(homeowner)/handymen')}
+                onPress={() => setExpandHandymen(!expandHandymen)}
                 animation="micro"
                 pressStyle={{ scale: 0.95 }}
               >
-                <Text
-                  fontSize="$2"
-                  fontWeight="bold"
-                  color="$primary"
+                <XStack
+                  alignItems="center"
+                  gap="$1"
                 >
-                  See All
-                </Text>
+                  <Text
+                    fontSize="$2"
+                    fontWeight="bold"
+                    color="$primary"
+                  >
+                    {expandHandymen ? 'Show Less' : 'See All'}
+                  </Text>
+                  {expandHandymen ? (
+                    <ChevronUp
+                      size={16}
+                      color="#0C9A5C"
+                    />
+                  ) : (
+                    <ChevronDown
+                      size={16}
+                      color="#0C9A5C"
+                    />
+                  )}
+                </XStack>
               </Button>
             </XStack>
 
@@ -1118,155 +1210,315 @@ export function HomeownerHomeScreen() {
                   m="$4"
                 />
               ) : handymen.length > 0 ? (
-                handymen.map((pro) => (
-                  <XStack
-                    key={pro.public_id}
-                    bg="white"
-                    borderRadius="$6"
-                    p="$3"
-                    borderColor="$borderSubtle"
-                    borderWidth={1}
-                    shadowColor="rgba(0,0,0,0.03)"
-                    shadowRadius={5}
-                    shadowOpacity={1}
-                    gap="$3"
-                    onPress={() => router.push(`/(homeowner)/handymen/${pro.public_id}`)}
-                  >
-                    <View position="relative">
-                      {/* Placeholder for now since API might not return image yet, or use Avatar if available */}
-                      <View
-                        width={56}
-                        height={56}
-                        borderRadius="$4"
-                        bg="$backgroundSubtle"
-                        alignItems="center"
-                        justifyContent="center"
-                        borderWidth={2}
-                        borderColor="white"
-                        shadowColor="rgba(0,0,0,0.1)"
-                        shadowRadius={3}
-                      >
-                        <Text
-                          fontSize="$5"
-                          fontWeight="bold"
-                          color="$colorSubtle"
-                        >
-                          {pro.display_name.charAt(0)}
-                        </Text>
-                      </View>
-                      <View
-                        position="absolute"
-                        bottom={-4}
-                        right={-4}
-                        bg="$primary"
-                        p={2}
-                        borderRadius={100}
-                        borderWidth={2}
-                        borderColor="white"
-                      >
-                        <ShieldCheck
-                          size={10}
-                          color="white"
-                        />
-                      </View>
-                    </View>
-
-                    <YStack
-                      flex={1}
-                      justifyContent="space-between"
+                <YStack>
+                  {/* Always show first 3 handymen */}
+                  {handymen.slice(0, 3).map((pro) => (
+                    <XStack
+                      key={pro.public_id}
+                      bg="white"
+                      borderRadius="$6"
+                      p="$3"
+                      borderColor="$borderSubtle"
+                      borderWidth={1}
+                      shadowColor="rgba(0,0,0,0.03)"
+                      shadowRadius={5}
+                      shadowOpacity={1}
+                      gap="$3"
+                      onPress={() => router.push(`/(homeowner)/handymen/${pro.public_id}`)}
+                      mb="$3"
                     >
-                      <XStack
-                        justifyContent="space-between"
-                        alignItems="flex-start"
-                      >
-                        <YStack flex={1}>
+                      <View position="relative">
+                        {/* Placeholder for now since API might not return image yet, or use Avatar if available */}
+                        <View
+                          width={56}
+                          height={56}
+                          borderRadius="$4"
+                          bg="$backgroundSubtle"
+                          alignItems="center"
+                          justifyContent="center"
+                          borderWidth={2}
+                          borderColor="white"
+                          shadowColor="rgba(0,0,0,0.1)"
+                          shadowRadius={3}
+                        >
                           <Text
-                            fontSize="$3"
+                            fontSize="$5"
                             fontWeight="bold"
-                            color="$color"
-                            numberOfLines={1}
-                          >
-                            {pro.display_name}
-                          </Text>
-                          <Text
-                            fontSize={10}
                             color="$colorSubtle"
                           >
-                            Specialist
+                            {pro.display_name.charAt(0)}
                           </Text>
-                        </YStack>
-                        <YStack alignItems="flex-end">
-                          <Text
-                            fontSize="$3"
-                            fontWeight="bold"
-                            color="$color"
-                          >
-                            ${pro.hourly_rate || 'N/A'}
-                          </Text>
-                          <Text
-                            fontSize={9}
-                            color="$colorSubtle"
-                            fontWeight="500"
-                          >
-                            /hr
-                          </Text>
-                        </YStack>
-                      </XStack>
+                        </View>
+                        <View
+                          position="absolute"
+                          bottom={-4}
+                          right={-4}
+                          bg="$primary"
+                          p={2}
+                          borderRadius={100}
+                          borderWidth={2}
+                          borderColor="white"
+                        >
+                          <ShieldCheck
+                            size={10}
+                            color="white"
+                          />
+                        </View>
+                      </View>
 
-                      <XStack
-                        gap="$3"
-                        mt="$1"
-                        alignItems="center"
+                      <YStack
+                        flex={1}
+                        justifyContent="space-between"
                       >
                         <XStack
-                          bg="$warningBackground"
-                          px="$1.5"
-                          py="$0.5"
-                          borderRadius="$2"
-                          borderColor="$warningBackground"
-                          borderWidth={1}
-                          alignItems="center"
-                          gap="$1"
+                          justifyContent="space-between"
+                          alignItems="flex-start"
                         >
-                          <Star
-                            size={10}
-                            color="$accent"
-                            fill="$accent"
-                          />
-                          <Text
-                            fontSize={10}
-                            fontWeight="bold"
-                            color="$accent"
-                          >
-                            {pro.rating || 0}
-                          </Text>
-                          <Text
-                            fontSize={10}
-                            color="$accent"
-                            opacity={0.7}
-                          >
-                            ({pro.review_count || 0})
-                          </Text>
+                          <YStack flex={1}>
+                            <Text
+                              fontSize="$3"
+                              fontWeight="bold"
+                              color="$color"
+                              numberOfLines={1}
+                            >
+                              {pro.display_name}
+                            </Text>
+                            <Text
+                              fontSize={10}
+                              color="$colorSubtle"
+                            >
+                              Specialist
+                            </Text>
+                          </YStack>
+                          <YStack alignItems="flex-end">
+                            <Text
+                              fontSize="$3"
+                              fontWeight="bold"
+                              color="$color"
+                            >
+                              ${pro.hourly_rate || 'N/A'}
+                            </Text>
+                            <Text
+                              fontSize={9}
+                              color="$colorSubtle"
+                              fontWeight="500"
+                            >
+                              /hr
+                            </Text>
+                          </YStack>
                         </XStack>
+
                         <XStack
+                          gap="$3"
+                          mt="$1"
                           alignItems="center"
-                          gap="$1"
                         >
-                          <Briefcase
-                            size={10}
-                            color="$colorSubtle"
-                          />
-                          <Text
-                            fontSize={10}
-                            color="$colorSubtle"
+                          <XStack
+                            bg="$warningBackground"
+                            px="$1.5"
+                            py="$0.5"
+                            borderRadius="$2"
+                            borderColor="$warningBackground"
+                            borderWidth={1}
+                            alignItems="center"
+                            gap="$1"
                           >
-                            34 jobs
-                          </Text>
+                            <Star
+                              size={10}
+                              color="$accent"
+                              fill="$color9"
+                            />
+                            <Text
+                              fontSize={10}
+                              fontWeight="bold"
+                              color="$accent"
+                            >
+                              {pro.rating || 0}
+                            </Text>
+                            <Text
+                              fontSize={10}
+                              color="$accent"
+                              opacity={0.7}
+                            >
+                              ({pro.review_count || 0})
+                            </Text>
+                          </XStack>
+                          <XStack
+                            alignItems="center"
+                            gap="$1"
+                          >
+                            <Briefcase
+                              size={10}
+                              color="$colorSubtle"
+                            />
+                            <Text
+                              fontSize={10}
+                              color="$colorSubtle"
+                            >
+                              34 jobs
+                            </Text>
+                          </XStack>
                         </XStack>
-                      </XStack>
+                      </YStack>
+                    </XStack>
+                  ))}
+
+                  {/* Collapsible section for remaining handymen */}
+                  <CollapsibleSection expanded={expandHandymen}>
+                    <YStack>
+                      {handymen.slice(3).map((pro) => (
+                        <XStack
+                          key={pro.public_id}
+                          bg="white"
+                          borderRadius="$6"
+                          p="$3"
+                          borderColor="$borderSubtle"
+                          borderWidth={1}
+                          shadowColor="rgba(0,0,0,0.03)"
+                          shadowRadius={5}
+                          shadowOpacity={1}
+                          gap="$3"
+                          onPress={() => router.push(`/(homeowner)/handymen/${pro.public_id}`)}
+                          mb="$3"
+                        >
+                          <View position="relative">
+                            {/* Placeholder for now since API might not return image yet, or use Avatar if available */}
+                            <View
+                              width={56}
+                              height={56}
+                              borderRadius="$4"
+                              bg="$backgroundSubtle"
+                              alignItems="center"
+                              justifyContent="center"
+                              borderWidth={2}
+                              borderColor="white"
+                              shadowColor="rgba(0,0,0,0.1)"
+                              shadowRadius={3}
+                            >
+                              <Text
+                                fontSize="$5"
+                                fontWeight="bold"
+                                color="$colorSubtle"
+                              >
+                                {pro.display_name.charAt(0)}
+                              </Text>
+                            </View>
+                            <View
+                              position="absolute"
+                              bottom={-4}
+                              right={-4}
+                              bg="$primary"
+                              p={2}
+                              borderRadius={100}
+                              borderWidth={2}
+                              borderColor="white"
+                            >
+                              <ShieldCheck
+                                size={10}
+                                color="white"
+                              />
+                            </View>
+                          </View>
+
+                          <YStack
+                            flex={1}
+                            justifyContent="space-between"
+                          >
+                            <XStack
+                              justifyContent="space-between"
+                              alignItems="flex-start"
+                            >
+                              <YStack flex={1}>
+                                <Text
+                                  fontSize="$3"
+                                  fontWeight="bold"
+                                  color="$color"
+                                  numberOfLines={1}
+                                >
+                                  {pro.display_name}
+                                </Text>
+                                <Text
+                                  fontSize={10}
+                                  color="$colorSubtle"
+                                >
+                                  Specialist
+                                </Text>
+                              </YStack>
+                              <YStack alignItems="flex-end">
+                                <Text
+                                  fontSize="$3"
+                                  fontWeight="bold"
+                                  color="$color"
+                                >
+                                  ${pro.hourly_rate || 'N/A'}
+                                </Text>
+                                <Text
+                                  fontSize={9}
+                                  color="$colorSubtle"
+                                  fontWeight="500"
+                                >
+                                  /hr
+                                </Text>
+                              </YStack>
+                            </XStack>
+
+                            <XStack
+                              gap="$3"
+                              mt="$1"
+                              alignItems="center"
+                            >
+                              <XStack
+                                bg="$warningBackground"
+                                px="$1.5"
+                                py="$0.5"
+                                borderRadius="$2"
+                                borderColor="$warningBackground"
+                                borderWidth={1}
+                                alignItems="center"
+                                gap="$1"
+                              >
+                                <Star
+                                  size={10}
+                                  color="$accent"
+                                  fill="$color9"
+                                />
+                                <Text
+                                  fontSize={10}
+                                  fontWeight="bold"
+                                  color="$accent"
+                                >
+                                  {pro.rating || 0}
+                                </Text>
+                                <Text
+                                  fontSize={10}
+                                  color="$accent"
+                                  opacity={0.7}
+                                >
+                                  ({pro.review_count || 0})
+                                </Text>
+                              </XStack>
+                              <XStack
+                                alignItems="center"
+                                gap="$1"
+                              >
+                                <Briefcase
+                                  size={10}
+                                  color="$colorSubtle"
+                                />
+                                <Text
+                                  fontSize={10}
+                                  color="$colorSubtle"
+                                >
+                                  34 jobs
+                                </Text>
+                              </XStack>
+                            </XStack>
+                          </YStack>
+                        </XStack>
+                      ))}
                     </YStack>
-                  </XStack>
-                ))
+                  </CollapsibleSection>
+                </YStack>
               ) : (
                 <YStack
                   py="$8"

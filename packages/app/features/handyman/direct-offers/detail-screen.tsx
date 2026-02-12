@@ -323,7 +323,7 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
                       <Star
                         size={14}
                         fill="#FFB800"
-                        color="#FFB800"
+                        color="$accent"
                       />
                       <Text
                         fontSize="$2"

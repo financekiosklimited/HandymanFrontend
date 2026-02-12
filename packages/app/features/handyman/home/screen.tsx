@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import * as Location from 'expo-location'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View, ScrollIndicator } from '@my/ui'
 import {
   useHandymanJobsForYou,
   useAuthStore,
@@ -18,6 +18,15 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { JobCard } from '@my/ui'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
+import { useDebounce } from 'app/hooks'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withDelay,
+  withSequence,
+} from 'react-native-reanimated'
 import {
   Search,
   MessageCircle,
@@ -29,6 +38,16 @@ import {
   Star,
   DollarSign,
   Briefcase,
+  Wrench,
+  Zap,
+  Hammer,
+  Sparkles,
+  PaintBucket,
+  TreePine,
+  Wind,
+  Home,
+  Layers,
+  Settings,
 } from '@tamagui/lucide-icons'
 import { useToastController } from '@tamagui/toast'
 import { showNewDirectOfferToast } from 'app/utils/toast-messages'
@@ -107,6 +126,73 @@ const BUDGET_OPTIONS = [
   { value: 5000, label: 'Under $5,000' },
 ]
 
+// Create animated components
+const AnimatedView = Animated.createAnimatedComponent(View)
+
+// Icon mapping for API categories (Material Design names -> Lucide icons)
+const iconMap: Record<string, any> = {
+  plumbing: Wrench,
+  electrical_services: Zap,
+  carpenter: Hammer,
+  cleaning_services: Sparkles,
+  format_paint: PaintBucket,
+  yard: TreePine,
+  ac_unit: Wind,
+  roofing: Home,
+  layers: Layers,
+  home_repair_service: Settings,
+}
+
+// Category colors - vivid colors matching iconography
+const categoryColors: Record<string, string> = {
+  plumbing: '#007AFF', // Blue (water)
+  electrical_services: '#FFCC00', // Yellow (electricity)
+  carpenter: '#FF9500', // Orange (wood)
+  cleaning_services: '#00D4FF', // Cyan/Aqua (clean water)
+  format_paint: '#FF2D55', // Magenta (paint)
+  yard: '#8B4513', // Brown (soil/earth)
+  ac_unit: '#5AC8FA', // Light Blue (cool air)
+  roofing: '#FF3B30', // Red (roof tiles)
+  layers: '#AF52DE', // Purple (general)
+  home_repair_service: '#FF6B35', // Coral (hand tools)
+}
+
+// Animation configuration
+const SPRING_CONFIG = {
+  damping: 15,
+  stiffness: 150,
+}
+
+// Animated category icon with spring feedback
+function AnimatedCategoryIcon({
+  children,
+  onPress,
+}: {
+  children: React.ReactNode
+  isSelected: boolean
+  onPress: () => void
+}) {
+  const scale = useSharedValue(1)
+
+  const handlePress = useCallback(() => {
+    scale.value = withSequence(withTiming(0.9, { duration: 80 }), withSpring(1, SPRING_CONFIG))
+    onPress()
+  }, [onPress, scale])
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }))
+
+  return (
+    <AnimatedView
+      style={animatedStyle}
+      onPress={handlePress}
+    >
+      {children}
+    </AnimatedView>
+  )
+}
+
 export function HandymanHomeScreen() {
   const router = useRouter()
   const insets = useSafeArea()
@@ -123,8 +209,19 @@ export function HandymanHomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [maxBudget, setMaxBudget] = useState<number | null>(null)
   const [showCityDropdown, setShowCityDropdown] = useState(false)
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
   const [showBudgetDropdown, setShowBudgetDropdown] = useState(false)
+
+  // Debounced category selection to prevent rapid-fire animations
+  const [pendingCategory, setPendingCategory] = useState<string | null>(null)
+  const debouncedCategorySelection = useDebounce(pendingCategory, 100)
+
+  useEffect(() => {
+    setSelectedCategory(debouncedCategorySelection)
+  }, [debouncedCategorySelection])
+
+  const handleCategoryPress = useCallback((slug: string) => {
+    setPendingCategory((prev) => (prev === slug ? null : slug))
+  }, [])
 
   // Request location permission and get current location
   useEffect(() => {
@@ -202,7 +299,11 @@ export function HandymanHomeScreen() {
   const completedJobs = profile?.completed_jobs_count || 0
   const rating = profile?.rating || 0
 
-  // Fetch jobs for you with filters
+  // Infinite scroll state with debouncing
+  const isFetchingRef = useRef(false)
+  const fetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Fetch jobs for you with filters - initial 5, then 20 per page
   const {
     data: jobsData,
     isLoading: jobsLoading,
@@ -216,7 +317,34 @@ export function HandymanHomeScreen() {
     longitude: cityCoords?.lng || location?.longitude,
     category: selectedCategory || undefined,
     city: selectedCity || undefined,
+    initialPageSize: 5,
+    pageSize: 20,
   })
+
+  // Debounced fetch next page to prevent duplicate calls
+  const debouncedFetchNext = useCallback(() => {
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current)
+    }
+
+    fetchTimeoutRef.current = setTimeout(() => {
+      if (!isFetchingRef.current && hasMoreJobs && !isFetchingMoreJobs) {
+        isFetchingRef.current = true
+        fetchNextJobs().finally(() => {
+          isFetchingRef.current = false
+        })
+      }
+    }, 300)
+  }, [fetchNextJobs, hasMoreJobs, isFetchingMoreJobs])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // Flatten paginated data
   const jobs = useMemo(() => {
@@ -232,9 +360,6 @@ export function HandymanHomeScreen() {
   // Get display labels for filters
   const selectedCityName = selectedCity
     ? cities?.find((c) => c.public_id === selectedCity)?.name
-    : null
-  const selectedCategoryName = selectedCategory
-    ? categories?.find((c) => c.slug === selectedCategory)?.name
     : null
   const budgetLabel = maxBudget ? BUDGET_OPTIONS.find((b) => b.value === maxBudget)?.label : null
 
@@ -294,6 +419,17 @@ export function HandymanHomeScreen() {
         <ScrollView
           flex={1}
           showsVerticalScrollIndicator={false}
+          onScroll={({ nativeEvent }) => {
+            const { layoutMeasurement, contentOffset, contentSize } = nativeEvent
+            const paddingToBottom = 100
+            const isCloseToBottom =
+              layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom
+
+            if (isCloseToBottom) {
+              debouncedFetchNext()
+            }
+          }}
+          scrollEventThrottle={400}
         >
           {/* Welcome Message */}
           <YStack
@@ -750,103 +886,105 @@ export function HandymanHomeScreen() {
                   )}
                 </YStack>
 
-                {/* Filters - Category and Budget */}
-                <YStack gap="$2">
-                  <XStack gap="$2">
-                    {/* Category Filter Button */}
-                    <Button
-                      flex={1}
-                      size="$2"
-                      bg={selectedCategory ? 'rgba(12, 154, 92, 0.1)' : 'white'}
-                      borderColor={selectedCategory ? '$primary' : '$borderColor'}
-                      borderWidth={1}
-                      color={selectedCategory ? '$primary' : '$colorSubtle'}
-                      borderRadius="$3"
-                      fontSize="$1"
-                      fontWeight="bold"
-                      px="$2"
-                      onPress={() => {
-                        setShowBudgetDropdown(false)
-                        setShowCategoryDropdown(!showCategoryDropdown)
-                      }}
-                      animation="micro"
-                      pressStyle={{ scale: 0.95 }}
-                    >
-                      {selectedCategoryName || 'Category'} <ChevronDown size={10} />
-                    </Button>
-
-                    {/* Budget Filter Button */}
-                    <Button
-                      flex={1}
-                      size="$2"
-                      bg={maxBudget ? 'rgba(12, 154, 92, 0.1)' : 'white'}
-                      borderColor={maxBudget ? '$primary' : '$borderColor'}
-                      borderWidth={1}
-                      color={maxBudget ? '$primary' : '$colorSubtle'}
-                      borderRadius="$3"
-                      fontSize="$1"
-                      fontWeight="bold"
-                      px="$2"
-                      onPress={() => {
-                        setShowCategoryDropdown(false)
-                        setShowBudgetDropdown(!showBudgetDropdown)
-                      }}
-                      animation="micro"
-                      pressStyle={{ scale: 0.95 }}
-                    >
-                      {budgetLabel || 'Budget'} <ChevronDown size={10} />
-                    </Button>
-                  </XStack>
-
-                  {/* Category Dropdown */}
-                  {showCategoryDropdown && (
-                    <YStack
-                      bg="white"
-                      borderRadius="$4"
-                      borderWidth={1}
-                      borderColor="$borderColor"
-                      p="$2"
-                      gap="$1"
-                    >
-                      <Button
-                        size="$2"
-                        unstyled
-                        onPress={() => {
-                          setSelectedCategory(null)
-                          setShowCategoryDropdown(false)
-                        }}
-                        px="$2"
-                        py="$1.5"
+                {/* Category Icons - Prominent Filter for Trades */}
+                <YStack
+                  gap="$3"
+                  mb="$3"
+                >
+                  <Text
+                    fontSize="$4"
+                    fontWeight="bold"
+                    color="$color"
+                    pt="$2"
+                  >
+                    Filter by Trade
+                  </Text>
+                  {categoriesLoading ? (
+                    <Spinner
+                      size="small"
+                      color="$primary"
+                    />
+                  ) : (
+                    <ScrollIndicator>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
                       >
-                        <Text
-                          color={!selectedCategory ? '$primary' : '$color'}
-                          fontWeight={!selectedCategory ? 'bold' : 'normal'}
-                        >
-                          All Categories
-                        </Text>
-                      </Button>
-                      {categories?.map((category) => (
-                        <Button
-                          key={category.public_id}
-                          size="$2"
-                          unstyled
-                          onPress={() => {
-                            setSelectedCategory(category.slug)
-                            setShowCategoryDropdown(false)
-                          }}
-                          px="$2"
-                          py="$1.5"
-                        >
-                          <Text
-                            color={selectedCategory === category.slug ? '$primary' : '$color'}
-                            fontWeight={selectedCategory === category.slug ? 'bold' : 'normal'}
-                          >
-                            {category.name}
-                          </Text>
-                        </Button>
-                      ))}
-                    </YStack>
+                        <XStack gap="$3">
+                          {categories?.map((cat) => {
+                            const IconComponent = iconMap[cat.icon] || Wrench
+                            const isSelected = selectedCategory === cat.slug
+
+                            return (
+                              <YStack
+                                key={cat.public_id}
+                                alignItems="center"
+                                gap="$2"
+                                width={70}
+                              >
+                                <AnimatedCategoryIcon
+                                  isSelected={isSelected}
+                                  onPress={() => handleCategoryPress(cat.slug)}
+                                >
+                                  <View
+                                    width={56}
+                                    height={56}
+                                    borderRadius="$6"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    bg={isSelected ? '$primaryBackground' : '$backgroundSubtle'}
+                                    borderColor={isSelected ? '$primary' : '$borderColor'}
+                                  >
+                                    <IconComponent
+                                      size={24}
+                                      color={
+                                        isSelected
+                                          ? '$primary'
+                                          : categoryColors[cat.icon] || '#666666'
+                                      }
+                                      strokeWidth={2}
+                                    />
+                                  </View>
+                                </AnimatedCategoryIcon>
+                                <Text
+                                  fontSize="$2"
+                                  fontWeight="600"
+                                  color="$color"
+                                  textAlign="center"
+                                  numberOfLines={1}
+                                  mt="$1"
+                                >
+                                  {cat.name}
+                                </Text>
+                              </YStack>
+                            )
+                          })}
+                        </XStack>
+                      </ScrollView>
+                    </ScrollIndicator>
                   )}
+                </YStack>
+
+                {/* Budget Filter */}
+                <YStack gap="$2">
+                  {/* Budget Filter Button */}
+                  <Button
+                    flex={1}
+                    size="$2"
+                    bg={maxBudget ? 'rgba(12, 154, 92, 0.1)' : 'white'}
+                    borderColor={maxBudget ? '$primary' : '$borderColor'}
+                    borderWidth={1}
+                    color={maxBudget ? '$primary' : '$colorSubtle'}
+                    borderRadius="$3"
+                    fontSize="$1"
+                    fontWeight="bold"
+                    px="$2"
+                    onPress={() => setShowBudgetDropdown(!showBudgetDropdown)}
+                    animation="micro"
+                    pressStyle={{ scale: 0.95 }}
+                  >
+                    {budgetLabel || 'Budget'} <ChevronDown size={10} />
+                  </Button>
 
                   {/* Budget Dropdown */}
                   {showBudgetDropdown && (
@@ -890,34 +1028,15 @@ export function HandymanHomeScreen() {
             px="$4"
             pb="$8"
           >
-            <XStack
-              justifyContent="space-between"
-              alignItems="center"
+            <Text
+              fontSize="$3"
+              fontWeight="bold"
+              color="$color"
               mb="$3"
               px="$1"
             >
-              <Text
-                fontSize="$3"
-                fontWeight="bold"
-                color="$color"
-              >
-                {filteredJobs.length} Jobs Available
-              </Text>
-              <Button
-                unstyled
-                onPress={() => router.push('/(handyman)/jobs')}
-                animation="micro"
-                pressStyle={{ scale: 0.95 }}
-              >
-                <Text
-                  fontSize="$2"
-                  fontWeight="bold"
-                  color="$primary"
-                >
-                  See All
-                </Text>
-              </Button>
-            </XStack>
+              {filteredJobs.length} Jobs Available
+            </Text>
 
             <YStack gap="$3">
               {jobsLoading ? (
@@ -950,44 +1069,25 @@ export function HandymanHomeScreen() {
                 </YStack>
               )}
 
-              {/* Load More Button */}
-              {hasMoreJobs && !jobsLoading && (
-                <Button
-                  onPress={() => fetchNextJobs()}
-                  disabled={isFetchingMoreJobs}
-                  bg="$backgroundMuted"
-                  borderRadius="$md"
-                  py="$sm"
-                  mt="$xs"
-                  borderWidth={1}
-                  borderColor="$borderColor"
+              {/* Loading indicator for infinite scroll */}
+              {isFetchingMoreJobs && (
+                <XStack
+                  alignItems="center"
+                  justifyContent="center"
+                  gap="$sm"
+                  py="$4"
                 >
-                  {isFetchingMoreJobs ? (
-                    <XStack
-                      alignItems="center"
-                      gap="$sm"
-                    >
-                      <Spinner
-                        size="small"
-                        color="$primary"
-                      />
-                      <Text
-                        color="$colorSubtle"
-                        fontSize="$3"
-                      >
-                        Loading...
-                      </Text>
-                    </XStack>
-                  ) : (
-                    <Text
-                      color="$primary"
-                      fontSize="$3"
-                      fontWeight="500"
-                    >
-                      Load more jobs
-                    </Text>
-                  )}
-                </Button>
+                  <Spinner
+                    size="small"
+                    color="$primary"
+                  />
+                  <Text
+                    color="$colorSubtle"
+                    fontSize="$3"
+                  >
+                    Loading more jobs...
+                  </Text>
+                </XStack>
               )}
             </YStack>
           </YStack>

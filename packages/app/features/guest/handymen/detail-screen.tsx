@@ -199,7 +199,7 @@ export function HandymanDetailScreen({ handymanId }: HandymanDetailScreenProps) 
                     <Star
                       size={18}
                       fill="#FFB800"
-                      color="#FFB800"
+                      color="$accent"
                     />
                     <Text
                       fontSize="$5"

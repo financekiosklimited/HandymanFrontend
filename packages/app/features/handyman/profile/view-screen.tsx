@@ -243,7 +243,7 @@ export function HandymanProfileViewScreen() {
                     <Star
                       size={16}
                       color="$accent"
-                      fill="$accent"
+                      fill="$color9"
                     />
                     <Text
                       fontSize={14}

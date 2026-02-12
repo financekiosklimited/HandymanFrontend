@@ -131,11 +131,10 @@ export const NativeToast = () => {
       key={currentToast.id}
       duration={currentToast.duration}
       viewportName={currentToast.viewportName}
-      enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
-      exitStyle={{ opacity: 0, scale: 1, y: -20 }}
+      enterStyle={{ opacity: 0, y: -150 }}
+      exitStyle={{ opacity: 0, y: -150 }}
       y={0}
       opacity={1}
-      scale={1}
       animation="quick"
       bg={getBackgroundColor()}
       borderWidth={1}
@@ -146,22 +145,20 @@ export const NativeToast = () => {
       width="90%"
       alignSelf="center"
     >
-      <XStack
+      <YStack
         py="$3"
-        px="$4"
-        gap="$3"
-        alignItems="flex-start"
+        px="$6"
+        gap="$2"
+        alignItems="center"
       >
         {IconComponent && (
-          <YStack pt="$0.5">
-            <IconComponent
-              size={22}
-              color={getIconColor()}
-            />
-          </YStack>
+          <IconComponent
+            size={28}
+            color={getIconColor()}
+          />
         )}
         <YStack
-          flex={1}
+          alignItems="center"
           gap="$1"
         >
           <Toast.Title
@@ -169,6 +166,7 @@ export const NativeToast = () => {
             fontWeight="600"
             fontSize="$4"
             color="black"
+            textAlign="center"
           >
             {currentToast.title}
           </Toast.Title>
@@ -177,12 +175,13 @@ export const NativeToast = () => {
               fontSize="$3"
               opacity={0.9}
               color="black"
+              textAlign="center"
             >
               {currentToast.message}
             </Toast.Description>
           )}
         </YStack>
-      </XStack>
+      </YStack>
     </Toast>
   )
 }
