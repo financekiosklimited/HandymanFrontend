@@ -370,7 +370,7 @@ describe('Time Utilities - Invalid Input Handling', () => {
   })
 
   it('should handle very large future dates', () => {
-    const farFuture = Date.now() + 100 * 365 * 24 * 60 * 60 * 1000 // 100 years
+    const farFuture = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000) // 100 years
     const result = getTimeRemaining(farFuture)
 
     expect(result.isExpired).toBe(false)

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useMemo } from 'react'
+import Animated from 'react-native-reanimated'
 import {
   YStack,
   XStack,
@@ -16,6 +17,8 @@ import {
   PageHeader,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { useFormEntrance } from 'app/hooks/useFormEntrance'
+import { AnimatedTaskItem } from 'app/components/AnimatedTaskItem'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useCategories, useCities, useCreateJob, useHomeownerProfile } from '@my/api'
 import type { Category } from '@my/api'
@@ -148,6 +151,9 @@ export function AddJobScreen() {
   const { data: profile, isLoading: profileLoading } = useHomeownerProfile()
   const createJobMutation = useCreateJob()
   const toast = useToastController()
+
+  // Form entrance stagger animation
+  const { getSectionStyle } = useFormEntrance(8, { delay: 100, staggerDelay: 80 })
 
   // Phone verification check - redirects to verification if needed
   useEffect(() => {
@@ -629,562 +635,594 @@ export function AddJobScreen() {
               gap="$6"
             >
               {/* Title Section */}
-              <YStack gap="$1">
-                <Text
-                  fontSize={28}
-                  fontWeight="bold"
-                  color="$color"
-                >
-                  Create job listing
-                </Text>
-                <Text
-                  fontSize="$4"
-                  color="$colorSubtle"
-                >
-                  Tell us about the job you need help with
-                </Text>
-              </YStack>
+              <Animated.View style={getSectionStyle(0)}>
+                <YStack gap="$1">
+                  <Text
+                    fontSize={28}
+                    fontWeight="bold"
+                    color="$color"
+                  >
+                    Create job listing
+                  </Text>
+                  <Text
+                    fontSize="$4"
+                    color="$colorSubtle"
+                  >
+                    Tell us about the job you need help with
+                  </Text>
+                </YStack>
+              </Animated.View>
 
               {/* General Error */}
               {!!generalError && (
-                <XStack
-                  bg="$errorBackground"
-                  p="$3"
-                  borderRadius="$4"
-                  gap="$2"
-                  alignItems="center"
-                  borderWidth={1}
-                  borderColor="$errorBackground"
-                >
-                  <AlertCircle
-                    size={18}
-                    color="$error"
-                  />
-                  <Text
-                    color="$error"
-                    fontSize="$3"
-                    flex={1}
+                <Animated.View style={getSectionStyle(1)}>
+                  <XStack
+                    bg="$errorBackground"
+                    p="$3"
+                    borderRadius="$4"
+                    gap="$2"
+                    alignItems="center"
+                    borderWidth={1}
+                    borderColor="$errorBackground"
                   >
-                    {generalError}
-                  </Text>
-                </XStack>
+                    <AlertCircle
+                      size={18}
+                      color="$error"
+                    />
+                    <Text
+                      color="$error"
+                      fontSize="$3"
+                      flex={1}
+                    >
+                      {generalError}
+                    </Text>
+                  </XStack>
+                </Animated.View>
               )}
 
               {/* Form Fields */}
               <YStack gap="$5">
                 {/* Job Title */}
-                <YStack>
-                  <FieldLabel
-                    label="Job title"
-                    required
-                  />
-                  <Input
-                    value={formData.title}
-                    onChangeText={(text) => updateField('title', text)}
-                    placeholder="e.g., Fix leaking kitchen faucet, Paint bedroom walls..."
-                    {...inputStyles}
-                    borderColor={
-                      getFieldErrors(errors, 'title').length > 0 ? '$error' : '$borderColorHover'
-                    }
-                    placeholderTextColor="$placeholderColor"
-                    focusStyle={{ borderColor: '$primary', borderWidth: 1.5 }}
-                  />
-                  <ErrorText errors={getFieldErrors(errors, 'title')} />
-                </YStack>
-
-                {/* Estimated Budget */}
-                <YStack>
-                  <FieldLabel
-                    label="Estimated budget"
-                    required
-                  />
-                  <XStack
-                    {...inputStyles}
-                    borderColor={
-                      getFieldErrors(errors, 'estimated_budget').length > 0
-                        ? '$error'
-                        : '$borderColorHover'
-                    }
-                    alignItems="center"
-                    gap="$2"
-                  >
-                    <Text
-                      color="$colorSubtle"
-                      fontSize="$4"
-                    >
-                      $
-                    </Text>
+                <Animated.View style={getSectionStyle(1)}>
+                  <YStack>
+                    <FieldLabel
+                      label="Job title"
+                      required
+                    />
                     <Input
-                      value={formData.estimated_budget}
-                      onChangeText={(text) => updateField('estimated_budget', text)}
-                      placeholder="Enter estimated amount (e.g., 150)"
-                      bg="transparent"
-                      borderWidth={0}
-                      flex={1}
-                      px={0}
-                      py={0}
-                      minHeight="auto"
-                      keyboardType="numeric"
+                      value={formData.title}
+                      onChangeText={(text) => updateField('title', text)}
+                      placeholder="e.g., Fix leaking kitchen faucet, Paint bedroom walls..."
+                      {...inputStyles}
+                      borderColor={
+                        getFieldErrors(errors, 'title').length > 0 ? '$error' : '$borderColorHover'
+                      }
                       placeholderTextColor="$placeholderColor"
                       focusStyle={{ borderColor: '$primary', borderWidth: 1.5 }}
                     />
-                  </XStack>
-                  <ErrorText errors={getFieldErrors(errors, 'estimated_budget')} />
-                </YStack>
+                    <ErrorText errors={getFieldErrors(errors, 'title')} />
+                  </YStack>
+                </Animated.View>
 
-                {/* Category */}
-                <YStack>
-                  <FieldLabel
-                    label="Category"
-                    required
-                  />
-                  <Button
-                    unstyled
-                    onPress={() => setCategorySheetOpen(true)}
-                    {...inputStyles}
-                    borderColor={
-                      getFieldErrors(errors, 'category_id').length > 0
-                        ? '$error'
-                        : '$borderColorHover'
-                    }
-                  >
+                {/* Estimated Budget */}
+                <Animated.View style={getSectionStyle(2)}>
+                  <YStack>
+                    <FieldLabel
+                      label="Estimated budget"
+                      required
+                    />
                     <XStack
-                      alignItems="center"
-                      justifyContent="space-between"
-                      width="100%"
-                    >
-                      <Text color={selectedCategory ? '$color' : '$placeholderColor'}>
-                        {selectedCategory?.name || 'Select a category'}
-                      </Text>
-                      <ChevronDown
-                        size={20}
-                        color="$placeholderColor"
-                      />
-                    </XStack>
-                  </Button>
-                  <ErrorText errors={getFieldErrors(errors, 'category_id')} />
-                </YStack>
-
-                {/* City */}
-                <YStack>
-                  <FieldLabel
-                    label="City"
-                    required
-                  />
-                  <Button
-                    unstyled
-                    onPress={() => setCitySheetOpen(true)}
-                    {...inputStyles}
-                    borderColor={
-                      getFieldErrors(errors, 'city_id').length > 0 ? '$error' : '$borderColorHover'
-                    }
-                  >
-                    <XStack
-                      alignItems="center"
-                      justifyContent="space-between"
-                      width="100%"
-                    >
-                      <Text color={selectedCity ? '$color' : '$placeholderColor'}>
-                        {selectedCity
-                          ? `${selectedCity.name}, ${selectedCity.province}`
-                          : 'Select a city'}
-                      </Text>
-                      <ChevronDown
-                        size={20}
-                        color="$placeholderColor"
-                      />
-                    </XStack>
-                  </Button>
-                  <ErrorText errors={getFieldErrors(errors, 'city_id')} />
-                </YStack>
-
-                {/* Address */}
-                <YStack>
-                  <FieldLabel
-                    label="Address"
-                    required
-                  />
-                  <Input
-                    value={formData.address}
-                    onChangeText={(text) => updateField('address', text)}
-                    placeholder="Street address where work will be done"
-                    {...inputStyles}
-                    borderColor={
-                      getFieldErrors(errors, 'address').length > 0 ? '$error' : '$borderColorHover'
-                    }
-                    placeholderTextColor="$placeholderColor"
-                    focusStyle={{ borderColor: '$primary', borderWidth: 1.5 }}
-                  />
-                  <ErrorText errors={getFieldErrors(errors, 'address')} />
-                </YStack>
-
-                {/* Postal Code */}
-                <YStack>
-                  <FieldLabel label="Postal code" />
-                  <Input
-                    value={formData.postal_code}
-                    onChangeText={(text) => updateField('postal_code', text)}
-                    placeholder="e.g., A1A 1A1 (optional)"
-                    {...inputStyles}
-                    borderColor="$borderColorHover"
-                    placeholderTextColor="$placeholderColor"
-                    focusStyle={{ borderColor: '$primary', borderWidth: 1.5 }}
-                  />
-                </YStack>
-
-                {/* Description */}
-                <YStack>
-                  <FieldLabel
-                    label="Description"
-                    required
-                  />
-                  <YStack position="relative">
-                    <TextArea
-                      value={formData.description}
-                      onChangeText={(text) => updateField('description', text.slice(0, 500))}
-                      placeholder="What needs to be done? Include dimensions, materials you have, preferred timing..."
                       {...inputStyles}
                       borderColor={
-                        getFieldErrors(errors, 'description').length > 0
+                        getFieldErrors(errors, 'estimated_budget').length > 0
                           ? '$error'
                           : '$borderColorHover'
                       }
-                      minHeight={120}
-                      placeholderTextColor="$placeholderColor"
-                      textAlignVertical="top"
-                      focusStyle={{ borderColor: '$primary', borderWidth: 1.5 }}
-                    />
-                    <Text
-                      position="absolute"
-                      bottom="$2"
-                      right="$3"
-                      fontSize="$1"
-                      color="$colorMuted"
-                    >
-                      {formData.description.length}/500
-                    </Text>
-                  </YStack>
-                  <ErrorText errors={getFieldErrors(errors, 'description')} />
-                </YStack>
-
-                {/* Tasks */}
-                <YStack>
-                  <FieldLabel label="Tasks (to-do list)" />
-
-                  {/* Existing tasks */}
-                  {formData.tasks.length > 0 && (
-                    <YStack
+                      alignItems="center"
                       gap="$2"
-                      mb="$2"
                     >
-                      {formData.tasks.map((task, index) => (
-                        <XStack
-                          key={task.id}
-                          bg="white"
-                          borderColor="$borderColorHover"
-                          borderWidth={1}
-                          borderRadius="$4"
-                          px="$4"
-                          py="$3"
-                          alignItems="center"
-                          gap="$2"
-                        >
-                          <View
-                            width={24}
-                            height={24}
-                            borderRadius="$full"
-                            bg="$primary"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Text
-                              color="white"
-                              fontSize="$2"
-                              fontWeight="600"
-                            >
-                              {index + 1}
-                            </Text>
-                          </View>
-                          <Text
-                            flex={1}
-                            color="$color"
-                            numberOfLines={1}
-                          >
-                            {task.title}
-                          </Text>
-                          <Button
-                            unstyled
-                            onPress={() => removeTask(task.id)}
-                            p="$1"
-                            hitSlop={8}
-                            pressStyle={{ opacity: 0.7 }}
-                          >
-                            <X
-                              size={18}
-                              color="$placeholderColor"
-                            />
-                          </Button>
-                        </XStack>
-                      ))}
-                      {formData.tasks.map((_, index) =>
-                        getNestedErrors(errors, 'tasks', index).map((err, i) => (
-                          <Text
-                            key={i}
-                            color="$error"
-                            fontSize="$2"
-                          >
-                            Task {index + 1}: {err}
-                          </Text>
-                        ))
-                      )}
-                    </YStack>
-                  )}
+                      <Text
+                        color="$colorSubtle"
+                        fontSize="$4"
+                      >
+                        $
+                      </Text>
+                      <Input
+                        value={formData.estimated_budget}
+                        onChangeText={(text) => updateField('estimated_budget', text)}
+                        placeholder="Enter estimated amount (e.g., 150)"
+                        bg="transparent"
+                        borderWidth={0}
+                        flex={1}
+                        px={0}
+                        py={0}
+                        minHeight="auto"
+                        keyboardType="numeric"
+                        placeholderTextColor="$placeholderColor"
+                        focusStyle={{ borderColor: '$primary', borderWidth: 1.5 }}
+                      />
+                    </XStack>
+                    <ErrorText errors={getFieldErrors(errors, 'estimated_budget')} />
+                  </YStack>
+                </Animated.View>
 
-                  {/* Add new task */}
-                  <XStack
-                    {...inputStyles}
-                    borderColor="$borderColor"
-                    alignItems="center"
-                    focusWithinStyle={{
-                      borderColor: '$primary',
-                      borderWidth: 1.5,
-                    }}
-                  >
-                    <Input
-                      value={newTaskTitle}
-                      onChangeText={setNewTaskTitle}
-                      placeholder="e.g., Remove old fixture, Install new part, Clean up..."
-                      bg="transparent"
-                      borderWidth={0}
-                      flex={1}
-                      px={0}
-                      py={0}
-                      minHeight="auto"
-                      placeholderTextColor="$placeholderColor"
-                      onSubmitEditing={addTask}
-                      returnKeyType="done"
+                {/* Category */}
+                <Animated.View style={getSectionStyle(2)}>
+                  <YStack>
+                    <FieldLabel
+                      label="Category"
+                      required
                     />
                     <Button
                       unstyled
-                      onPress={addTask}
-                      bg={newTaskTitle.trim() ? '$primary' : '$borderColorHover'}
-                      borderRadius="$3"
-                      p="$2"
-                      disabled={!newTaskTitle.trim()}
-                      pressStyle={{ opacity: 0.8 }}
+                      onPress={() => setCategorySheetOpen(true)}
+                      {...inputStyles}
+                      borderColor={
+                        getFieldErrors(errors, 'category_id').length > 0
+                          ? '$error'
+                          : '$borderColorHover'
+                      }
                     >
-                      <Plus
-                        size={18}
-                        color="white"
-                      />
-                    </Button>
-                  </XStack>
-                </YStack>
-
-                {/* Attachment Upload */}
-                <YStack>
-                  <FieldLabel
-                    label={`Attachments (${formData.attachments.length}/${ATTACHMENT_LIMITS.job.maxCount})`}
-                  />
-                  <Text
-                    fontSize="$2"
-                    color="$colorSubtle"
-                    mb="$2"
-                  >
-                    Add images, videos, or documents
-                  </Text>
-
-                  {/* Attachment grid */}
-                  <XStack
-                    flexWrap="wrap"
-                    gap="$3"
-                  >
-                    {formData.attachments.map((attachment) => (
-                      <View
-                        key={attachment.id}
-                        width={80}
-                        height={80}
-                        borderRadius="$4"
-                        overflow="hidden"
-                        position="relative"
-                        bg="$backgroundMuted"
+                      <XStack
+                        alignItems="center"
+                        justifyContent="space-between"
+                        width="100%"
                       >
-                        {/* Image */}
-                        {attachment.file_type === 'image' && (
-                          <Image
-                            source={{ uri: attachment.file.uri }}
-                            width="100%"
-                            height="100%"
-                            resizeMode="cover"
-                          />
-                        )}
+                        <Text color={selectedCategory ? '$color' : '$placeholderColor'}>
+                          {selectedCategory?.name || 'Select a category'}
+                        </Text>
+                        <ChevronDown
+                          size={20}
+                          color="$placeholderColor"
+                        />
+                      </XStack>
+                    </Button>
+                    <ErrorText errors={getFieldErrors(errors, 'category_id')} />
+                  </YStack>
+                </Animated.View>
 
-                        {/* Video thumbnail */}
-                        {attachment.file_type === 'video' && (
-                          <>
-                            {attachment.thumbnail_uri ? (
-                              <Image
-                                source={{ uri: attachment.thumbnail_uri }}
-                                width="100%"
-                                height="100%"
-                                resizeMode="cover"
-                              />
-                            ) : (
+                {/* City */}
+                <Animated.View style={getSectionStyle(3)}>
+                  <YStack>
+                    <FieldLabel
+                      label="City"
+                      required
+                    />
+                    <Button
+                      unstyled
+                      onPress={() => setCitySheetOpen(true)}
+                      {...inputStyles}
+                      borderColor={
+                        getFieldErrors(errors, 'city_id').length > 0
+                          ? '$error'
+                          : '$borderColorHover'
+                      }
+                    >
+                      <XStack
+                        alignItems="center"
+                        justifyContent="space-between"
+                        width="100%"
+                      >
+                        <Text color={selectedCity ? '$color' : '$placeholderColor'}>
+                          {selectedCity
+                            ? `${selectedCity.name}, ${selectedCity.province}`
+                            : 'Select a city'}
+                        </Text>
+                        <ChevronDown
+                          size={20}
+                          color="$placeholderColor"
+                        />
+                      </XStack>
+                    </Button>
+                    <ErrorText errors={getFieldErrors(errors, 'city_id')} />
+                  </YStack>
+                </Animated.View>
+
+                {/* Address */}
+                <Animated.View style={getSectionStyle(3)}>
+                  <YStack>
+                    <FieldLabel
+                      label="Address"
+                      required
+                    />
+                    <Input
+                      value={formData.address}
+                      onChangeText={(text) => updateField('address', text)}
+                      placeholder="Street address where work will be done"
+                      {...inputStyles}
+                      borderColor={
+                        getFieldErrors(errors, 'address').length > 0
+                          ? '$error'
+                          : '$borderColorHover'
+                      }
+                      placeholderTextColor="$placeholderColor"
+                      focusStyle={{ borderColor: '$primary', borderWidth: 1.5 }}
+                    />
+                    <ErrorText errors={getFieldErrors(errors, 'address')} />
+                  </YStack>
+                </Animated.View>
+
+                {/* Postal Code */}
+                <Animated.View style={getSectionStyle(4)}>
+                  <YStack>
+                    <FieldLabel label="Postal code" />
+                    <Input
+                      value={formData.postal_code}
+                      onChangeText={(text) => updateField('postal_code', text)}
+                      placeholder="e.g., A1A 1A1 (optional)"
+                      {...inputStyles}
+                      borderColor="$borderColorHover"
+                      placeholderTextColor="$placeholderColor"
+                      focusStyle={{ borderColor: '$primary', borderWidth: 1.5 }}
+                    />
+                  </YStack>
+                </Animated.View>
+
+                {/* Description */}
+                <Animated.View style={getSectionStyle(4)}>
+                  <YStack>
+                    <FieldLabel
+                      label="Description"
+                      required
+                    />
+                    <YStack position="relative">
+                      <TextArea
+                        value={formData.description}
+                        onChangeText={(text) => updateField('description', text.slice(0, 500))}
+                        placeholder="What needs to be done? Include dimensions, materials you have, preferred timing..."
+                        {...inputStyles}
+                        borderColor={
+                          getFieldErrors(errors, 'description').length > 0
+                            ? '$error'
+                            : '$borderColorHover'
+                        }
+                        minHeight={120}
+                        placeholderTextColor="$placeholderColor"
+                        textAlignVertical="top"
+                        focusStyle={{ borderColor: '$primary', borderWidth: 1.5 }}
+                      />
+                      <Text
+                        position="absolute"
+                        bottom="$2"
+                        right="$3"
+                        fontSize="$1"
+                        color="$colorMuted"
+                      >
+                        {formData.description.length}/500
+                      </Text>
+                    </YStack>
+                    <ErrorText errors={getFieldErrors(errors, 'description')} />
+                  </YStack>
+                </Animated.View>
+
+                {/* Tasks */}
+                <Animated.View style={getSectionStyle(5)}>
+                  <YStack>
+                    <FieldLabel label="Tasks (to-do list)" />
+
+                    {/* Existing tasks */}
+                    {formData.tasks.length > 0 && (
+                      <YStack
+                        gap="$2"
+                        mb="$2"
+                      >
+                        {formData.tasks.map((task, index) => (
+                          <AnimatedTaskItem
+                            key={task.id}
+                            taskId={task.id}
+                            index={index}
+                            onRemove={removeTask}
+                          >
+                            <XStack
+                              bg="white"
+                              borderColor="$borderColorHover"
+                              borderWidth={1}
+                              borderRadius="$4"
+                              px="$4"
+                              py="$3"
+                              alignItems="center"
+                              gap="$2"
+                            >
                               <View
-                                width="100%"
-                                height="100%"
-                                bg="$borderColor"
+                                width={24}
+                                height={24}
+                                borderRadius="$full"
+                                bg="$primary"
                                 alignItems="center"
                                 justifyContent="center"
                               >
-                                <Video
-                                  size={24}
-                                  color="$colorMuted"
-                                />
-                              </View>
-                            )}
-                            {/* Play icon overlay */}
-                            <View
-                              position="absolute"
-                              top={0}
-                              left={0}
-                              right={0}
-                              bottom={0}
-                              alignItems="center"
-                              justifyContent="center"
-                            >
-                              <View
-                                bg="rgba(0,0,0,0.5)"
-                                borderRadius="$full"
-                                p="$1"
-                              >
-                                <Play
-                                  size={16}
-                                  color="white"
-                                  fill="white"
-                                />
-                              </View>
-                            </View>
-                            {/* Duration badge */}
-                            {attachment.duration_seconds !== undefined && (
-                              <View
-                                position="absolute"
-                                bottom={4}
-                                right={4}
-                                bg="rgba(0,0,0,0.7)"
-                                px="$1"
-                                borderRadius="$1"
-                              >
                                 <Text
-                                  fontSize={9}
                                   color="white"
+                                  fontSize="$2"
+                                  fontWeight="600"
                                 >
-                                  {Math.floor(attachment.duration_seconds / 60)}:
-                                  {(attachment.duration_seconds % 60).toString().padStart(2, '0')}
+                                  {index + 1}
                                 </Text>
                               </View>
-                            )}
-                          </>
-                        )}
-
-                        {/* Document */}
-                        {attachment.file_type === 'document' && (
-                          <View
-                            width="100%"
-                            height="100%"
-                            bg="$borderColor"
-                            alignItems="center"
-                            justifyContent="center"
-                            p="$1"
-                          >
-                            <FileText
-                              size={24}
-                              color="$primary"
-                            />
-                            <Text
-                              fontSize={8}
-                              color="$colorSubtle"
-                              numberOfLines={2}
-                              textAlign="center"
-                              mt="$1"
-                            >
-                              {attachment.file_name.length > 12
-                                ? `${attachment.file_name.slice(0, 10)}...`
-                                : attachment.file_name}
-                            </Text>
-                          </View>
-                        )}
-
-                        {/* Remove button */}
-                        <Button
-                          unstyled
-                          onPress={() => removeAttachment(attachment.id)}
-                          position="absolute"
-                          top={4}
-                          right={4}
-                          bg="rgba(0,0,0,0.6)"
-                          borderRadius="$full"
-                          p={4}
-                          pressStyle={{ opacity: 0.8 }}
-                        >
-                          <X
-                            size={12}
-                            color="white"
-                          />
-                        </Button>
-
-                        {/* Error overlay */}
-                        {getNestedErrors(
-                          errors,
-                          'attachments',
-                          formData.attachments.indexOf(attachment)
-                        ).map((err, i) => (
-                          <View
-                            key={i}
-                            position="absolute"
-                            bottom={0}
-                            left={0}
-                            right={0}
-                            bg="$error"
-                            p={2}
-                          >
-                            <Text
-                              fontSize={8}
-                              color="white"
-                              numberOfLines={2}
-                            >
-                              {err}
-                            </Text>
-                          </View>
+                              <Text
+                                flex={1}
+                                color="$color"
+                                numberOfLines={1}
+                              >
+                                {task.title}
+                              </Text>
+                              <Button
+                                unstyled
+                                onPress={() => removeTask(task.id)}
+                                p="$1"
+                                hitSlop={8}
+                                pressStyle={{ opacity: 0.7 }}
+                              >
+                                <X
+                                  size={18}
+                                  color="$placeholderColor"
+                                />
+                              </Button>
+                            </XStack>
+                          </AnimatedTaskItem>
                         ))}
-                      </View>
-                    ))}
+                        {formData.tasks.map((_, index) =>
+                          getNestedErrors(errors, 'tasks', index).map((err, i) => (
+                            <Text
+                              key={i}
+                              color="$error"
+                              fontSize="$2"
+                            >
+                              Task {index + 1}: {err}
+                            </Text>
+                          ))
+                        )}
+                      </YStack>
+                    )}
 
-                    {/* Add attachment button */}
-                    {formData.attachments.length < ATTACHMENT_LIMITS.job.maxCount && (
+                    {/* Add new task */}
+                    <XStack
+                      {...inputStyles}
+                      borderColor="$borderColor"
+                      alignItems="center"
+                      focusWithinStyle={{
+                        borderColor: '$primary',
+                        borderWidth: 1.5,
+                      }}
+                    >
+                      <Input
+                        value={newTaskTitle}
+                        onChangeText={setNewTaskTitle}
+                        placeholder="e.g., Remove old fixture, Install new part, Clean up..."
+                        bg="transparent"
+                        borderWidth={0}
+                        flex={1}
+                        px={0}
+                        py={0}
+                        minHeight="auto"
+                        placeholderTextColor="$placeholderColor"
+                        onSubmitEditing={addTask}
+                        returnKeyType="done"
+                      />
                       <Button
                         unstyled
-                        onPress={showAttachmentPicker}
-                        width={80}
-                        height={80}
-                        bg="white"
-                        borderColor="$borderColor"
-                        borderWidth={1}
-                        borderRadius="$4"
-                        borderStyle="dashed"
-                        alignItems="center"
-                        justifyContent="center"
-                        pressStyle={{ opacity: 0.7, bg: '$backgroundMuted' }}
+                        onPress={addTask}
+                        bg={newTaskTitle.trim() ? '$primary' : '$borderColorHover'}
+                        borderRadius="$3"
+                        p="$2"
+                        disabled={!newTaskTitle.trim()}
+                        pressStyle={{ opacity: 0.8 }}
                       >
                         <Plus
-                          size={24}
-                          color="$colorMuted"
+                          size={18}
+                          color="white"
                         />
                       </Button>
-                    )}
-                  </XStack>
-                  <ErrorText errors={getFieldErrors(errors, 'attachments')} />
-                </YStack>
+                    </XStack>
+                  </YStack>
+                </Animated.View>
+
+                {/* Attachment Upload */}
+                <Animated.View style={getSectionStyle(6)}>
+                  <YStack>
+                    <FieldLabel
+                      label={`Attachments (${formData.attachments.length}/${ATTACHMENT_LIMITS.job.maxCount})`}
+                    />
+                    <Text
+                      fontSize="$2"
+                      color="$colorSubtle"
+                      mb="$2"
+                    >
+                      Add images, videos, or documents
+                    </Text>
+
+                    {/* Attachment grid */}
+                    <XStack
+                      flexWrap="wrap"
+                      gap="$3"
+                    >
+                      {formData.attachments.map((attachment) => (
+                        <View
+                          key={attachment.id}
+                          width={80}
+                          height={80}
+                          borderRadius="$4"
+                          overflow="hidden"
+                          position="relative"
+                          bg="$backgroundMuted"
+                        >
+                          {/* Image */}
+                          {attachment.file_type === 'image' && (
+                            <Image
+                              source={{ uri: attachment.file.uri }}
+                              width="100%"
+                              height="100%"
+                              resizeMode="cover"
+                            />
+                          )}
+
+                          {/* Video thumbnail */}
+                          {attachment.file_type === 'video' && (
+                            <>
+                              {attachment.thumbnail_uri ? (
+                                <Image
+                                  source={{ uri: attachment.thumbnail_uri }}
+                                  width="100%"
+                                  height="100%"
+                                  resizeMode="cover"
+                                />
+                              ) : (
+                                <View
+                                  width="100%"
+                                  height="100%"
+                                  bg="$borderColor"
+                                  alignItems="center"
+                                  justifyContent="center"
+                                >
+                                  <Video
+                                    size={24}
+                                    color="$colorMuted"
+                                  />
+                                </View>
+                              )}
+                              {/* Play icon overlay */}
+                              <View
+                                position="absolute"
+                                top={0}
+                                left={0}
+                                right={0}
+                                bottom={0}
+                                alignItems="center"
+                                justifyContent="center"
+                              >
+                                <View
+                                  bg="rgba(0,0,0,0.5)"
+                                  borderRadius="$full"
+                                  p="$1"
+                                >
+                                  <Play
+                                    size={16}
+                                    color="white"
+                                    fill="white"
+                                  />
+                                </View>
+                              </View>
+                              {/* Duration badge */}
+                              {attachment.duration_seconds !== undefined && (
+                                <View
+                                  position="absolute"
+                                  bottom={4}
+                                  right={4}
+                                  bg="rgba(0,0,0,0.7)"
+                                  px="$1"
+                                  borderRadius="$1"
+                                >
+                                  <Text
+                                    fontSize={9}
+                                    color="white"
+                                  >
+                                    {Math.floor(attachment.duration_seconds / 60)}:
+                                    {(attachment.duration_seconds % 60).toString().padStart(2, '0')}
+                                  </Text>
+                                </View>
+                              )}
+                            </>
+                          )}
+
+                          {/* Document */}
+                          {attachment.file_type === 'document' && (
+                            <View
+                              width="100%"
+                              height="100%"
+                              bg="$borderColor"
+                              alignItems="center"
+                              justifyContent="center"
+                              p="$1"
+                            >
+                              <FileText
+                                size={24}
+                                color="$primary"
+                              />
+                              <Text
+                                fontSize={8}
+                                color="$colorSubtle"
+                                numberOfLines={2}
+                                textAlign="center"
+                                mt="$1"
+                              >
+                                {attachment.file_name.length > 12
+                                  ? `${attachment.file_name.slice(0, 10)}...`
+                                  : attachment.file_name}
+                              </Text>
+                            </View>
+                          )}
+
+                          {/* Remove button */}
+                          <Button
+                            unstyled
+                            onPress={() => removeAttachment(attachment.id)}
+                            position="absolute"
+                            top={4}
+                            right={4}
+                            bg="rgba(0,0,0,0.6)"
+                            borderRadius="$full"
+                            p={4}
+                            pressStyle={{ opacity: 0.8 }}
+                          >
+                            <X
+                              size={12}
+                              color="white"
+                            />
+                          </Button>
+
+                          {/* Error overlay */}
+                          {getNestedErrors(
+                            errors,
+                            'attachments',
+                            formData.attachments.indexOf(attachment)
+                          ).map((err, i) => (
+                            <View
+                              key={i}
+                              position="absolute"
+                              bottom={0}
+                              left={0}
+                              right={0}
+                              bg="$error"
+                              p={2}
+                            >
+                              <Text
+                                fontSize={8}
+                                color="white"
+                                numberOfLines={2}
+                              >
+                                {err}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      ))}
+
+                      {/* Add attachment button */}
+                      {formData.attachments.length < ATTACHMENT_LIMITS.job.maxCount && (
+                        <Button
+                          unstyled
+                          onPress={showAttachmentPicker}
+                          width={80}
+                          height={80}
+                          bg="white"
+                          borderColor="$borderColor"
+                          borderWidth={1}
+                          borderRadius="$4"
+                          borderStyle="dashed"
+                          alignItems="center"
+                          justifyContent="center"
+                          pressStyle={{ opacity: 0.7, bg: '$backgroundMuted' }}
+                        >
+                          <Plus
+                            size={24}
+                            color="$colorMuted"
+                          />
+                        </Button>
+                      )}
+                    </XStack>
+                    <ErrorText errors={getFieldErrors(errors, 'attachments')} />
+                  </YStack>
+                </Animated.View>
               </YStack>
             </YStack>
           </ScrollView>

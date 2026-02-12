@@ -290,9 +290,10 @@ describe('AsyncStorage - Data Integrity', () => {
     ]
 
     for (let i = 0; i < unicodeValues.length; i++) {
-      await AsyncStorage.setItem(`unicode_${i}`, unicodeValues[i])
+      const value = unicodeValues[i]!
+      await AsyncStorage.setItem(`unicode_${i}`, value)
       const retrieved = await AsyncStorage.getItem(`unicode_${i}`)
-      expect(retrieved).toBe(unicodeValues[i])
+      expect(retrieved).toBe(value)
     }
   })
 

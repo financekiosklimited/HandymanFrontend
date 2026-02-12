@@ -89,13 +89,49 @@ vi.mock('burnt', () => ({
   toast: vi.fn(),
 }))
 
+// Mock ky HTTP client
+const mockKy = vi.fn(() => Promise.resolve(new Response())) as any
+mockKy.create = vi.fn(() => mockKy)
+mockKy.get = vi.fn(() => Promise.resolve(new Response()))
+mockKy.post = vi.fn(() => Promise.resolve(new Response()))
+mockKy.put = vi.fn(() => Promise.resolve(new Response()))
+mockKy.delete = vi.fn(() => Promise.resolve(new Response()))
+mockKy.patch = vi.fn(() => Promise.resolve(new Response()))
+
+vi.mock('ky', () => ({
+  HTTPError: class HTTPError extends Error {
+    response: { status: number }
+    request: Request
+    options: unknown
+    constructor(response: Response, request: Request, options: unknown) {
+      super(`HTTP Error ${response.status}`)
+      this.response = { status: response.status }
+      this.request = request
+      this.options = options
+    }
+  },
+  TimeoutError: class TimeoutError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'TimeoutError'
+    }
+  },
+  default: mockKy,
+}))
+
 // Mock reanimated
 vi.mock('react-native-reanimated', () => ({
   useSharedValue: vi.fn(() => ({ value: 0 })),
   useAnimatedStyle: vi.fn(() => ({})),
   useAnimatedGestureHandler: vi.fn(() => ({})),
+  withSpring: vi.fn((value) => value),
+  withDelay: vi.fn((delay, value) => value),
+  withTiming: vi.fn((value) => value),
+  interpolate: vi.fn((value, inputRange, outputRange) => outputRange[0]),
+  runOnJS: vi.fn((fn) => fn),
   default: {
     useSharedValue: vi.fn(() => ({ value: 0 })),
     useAnimatedStyle: vi.fn(() => ({})),
+    View: ({ children }: { children: React.ReactNode }) => children,
   },
 }))

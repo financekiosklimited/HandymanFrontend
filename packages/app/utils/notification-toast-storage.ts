@@ -31,7 +31,7 @@ type NotificationType =
   | 'handymanReimbursementApproved'
   | 'handymanReimbursementRejected'
 
-interface PendingNotification {
+export interface PendingNotification {
   type: NotificationType
   jobId?: string
   offerId?: string

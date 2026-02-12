@@ -17,7 +17,7 @@ describe('isDevFlagEnabled', () => {
   })
 
   it('should return false when flag not set', async () => {
-    AsyncStorage.getItem.mockResolvedValue(null)
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue(null)
 
     const result = await isDevFlagEnabled('FORCE_ONBOARDING')
 
@@ -26,7 +26,7 @@ describe('isDevFlagEnabled', () => {
   })
 
   it('should return true when flag is "true"', async () => {
-    AsyncStorage.getItem.mockResolvedValue('true')
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue('true')
 
     const result = await isDevFlagEnabled('FORCE_ONBOARDING')
 
@@ -34,7 +34,7 @@ describe('isDevFlagEnabled', () => {
   })
 
   it('should return false when flag is "false"', async () => {
-    AsyncStorage.getItem.mockResolvedValue('false')
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue('false')
 
     const result = await isDevFlagEnabled('FORCE_ONBOARDING')
 
@@ -42,7 +42,7 @@ describe('isDevFlagEnabled', () => {
   })
 
   it('should return false on storage error', async () => {
-    AsyncStorage.getItem.mockRejectedValue(new Error('Storage error'))
+    vi.mocked(AsyncStorage.getItem).mockRejectedValue(new Error('Storage error'))
 
     const result = await isDevFlagEnabled('FORCE_ONBOARDING')
 
@@ -56,7 +56,7 @@ describe('setDevFlag', () => {
   })
 
   it('should set flag to "true"', async () => {
-    AsyncStorage.setItem.mockResolvedValue(undefined)
+    vi.mocked(AsyncStorage.setItem).mockResolvedValue(undefined)
 
     await setDevFlag('FORCE_ONBOARDING', true)
 
@@ -64,7 +64,7 @@ describe('setDevFlag', () => {
   })
 
   it('should remove flag when set to false', async () => {
-    AsyncStorage.removeItem.mockResolvedValue(undefined)
+    vi.mocked(AsyncStorage.removeItem).mockResolvedValue(undefined)
 
     await setDevFlag('FORCE_ONBOARDING', false)
 
@@ -73,7 +73,7 @@ describe('setDevFlag', () => {
   })
 
   it('should handle storage errors', async () => {
-    AsyncStorage.setItem.mockRejectedValue(new Error('Storage error'))
+    vi.mocked(AsyncStorage.setItem).mockRejectedValue(new Error('Storage error'))
 
     await expect(setDevFlag('FORCE_ONBOARDING', true)).resolves.not.toThrow()
   })

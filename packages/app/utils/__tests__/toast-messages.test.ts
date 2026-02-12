@@ -14,18 +14,34 @@ vi.mock('burnt', () => ({
   },
 }))
 
-import { toast } from 'burnt'
+// Create a proper mock that matches ToastController interface
+type ToastController = {
+  show: (
+    title: string,
+    options?: {
+      message?: string
+      duration?: number
+      native?: boolean
+      customData?: { variant?: string; icon?: string }
+    }
+  ) => void
+}
 
 describe('Core Toast Functions', () => {
+  let mockToast: ToastController
+
   beforeEach(() => {
     vi.clearAllMocks()
+    mockToast = {
+      show: vi.fn(),
+    }
   })
 
   describe('showSuccessToast', () => {
     it('should call toast.show with success parameters', () => {
-      showSuccessToast(toast, 'Success', 'Operation completed')
+      showSuccessToast(mockToast, 'Success', 'Operation completed')
 
-      expect(toast.show).toHaveBeenCalledWith(
+      expect(mockToast.show).toHaveBeenCalledWith(
         'Success',
         expect.objectContaining({
           message: 'Operation completed',
@@ -34,9 +50,9 @@ describe('Core Toast Functions', () => {
     })
 
     it('should accept custom duration', () => {
-      showSuccessToast(toast, 'Saved', 'Changes saved', { duration: 5 })
+      showSuccessToast(mockToast, 'Saved', 'Changes saved', { duration: 5 })
 
-      expect(toast.show).toHaveBeenCalledWith(
+      expect(mockToast.show).toHaveBeenCalledWith(
         'Saved',
         expect.objectContaining({
           duration: 5,
@@ -45,17 +61,17 @@ describe('Core Toast Functions', () => {
     })
 
     it('should call toast.show', () => {
-      showSuccessToast(toast, 'Done', 'Complete', { haptic: 'success' })
+      showSuccessToast(mockToast, 'Done', 'Complete', { icon: 'CheckCircle2' })
 
-      expect(toast.show).toHaveBeenCalled()
+      expect(mockToast.show).toHaveBeenCalled()
     })
   })
 
   describe('showErrorToast', () => {
     it('should call toast.show with error parameters', () => {
-      showErrorToast(toast, 'Error', 'Something went wrong')
+      showErrorToast(mockToast, 'Error', 'Something went wrong')
 
-      expect(toast.show).toHaveBeenCalledWith(
+      expect(mockToast.show).toHaveBeenCalledWith(
         'Error',
         expect.objectContaining({
           message: 'Something went wrong',
@@ -64,23 +80,23 @@ describe('Core Toast Functions', () => {
     })
 
     it('should call toast.show', () => {
-      showErrorToast(toast, 'Failed', 'Request failed')
+      showErrorToast(mockToast, 'Failed', 'Request failed')
 
-      expect(toast.show).toHaveBeenCalled()
+      expect(mockToast.show).toHaveBeenCalled()
     })
   })
 
   describe('showNetworkErrorToast', () => {
     it('should show network error message', () => {
-      showNetworkErrorToast(toast)
+      showNetworkErrorToast(mockToast)
 
-      expect(toast.show).toHaveBeenCalled()
+      expect(mockToast.show).toHaveBeenCalled()
     })
 
     it('should include connection message', () => {
-      showNetworkErrorToast(toast)
+      showNetworkErrorToast(mockToast)
 
-      expect(toast.show).toHaveBeenCalledWith(
+      expect(mockToast.show).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           message: expect.stringContaining('connection'),
@@ -91,15 +107,15 @@ describe('Core Toast Functions', () => {
 
   describe('showRateLimitToast', () => {
     it('should show rate limit message', () => {
-      showRateLimitToast(toast)
+      showRateLimitToast(mockToast)
 
-      expect(toast.show).toHaveBeenCalled()
+      expect(mockToast.show).toHaveBeenCalled()
     })
 
     it('should include seconds in message when provided', () => {
-      showRateLimitToast(toast, 60)
+      showRateLimitToast(mockToast, 60)
 
-      expect(toast.show).toHaveBeenCalledWith(
+      expect(mockToast.show).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           message: expect.any(String),
@@ -108,23 +124,23 @@ describe('Core Toast Functions', () => {
     })
 
     it('should call toast.show without seconds', () => {
-      showRateLimitToast(toast)
+      showRateLimitToast(mockToast)
 
-      expect(toast.show).toHaveBeenCalled()
+      expect(mockToast.show).toHaveBeenCalled()
     })
   })
 
   describe('showSessionExpiredToast', () => {
     it('should show session expired message', () => {
-      showSessionExpiredToast(toast)
+      showSessionExpiredToast(mockToast)
 
-      expect(toast.show).toHaveBeenCalled()
+      expect(mockToast.show).toHaveBeenCalled()
     })
 
     it('should prompt to login again', () => {
-      showSessionExpiredToast(toast)
+      showSessionExpiredToast(mockToast)
 
-      expect(toast.show).toHaveBeenCalledWith(
+      expect(mockToast.show).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           message: expect.stringContaining('log in'),

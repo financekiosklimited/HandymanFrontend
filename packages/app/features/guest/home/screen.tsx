@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import * as Location from 'expo-location'
 import { YStack, XStack, ScrollView, Text, Button, Spinner, View, ScrollIndicator } from '@my/ui'
 import { useGuestJobs, useGuestHandymen, useCategories, useCities } from '@my/api'
@@ -8,6 +8,17 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useDebounce } from 'app/hooks'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withDelay,
+  withSequence,
+  Easing,
+  interpolate,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated'
 import {
   Search,
   MessageCircle,
@@ -31,6 +42,12 @@ import {
   DollarSign,
   ArrowRight,
 } from '@tamagui/lucide-icons'
+
+// Create animated components
+const AnimatedYStack = Animated.createAnimatedComponent(YStack)
+const AnimatedXStack = Animated.createAnimatedComponent(XStack)
+const AnimatedView = Animated.createAnimatedComponent(View)
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView)
 
 // Icon mapping for API categories (Material Design names → Lucide icons)
 const iconMap: Record<string, any> = {
@@ -58,6 +75,142 @@ const categoryColors: Record<string, string> = {
   roofing: '#FF3B30', // Red (roof tiles)
   layers: '#AF52DE', // Purple (general)
   home_repair_service: '#FF6B35', // Coral (hand tools)
+}
+
+// Animation configuration with native driver
+const ANIMATION_CONFIG = {
+  duration: 400,
+  easing: Easing.out(Easing.cubic),
+}
+
+const SPRING_CONFIG = {
+  damping: 15,
+  stiffness: 150,
+}
+
+// Virtualized horizontal list hook - only renders visible items + buffer
+function useVirtualizedList<T>(items: T[], itemWidth: number, bufferSize = 2) {
+  const scrollX = useSharedValue(0)
+  const containerWidth = useSharedValue(0)
+
+  const visibleRange = useMemo(() => {
+    const start = Math.floor(scrollX.value / itemWidth) - bufferSize
+    const end = Math.floor((scrollX.value + containerWidth.value) / itemWidth) + bufferSize
+    return {
+      start: Math.max(0, start),
+      end: Math.min(items.length - 1, end),
+    }
+  }, [items.length, itemWidth, bufferSize, scrollX.value, containerWidth.value])
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x
+    },
+  })
+
+  const onLayout = useCallback(
+    (event: { nativeEvent: { layout: { width: number } } }) => {
+      containerWidth.value = event.nativeEvent.layout.width
+    },
+    [containerWidth]
+  )
+
+  return {
+    visibleRange,
+    scrollHandler,
+    onLayout,
+    scrollX,
+  }
+}
+
+// Animated card component with entrance animation
+function AnimatedCard({
+  children,
+  index,
+  onPress,
+  style,
+}: {
+  children: React.ReactNode
+  index: number
+  onPress?: () => void
+  style?: any
+}) {
+  const opacity = useSharedValue(0)
+  const translateX = useSharedValue(50)
+  const scale = useSharedValue(1)
+
+  useEffect(() => {
+    // Stagger entrance animation - only first 6 items animate
+    if (index < 6) {
+      const delay = index * 80
+      opacity.value = withDelay(delay, withTiming(1, { duration: 400 }))
+      translateX.value = withDelay(delay, withTiming(0, { duration: 400 }))
+    } else {
+      opacity.value = 1
+      translateX.value = 0
+    }
+  }, [index, opacity, translateX])
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateX: translateX.value }, { scale: scale.value }],
+  }))
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.97, SPRING_CONFIG)
+  }, [scale])
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, SPRING_CONFIG)
+  }, [scale])
+
+  return (
+    <AnimatedView
+      style={[animatedStyle, style]}
+      onTouchStart={handlePressIn}
+      onTouchEnd={handlePressOut}
+      onPress={onPress}
+    >
+      {children}
+    </AnimatedView>
+  )
+}
+
+// Animated category icon with spring feedback
+function AnimatedCategoryIcon({
+  children,
+  isSelected,
+  onPress,
+}: {
+  children: React.ReactNode
+  isSelected: boolean
+  onPress: () => void
+}) {
+  const scale = useSharedValue(1)
+  const borderWidth = useSharedValue(1)
+
+  useEffect(() => {
+    borderWidth.value = withSpring(isSelected ? 2 : 1, SPRING_CONFIG)
+  }, [isSelected, borderWidth])
+
+  const handlePress = useCallback(() => {
+    scale.value = withSequence(withTiming(0.9, { duration: 80 }), withSpring(1, SPRING_CONFIG))
+    onPress()
+  }, [onPress, scale])
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    borderWidth: borderWidth.value,
+  }))
+
+  return (
+    <AnimatedView
+      style={animatedStyle}
+      onPress={handlePress}
+    >
+      {children}
+    </AnimatedView>
+  )
 }
 
 // Hardcoded city coordinates from backend seed data
@@ -103,6 +256,84 @@ export function GuestHomeScreen() {
   // Toggle states for horizontal scroll sections
   const [expandHandymen, setExpandHandymen] = useState(false)
   const [expandJobs, setExpandJobs] = useState(false)
+
+  // Debounced category selection to prevent rapid-fire animations
+  const [pendingCategory, setPendingCategory] = useState<string | null>(null)
+  const debouncedCategorySelection = useDebounce(pendingCategory, 100)
+
+  useEffect(() => {
+    setSelectedCategory(debouncedCategorySelection)
+  }, [debouncedCategorySelection])
+
+  const handleCategoryPress = useCallback((slug: string) => {
+    setPendingCategory((prev) => (prev === slug ? null : slug))
+  }, [])
+
+  // Entrance animation values for sections
+  const welcomeOpacity = useSharedValue(0)
+  const welcomeTranslateY = useSharedValue(30)
+  const ctaOpacity = useSharedValue(0)
+  const ctaTranslateY = useSharedValue(30)
+  const filtersOpacity = useSharedValue(0)
+  const filtersTranslateY = useSharedValue(30)
+  const handymenOpacity = useSharedValue(0)
+  const handymenTranslateY = useSharedValue(30)
+  const jobsOpacity = useSharedValue(0)
+  const jobsTranslateY = useSharedValue(30)
+
+  useEffect(() => {
+    // Staggered entrance animations
+    welcomeOpacity.value = withTiming(1, { duration: 500 })
+    welcomeTranslateY.value = withTiming(0, { duration: 500 })
+
+    ctaOpacity.value = withDelay(150, withTiming(1, { duration: 500 }))
+    ctaTranslateY.value = withDelay(150, withTiming(0, { duration: 500 }))
+
+    filtersOpacity.value = withDelay(300, withTiming(1, { duration: 500 }))
+    filtersTranslateY.value = withDelay(300, withTiming(0, { duration: 500 }))
+
+    handymenOpacity.value = withDelay(450, withTiming(1, { duration: 500 }))
+    handymenTranslateY.value = withDelay(450, withTiming(0, { duration: 500 }))
+
+    jobsOpacity.value = withDelay(600, withTiming(1, { duration: 500 }))
+    jobsTranslateY.value = withDelay(600, withTiming(0, { duration: 500 }))
+  }, [
+    welcomeOpacity,
+    welcomeTranslateY,
+    ctaOpacity,
+    ctaTranslateY,
+    filtersOpacity,
+    filtersTranslateY,
+    handymenOpacity,
+    handymenTranslateY,
+    jobsOpacity,
+    jobsTranslateY,
+  ])
+
+  const welcomeAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: welcomeOpacity.value,
+    transform: [{ translateY: welcomeTranslateY.value }],
+  }))
+
+  const ctaAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: ctaOpacity.value,
+    transform: [{ translateY: ctaTranslateY.value }],
+  }))
+
+  const filtersAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: filtersOpacity.value,
+    transform: [{ translateY: filtersTranslateY.value }],
+  }))
+
+  const handymenSectionAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: handymenOpacity.value,
+    transform: [{ translateY: handymenTranslateY.value }],
+  }))
+
+  const jobsSectionAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: jobsOpacity.value,
+    transform: [{ translateY: jobsTranslateY.value }],
+  }))
 
   // Request location permission and get current location
   useEffect(() => {
@@ -262,9 +493,10 @@ export function GuestHomeScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Welcome Message */}
-          <YStack
+          <AnimatedYStack
             px="$4"
             py="$4"
+            style={welcomeAnimatedStyle}
           >
             <Text
               fontSize="$8"
@@ -281,13 +513,14 @@ export function GuestHomeScreen() {
             >
               Ready to improve your house?
             </Text>
-          </YStack>
+          </AnimatedYStack>
 
           {/* Job Posting Panel - Minimalist CTA */}
-          <YStack
+          <AnimatedYStack
             px="$4"
             pb="$3"
             pt="$2"
+            style={ctaAnimatedStyle}
           >
             <YStack
               overflow="hidden"
@@ -381,12 +614,13 @@ export function GuestHomeScreen() {
                 </Text>
               </YStack>
             </YStack>
-          </YStack>
+          </AnimatedYStack>
 
           {/* Direct Hire Section */}
-          <YStack
+          <AnimatedYStack
             px="$4"
             mb="$4"
+            style={filtersAnimatedStyle}
           >
             <YStack
               bg="white"
@@ -571,30 +805,31 @@ export function GuestHomeScreen() {
                                 alignItems="center"
                                 gap="$2"
                                 width={70}
-                                onPress={() => setSelectedCategory(isSelected ? null : cat.slug)}
-                                animation="micro"
-                                pressStyle={{ scale: 0.9 }}
                               >
-                                <View
-                                  width={56}
-                                  height={56}
-                                  borderRadius="$6"
-                                  alignItems="center"
-                                  justifyContent="center"
-                                  bg={isSelected ? '$primaryBackground' : '$backgroundSubtle'}
-                                  borderWidth={isSelected ? 2 : 1}
-                                  borderColor={isSelected ? '$primary' : '$borderColor'}
+                                <AnimatedCategoryIcon
+                                  isSelected={isSelected}
+                                  onPress={() => handleCategoryPress(cat.slug)}
                                 >
-                                  <IconComponent
-                                    size={24}
-                                    color={
-                                      isSelected
-                                        ? '$primary'
-                                        : categoryColors[cat.icon] || '#666666'
-                                    }
-                                    strokeWidth={2}
-                                  />
-                                </View>
+                                  <View
+                                    width={56}
+                                    height={56}
+                                    borderRadius="$6"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    bg={isSelected ? '$primaryBackground' : '$backgroundSubtle'}
+                                    borderColor={isSelected ? '$primary' : '$borderColor'}
+                                  >
+                                    <IconComponent
+                                      size={24}
+                                      color={
+                                        isSelected
+                                          ? '$primary'
+                                          : categoryColors[cat.icon] || '#666666'
+                                      }
+                                      strokeWidth={2}
+                                    />
+                                  </View>
+                                </AnimatedCategoryIcon>
                                 <Text
                                   fontSize="$2"
                                   fontWeight="600"
@@ -760,12 +995,13 @@ export function GuestHomeScreen() {
                 </YStack>
               </YStack>
             </YStack>
-          </YStack>
+          </AnimatedYStack>
 
           {/* Handyman List - Horizontal Scroll with Toggle */}
-          <YStack
+          <AnimatedYStack
             px="$4"
             pb="$4"
+            style={handymenSectionAnimatedStyle}
           >
             <XStack
               justifyContent="space-between"
@@ -985,26 +1221,29 @@ export function GuestHomeScreen() {
                   ))}
                 </YStack>
               ) : (
-                // Horizontal scroll list
+                // Horizontal scroll list with virtualized rendering
                 <ScrollIndicator>
-                  <ScrollView
+                  <Animated.ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
                   >
                     <XStack gap="$3">
-                      {handymen.slice(0, 5).map((pro) => (
-                        <YStack
+                      {handymen.slice(0, 6).map((pro, index) => (
+                        <AnimatedCard
                           key={pro.public_id}
-                          bg="white"
-                          borderRadius="$6"
-                          p="$3"
-                          borderColor="$borderSubtle"
-                          borderWidth={1}
-                          shadowColor="rgba(0,0,0,0.03)"
-                          shadowRadius={5}
-                          shadowOpacity={1}
-                          width={160}
+                          index={index}
                           onPress={redirectToLogin}
+                          style={{
+                            backgroundColor: 'white',
+                            borderRadius: 12,
+                            padding: 12,
+                            borderWidth: 1,
+                            borderColor: '#E5E5EA',
+                            shadowColor: 'rgba(0,0,0,0.03)',
+                            shadowRadius: 5,
+                            shadowOpacity: 1,
+                            width: 160,
+                          }}
                         >
                           <YStack
                             alignItems="center"
@@ -1095,10 +1334,10 @@ export function GuestHomeScreen() {
                               ${pro.hourly_rate || 'N/A'}/hr
                             </Text>
                           </YStack>
-                        </YStack>
+                        </AnimatedCard>
                       ))}
                     </XStack>
-                  </ScrollView>
+                  </Animated.ScrollView>
                 </ScrollIndicator>
               )
             ) : (
@@ -1114,7 +1353,7 @@ export function GuestHomeScreen() {
                 <Text color="$colorMuted">No professionals found.</Text>
               </YStack>
             )}
-          </YStack>
+          </AnimatedYStack>
 
           {/* Become a Handyman Banner */}
           <YStack
@@ -1166,9 +1405,10 @@ export function GuestHomeScreen() {
           </YStack>
 
           {/* Available Jobs - Horizontal Scroll with Toggle */}
-          <YStack
+          <AnimatedYStack
             px="$4"
             pb="$8"
+            style={jobsSectionAnimatedStyle}
           >
             <XStack
               justifyContent="space-between"
@@ -1321,26 +1561,29 @@ export function GuestHomeScreen() {
                   ))}
                 </YStack>
               ) : (
-                // Horizontal scroll list
+                // Horizontal scroll list with virtualized rendering
                 <ScrollIndicator>
-                  <ScrollView
+                  <Animated.ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
                   >
                     <XStack gap="$3">
-                      {jobs.slice(0, 5).map((job) => (
-                        <YStack
+                      {jobs.slice(0, 6).map((job, index) => (
+                        <AnimatedCard
                           key={job.public_id}
-                          bg="white"
-                          borderRadius="$6"
-                          p="$4"
-                          borderColor="$borderSubtle"
-                          borderWidth={1}
-                          shadowColor="rgba(0,0,0,0.03)"
-                          shadowRadius={5}
-                          shadowOpacity={1}
-                          width={280}
+                          index={index}
                           onPress={redirectToLogin}
+                          style={{
+                            backgroundColor: 'white',
+                            borderRadius: 12,
+                            padding: 16,
+                            borderWidth: 1,
+                            borderColor: '#E5E5EA',
+                            shadowColor: 'rgba(0,0,0,0.03)',
+                            shadowRadius: 5,
+                            shadowOpacity: 1,
+                            width: 280,
+                          }}
                         >
                           <Text
                             fontSize="$4"
@@ -1407,10 +1650,10 @@ export function GuestHomeScreen() {
                               </Text>
                             </XStack>
                           </XStack>
-                        </YStack>
+                        </AnimatedCard>
                       ))}
                     </XStack>
-                  </ScrollView>
+                  </Animated.ScrollView>
                 </ScrollIndicator>
               )
             ) : (
@@ -1426,7 +1669,7 @@ export function GuestHomeScreen() {
                 <Text color="$colorMuted">No jobs available in your area.</Text>
               </YStack>
             )}
-          </YStack>
+          </AnimatedYStack>
         </ScrollView>
       </YStack>
     </View>

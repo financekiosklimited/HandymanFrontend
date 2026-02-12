@@ -5,6 +5,7 @@ import {
   clearNotificationToastTracking,
   pickRandomNotification,
   shouldShowNoApplicantsToast,
+  type PendingNotification,
 } from '../notification-toast-storage'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
@@ -23,7 +24,7 @@ describe('hasNotificationToastBeenShown', () => {
   })
 
   it('should return false when not shown', async () => {
-    AsyncStorage.getItem.mockResolvedValue(null)
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue(null)
 
     const result = await hasNotificationToastBeenShown('report', { jobId: '123', reportId: '456' })
 
@@ -31,7 +32,7 @@ describe('hasNotificationToastBeenShown', () => {
   })
 
   it('should return true when shown', async () => {
-    AsyncStorage.getItem.mockResolvedValue('true')
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue('true')
 
     const result = await hasNotificationToastBeenShown('completion', { jobId: '789' })
 
@@ -46,7 +47,7 @@ describe('hasNotificationToastBeenShown', () => {
   })
 
   it('should return false on storage error', async () => {
-    AsyncStorage.getItem.mockRejectedValue(new Error('Storage error'))
+    vi.mocked(AsyncStorage.getItem).mockRejectedValue(new Error('Storage error'))
 
     const result = await hasNotificationToastBeenShown('offerAccepted', { offerId: '999' })
 
@@ -60,7 +61,7 @@ describe('markNotificationToastAsShown', () => {
   })
 
   it('should mark toast as shown', async () => {
-    AsyncStorage.setItem.mockResolvedValue(undefined)
+    vi.mocked(AsyncStorage.setItem).mockResolvedValue(undefined)
 
     await markNotificationToastAsShown('completion', { jobId: '123' })
 
@@ -80,7 +81,7 @@ describe('clearNotificationToastTracking', () => {
   })
 
   it('should remove from storage', async () => {
-    AsyncStorage.removeItem.mockResolvedValue(undefined)
+    vi.mocked(AsyncStorage.removeItem).mockResolvedValue(undefined)
 
     await clearNotificationToastTracking('completion', { jobId: '123' })
 
@@ -90,10 +91,10 @@ describe('clearNotificationToastTracking', () => {
 
 describe('pickRandomNotification', () => {
   it('should return random item from array', () => {
-    const notifications = [
-      { type: 'a', message: 'Message A' },
-      { type: 'b', message: 'Message B' },
-      { type: 'c', message: 'Message C' },
+    const notifications: PendingNotification[] = [
+      { type: 'completion', timestamp: Date.now() },
+      { type: 'report', timestamp: Date.now() },
+      { type: 'offerAccepted', timestamp: Date.now() },
     ]
 
     const result = pickRandomNotification(notifications)
@@ -108,7 +109,7 @@ describe('pickRandomNotification', () => {
   })
 
   it('should return only item when array has 1 element', () => {
-    const notifications = [{ type: 'a', message: 'Only message' }]
+    const notifications: PendingNotification[] = [{ type: 'completion', timestamp: Date.now() }]
 
     const result = pickRandomNotification(notifications)
 
@@ -123,7 +124,7 @@ describe('shouldShowNoApplicantsToast', () => {
 
   it('should return true when 48h passed and 0 applicants', async () => {
     const fortyNineHoursAgo = new Date(Date.now() - 176400000).toISOString()
-    AsyncStorage.getItem.mockResolvedValue(null)
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue(null)
 
     const result = await shouldShowNoApplicantsToast('123', fortyNineHoursAgo, 0)
 
@@ -148,7 +149,7 @@ describe('shouldShowNoApplicantsToast', () => {
 
   it('should return false when already shown', async () => {
     const fortyNineHoursAgo = new Date(Date.now() - 176400000).toISOString()
-    AsyncStorage.getItem.mockResolvedValue('true')
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue('true')
 
     const result = await shouldShowNoApplicantsToast('123', fortyNineHoursAgo, 0)
 

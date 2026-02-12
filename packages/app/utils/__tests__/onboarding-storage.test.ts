@@ -34,7 +34,7 @@ describe('hasSeenOnboarding', () => {
   })
 
   it('should return false when onboarding not in storage', async () => {
-    AsyncStorage.getItem.mockResolvedValue(null)
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue(null)
 
     const result = await hasSeenOnboarding('welcome')
 
@@ -43,7 +43,7 @@ describe('hasSeenOnboarding', () => {
   })
 
   it('should return true when onboarding is in storage', async () => {
-    AsyncStorage.getItem.mockResolvedValue('true')
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue('true')
 
     const result = await hasSeenOnboarding('createJob')
 
@@ -51,7 +51,7 @@ describe('hasSeenOnboarding', () => {
   })
 
   it('should return false on storage error', async () => {
-    AsyncStorage.getItem.mockRejectedValue(new Error('Storage error'))
+    vi.mocked(AsyncStorage.getItem).mockRejectedValue(new Error('Storage error'))
 
     const result = await hasSeenOnboarding('applications')
 
@@ -65,8 +65,8 @@ describe('shouldShowOnboarding', () => {
   })
 
   it('should return true when onboarding not seen', async () => {
-    AsyncStorage.getItem.mockResolvedValue(null)
-    isDevFlagEnabled.mockResolvedValue(false)
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue(null)
+    vi.mocked(isDevFlagEnabled).mockResolvedValue(false)
 
     const result = await shouldShowOnboarding('welcome')
 
@@ -74,11 +74,11 @@ describe('shouldShowOnboarding', () => {
   })
 
   it('should return false when onboarding already seen', async () => {
-    AsyncStorage.getItem.mockImplementation((key) => {
+    vi.mocked(AsyncStorage.getItem).mockImplementation((key: string) => {
       if (key && key.includes('create_job')) return Promise.resolve('true')
       return Promise.resolve(null)
     })
-    isDevFlagEnabled.mockResolvedValue(false)
+    vi.mocked(isDevFlagEnabled).mockResolvedValue(false)
 
     const result = await shouldShowOnboarding('createJob')
 
@@ -86,8 +86,8 @@ describe('shouldShowOnboarding', () => {
   })
 
   it('should return true when FORCE_ONBOARDING flag is set', async () => {
-    AsyncStorage.getItem.mockResolvedValue('true')
-    isDevFlagEnabled.mockResolvedValue(true)
+    vi.mocked(AsyncStorage.getItem).mockResolvedValue('true')
+    vi.mocked(isDevFlagEnabled).mockResolvedValue(true)
 
     const result = await shouldShowOnboarding('applications')
 
@@ -95,7 +95,7 @@ describe('shouldShowOnboarding', () => {
   })
 
   it('should check dev flag first', async () => {
-    isDevFlagEnabled.mockResolvedValue(true)
+    vi.mocked(isDevFlagEnabled).mockResolvedValue(true)
 
     await shouldShowOnboarding('ongoing')
 
@@ -109,7 +109,7 @@ describe('markOnboardingSeen', () => {
   })
 
   it('should set item in storage', async () => {
-    AsyncStorage.setItem.mockResolvedValue(undefined)
+    vi.mocked(AsyncStorage.setItem).mockResolvedValue(undefined)
 
     await markOnboardingSeen('directOffer')
 
@@ -117,7 +117,7 @@ describe('markOnboardingSeen', () => {
   })
 
   it('should handle storage errors silently', async () => {
-    AsyncStorage.setItem.mockRejectedValue(new Error('Storage error'))
+    vi.mocked(AsyncStorage.setItem).mockRejectedValue(new Error('Storage error'))
 
     await expect(markOnboardingSeen('welcome')).resolves.not.toThrow()
   })
@@ -129,7 +129,7 @@ describe('resetAllOnboarding', () => {
   })
 
   it('should call multiRemove with onboarding keys', async () => {
-    AsyncStorage.multiRemove.mockResolvedValue(undefined)
+    vi.mocked(AsyncStorage.multiRemove).mockResolvedValue(undefined)
 
     await resetAllOnboarding()
 
@@ -137,7 +137,7 @@ describe('resetAllOnboarding', () => {
   })
 
   it('should handle storage errors silently', async () => {
-    AsyncStorage.multiRemove.mockRejectedValue(new Error('Storage error'))
+    vi.mocked(AsyncStorage.multiRemove).mockRejectedValue(new Error('Storage error'))
 
     await expect(resetAllOnboarding()).resolves.not.toThrow()
   })
@@ -149,7 +149,7 @@ describe('resetOnboarding', () => {
   })
 
   it('should remove specific onboarding key', async () => {
-    AsyncStorage.removeItem.mockResolvedValue(undefined)
+    vi.mocked(AsyncStorage.removeItem).mockResolvedValue(undefined)
 
     await resetOnboarding('handymanReport')
 
@@ -157,7 +157,7 @@ describe('resetOnboarding', () => {
   })
 
   it('should handle storage errors silently', async () => {
-    AsyncStorage.removeItem.mockRejectedValue(new Error('Storage error'))
+    vi.mocked(AsyncStorage.removeItem).mockRejectedValue(new Error('Storage error'))
 
     await expect(resetOnboarding('handymanReimbursement')).resolves.not.toThrow()
   })
