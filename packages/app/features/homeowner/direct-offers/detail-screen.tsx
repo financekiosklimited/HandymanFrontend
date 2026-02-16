@@ -13,6 +13,7 @@ import {
   ImageViewer,
   VideoPlayer,
   DocumentThumbnail,
+  useConfirmDialog,
 } from '@my/ui'
 import { GradientBackground, OfferStatusBadge, TimeRemainingBadge } from '@my/ui'
 import {
@@ -49,7 +50,7 @@ import {
   markNotificationToastAsShown,
 } from 'app/utils/notification-toast-storage'
 import { useEffect } from 'react'
-import { Alert, Dimensions, FlatList, Pressable } from 'react-native'
+import { Dimensions, FlatList, Pressable } from 'react-native'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const IMAGE_WIDTH = SCREEN_WIDTH - 32
@@ -76,6 +77,7 @@ export function HomeownerDirectOfferDetailScreen({
   } | null>(null)
   const flatListRef = useRef<FlatList>(null)
   const toast = useToastController()
+  const { showConfirm, ConfirmDialogWrapper } = useConfirmDialog()
 
   // Check for offer status changes (accepted/declined)
   useEffect(() => {
@@ -144,64 +146,70 @@ export function HomeownerDirectOfferDetailScreen({
   const handleCancel = useCallback(() => {
     if (!offer) return
 
-    Alert.alert(
-      'Cancel Offer?',
-      `Are you sure you want to cancel this offer to ${offer.target_handyman.display_name}? This action cannot be undone.`,
-      [
-        { text: 'No, Keep It', style: 'cancel' },
-        {
-          text: 'Yes, Cancel',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await cancelMutation.mutateAsync(offer.public_id)
-              // Navigate to job management with toast
-              router.replace({
-                pathname: '/(homeowner)/jobs',
-                params: { toast: 'direct-offer-cancelled', tab: 'offers' },
-              })
-            } catch (error: any) {
-              Alert.alert('Error', error?.message || 'Failed to cancel offer')
-            }
-          },
-        },
-      ]
-    )
+    showConfirm({
+      title: 'Cancel Offer?',
+      description: `Are you sure you want to cancel this offer to ${offer.target_handyman.display_name}? This action cannot be undone.`,
+      type: 'destructive',
+      confirmText: 'Yes, Cancel',
+      cancelText: 'No, Keep It',
+      onConfirm: async () => {
+        try {
+          await cancelMutation.mutateAsync(offer.public_id)
+          // Navigate to job management with toast
+          router.replace({
+            pathname: '/(homeowner)/jobs',
+            params: { toast: 'direct-offer-cancelled', tab: 'offers' },
+          })
+        } catch (error: any) {
+          showConfirm({
+            title: 'Error',
+            description: error?.message || 'Failed to cancel offer',
+            type: 'confirm',
+            confirmText: 'OK',
+            onConfirm: () => {},
+          })
+        }
+      },
+    })
   }, [offer, cancelMutation, router])
 
   // Handle convert to public job
   const handleConvert = useCallback(() => {
     if (!offer) return
 
-    Alert.alert(
-      'Convert to Public Job?',
-      'This will create a public job listing from this offer. Other handymen will be able to see and apply for it.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Convert',
-          onPress: async () => {
-            try {
-              const result = await convertMutation.mutateAsync(offer.public_id)
-              // Navigate to the new job with toast
-              if (result?.public_id) {
-                router.replace({
-                  pathname: `/(homeowner)/jobs/${result.public_id}`,
-                  params: { toast: 'job-converted' },
-                })
-              } else {
-                router.replace({
-                  pathname: '/(homeowner)/jobs',
-                  params: { toast: 'job-converted' },
-                })
-              }
-            } catch (error: any) {
-              Alert.alert('Error', error?.message || 'Failed to convert offer')
-            }
-          },
-        },
-      ]
-    )
+    showConfirm({
+      title: 'Convert to Public Job?',
+      description:
+        'This will create a public job listing from this offer. Other handymen will be able to see and apply for it.',
+      type: 'confirm',
+      confirmText: 'Convert',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          const result = await convertMutation.mutateAsync(offer.public_id)
+          // Navigate to the new job with toast
+          if (result?.public_id) {
+            router.replace({
+              pathname: `/(homeowner)/jobs/${result.public_id}`,
+              params: { toast: 'job-converted' },
+            })
+          } else {
+            router.replace({
+              pathname: '/(homeowner)/jobs',
+              params: { toast: 'job-converted' },
+            })
+          }
+        } catch (error: any) {
+          showConfirm({
+            title: 'Error',
+            description: error?.message || 'Failed to convert offer',
+            type: 'confirm',
+            confirmText: 'OK',
+            onConfirm: () => {},
+          })
+        }
+      },
+    })
   }, [offer, convertMutation, router])
 
   if (isLoading) {
@@ -1295,6 +1303,9 @@ export function HomeownerDirectOfferDetailScreen({
             onClose={() => setSelectedVideo(null)}
           />
         )}
+
+        {/* Confirm Dialog */}
+        <ConfirmDialogWrapper />
       </YStack>
     </GradientBackground>
   )

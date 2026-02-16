@@ -13,6 +13,7 @@ import {
   ImageViewer,
   VideoPlayer,
   DocumentThumbnail,
+  useConfirmDialog,
 } from '@my/ui'
 import { GradientBackground, OfferStatusBadge, TimeRemainingBadge } from '@my/ui'
 import {
@@ -42,7 +43,7 @@ import { PageHeader } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import { Alert, Dimensions, FlatList, Pressable } from 'react-native'
+import { Dimensions, FlatList, Pressable } from 'react-native'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const IMAGE_WIDTH = SCREEN_WIDTH - 32
@@ -66,6 +67,7 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
     thumbnail?: string
   } | null>(null)
   const flatListRef = useRef<FlatList>(null)
+  const { showConfirm, ConfirmDialogWrapper } = useConfirmDialog()
 
   // Type-safe attachment access
   const attachments = useMemo(() => {
@@ -102,29 +104,33 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
   const handleAccept = useCallback(() => {
     if (!offer) return
 
-    Alert.alert(
-      'Accept This Offer?',
-      `By accepting, this job will start immediately and be added to your active jobs. The budget is $${offer.estimated_budget}.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Accept Offer',
-          onPress: async () => {
-            try {
-              await acceptMutation.mutateAsync(offer.public_id)
-              Alert.alert('Offer Accepted!', 'This job has been added to your active jobs.', [
-                {
-                  text: 'View My Jobs',
-                  onPress: () => router.replace('/(handyman)/jobs'),
-                },
-              ])
-            } catch (error: any) {
-              Alert.alert('Error', error?.message || 'Failed to accept offer')
-            }
-          },
-        },
-      ]
-    )
+    showConfirm({
+      title: 'Accept This Offer?',
+      description: `By accepting, this job will start immediately and be added to your active jobs. The budget is $${offer.estimated_budget}.`,
+      type: 'success',
+      confirmText: 'Accept Offer',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await acceptMutation.mutateAsync(offer.public_id)
+          showConfirm({
+            title: 'Offer Accepted!',
+            description: 'This job has been added to your active jobs.',
+            type: 'success',
+            confirmText: 'View My Jobs',
+            onConfirm: () => router.replace('/(handyman)/jobs'),
+          })
+        } catch (error: any) {
+          showConfirm({
+            title: 'Error',
+            description: error?.message || 'Failed to accept offer',
+            type: 'confirm',
+            confirmText: 'OK',
+            onConfirm: () => {},
+          })
+        }
+      },
+    })
   }, [offer, acceptMutation, router])
 
   // Handle reject - navigate to rejection screen
@@ -1026,6 +1032,9 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
             onClose={() => setSelectedVideo(null)}
           />
         )}
+
+        {/* Confirm Dialog */}
+        <ConfirmDialogWrapper />
       </YStack>
     </GradientBackground>
   )

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
-import { RefreshControl } from 'react-native'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, PageHeader } from '@my/ui'
+import { useState, useMemo, useEffect, useCallback, memo } from 'react'
+import { RefreshControl, FlatList } from 'react-native'
+import { YStack, XStack, Text, Button, Spinner, View, Image, PageHeader } from '@my/ui'
 import { GradientBackground, DirectOfferCard } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
@@ -34,12 +34,16 @@ const getStatusLabel = (status: ApplicationStatus) => {
   return statusInfo?.label || status
 }
 
+// Memoized ApplicationCard to prevent unnecessary re-renders
 interface ApplicationCardProps {
   application: JobApplication
   onPress: () => void
 }
 
-function ApplicationCard({ application, onPress }: ApplicationCardProps) {
+const ApplicationCard = memo(function ApplicationCard({
+  application,
+  onPress,
+}: ApplicationCardProps) {
   const statusStyle = getStatusColor(application.status)
   const job = application.job
 
@@ -170,14 +174,15 @@ function ApplicationCard({ application, onPress }: ApplicationCardProps) {
       </YStack>
     </Button>
   )
-}
+})
 
+// Memoized ActiveJobCard to prevent unnecessary re-renders
 interface ActiveJobCardProps {
   job: HandymanAssignedJob
   onPress: () => void
 }
 
-function ActiveJobCard({ job, onPress }: ActiveJobCardProps) {
+const ActiveJobCard = memo(function ActiveJobCard({ job, onPress }: ActiveJobCardProps) {
   // Get status display info
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -409,7 +414,252 @@ function ActiveJobCard({ job, onPress }: ActiveJobCardProps) {
       )}
     </YStack>
   )
-}
+})
+
+// Empty state components
+const EmptyApplicationsState = memo(function EmptyApplicationsState({
+  onExplore,
+}: { onExplore: () => void }) {
+  return (
+    <YStack
+      py="$2xl"
+      alignItems="center"
+      bg="rgba(255,255,255,0.7)"
+      borderRadius={20}
+      gap="$md"
+      px="$lg"
+    >
+      <YStack
+        width={80}
+        height={80}
+        borderRadius="$full"
+        bg="rgba(12,154,92,0.1)"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Briefcase
+          size={36}
+          color="$primary"
+        />
+      </YStack>
+      <Text
+        color="$color"
+        fontSize="$5"
+        fontWeight="600"
+      >
+        No Pending Applications
+      </Text>
+      <Text
+        color="$colorSubtle"
+        fontSize="$3"
+        textAlign="center"
+      >
+        Start exploring jobs and apply to opportunities that match your skills.
+      </Text>
+      <Button
+        mt="$sm"
+        bg="$primary"
+        color="white"
+        borderRadius="$lg"
+        px="$xl"
+        onPress={onExplore}
+      >
+        <Text
+          color="white"
+          fontWeight="600"
+        >
+          Explore Jobs
+        </Text>
+      </Button>
+    </YStack>
+  )
+})
+
+const EmptyActiveJobsState = memo(function EmptyActiveJobsState() {
+  return (
+    <YStack
+      py="$2xl"
+      alignItems="center"
+      bg="rgba(255,255,255,0.7)"
+      borderRadius={20}
+      gap="$md"
+      px="$lg"
+    >
+      <YStack
+        width={80}
+        height={80}
+        borderRadius="$full"
+        bg="rgba(12,154,92,0.1)"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Play
+          size={36}
+          color="$primary"
+        />
+      </YStack>
+      <Text
+        color="$color"
+        fontSize="$5"
+        fontWeight="600"
+      >
+        No Active Jobs
+      </Text>
+      <Text
+        color="$colorSubtle"
+        fontSize="$3"
+        textAlign="center"
+      >
+        Jobs you've been approved for will appear here. Keep applying to find your next opportunity!
+      </Text>
+    </YStack>
+  )
+})
+
+const EmptyOffersState = memo(function EmptyOffersState() {
+  return (
+    <YStack
+      py="$2xl"
+      alignItems="center"
+      bg="rgba(255,255,255,0.7)"
+      borderRadius={20}
+      gap="$md"
+      px="$lg"
+    >
+      <YStack
+        width={80}
+        height={80}
+        borderRadius="$full"
+        bg="rgba(12,154,92,0.1)"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Briefcase
+          size={36}
+          color="$primary"
+        />
+      </YStack>
+      <Text
+        color="$color"
+        fontSize="$5"
+        fontWeight="600"
+      >
+        No Direct Offers
+      </Text>
+      <Text
+        color="$colorSubtle"
+        fontSize="$3"
+        textAlign="center"
+      >
+        When homeowners send you private job offers, they'll appear here.
+      </Text>
+    </YStack>
+  )
+})
+
+// Loading skeleton component
+const LoadingSkeleton = memo(function LoadingSkeleton({ message }: { message: string }) {
+  return (
+    <YStack
+      py="$xl"
+      alignItems="center"
+      gap="$md"
+    >
+      <Spinner
+        size="large"
+        color="$primary"
+      />
+      <Text
+        color="$colorSubtle"
+        fontSize="$3"
+      >
+        {message}
+      </Text>
+    </YStack>
+  )
+})
+
+// Error state component
+const ErrorState = memo(function ErrorState({ message }: { message: string }) {
+  return (
+    <YStack
+      py="$xl"
+      alignItems="center"
+      bg="rgba(255,255,255,0.7)"
+      borderRadius={20}
+      gap="$sm"
+    >
+      <Briefcase
+        size={40}
+        color="$error"
+      />
+      <Text
+        color="$error"
+        fontSize="$4"
+        fontWeight="500"
+      >
+        Failed to load {message}
+      </Text>
+      <Text
+        color="$colorSubtle"
+        fontSize="$2"
+        textAlign="center"
+      >
+        Please try again later
+      </Text>
+    </YStack>
+  )
+})
+
+// Load more button component
+const LoadMoreButton = memo(function LoadMoreButton({
+  onPress,
+  isLoading,
+  label,
+}: {
+  onPress: () => void
+  isLoading: boolean
+  label: string
+}) {
+  return (
+    <Button
+      onPress={onPress}
+      disabled={isLoading}
+      bg="rgba(255,255,255,0.7)"
+      borderRadius="$md"
+      py="$sm"
+      mt="$sm"
+      borderWidth={1}
+      borderColor="$borderColor"
+    >
+      {isLoading ? (
+        <XStack
+          alignItems="center"
+          gap="$sm"
+        >
+          <Spinner
+            size="small"
+            color="$primary"
+          />
+          <Text
+            color="$colorSubtle"
+            fontSize="$3"
+          >
+            Loading...
+          </Text>
+        </XStack>
+      ) : (
+        <Text
+          color="$primary"
+          fontSize="$3"
+          fontWeight="500"
+        >
+          {label}
+        </Text>
+      )}
+    </Button>
+  )
+})
 
 export function HandymanJobsScreen() {
   useToastFromParams()
@@ -419,14 +669,24 @@ export function HandymanJobsScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('applicants')
   const [refreshing, setRefreshing] = useState(false)
 
+  // Track which tabs have been loaded to enable lazy loading
+  const [loadedTabs, setLoadedTabs] = useState<Set<TabType>>(new Set(['applicants']))
+
   // Set initial tab from query param
   useEffect(() => {
     if (tab === 'offers' || tab === 'active' || tab === 'applicants') {
       setActiveTab(tab)
+      setLoadedTabs((prev) => new Set([...prev, tab]))
     }
   }, [tab])
 
-  // Fetch pending/all applications for "Job Applicants" tab
+  // Handle tab change with lazy loading
+  const handleTabChange = useCallback((newTab: TabType) => {
+    setActiveTab(newTab)
+    setLoadedTabs((prev) => new Set([...prev, newTab]))
+  }, [])
+
+  // Fetch pending/all applications for "Job Applicants" tab - LAZY LOADED
   const {
     data: applicationsData,
     isLoading: applicationsLoading,
@@ -435,9 +695,9 @@ export function HandymanJobsScreen() {
     hasNextPage: hasMoreApplications,
     isFetchingNextPage: isFetchingMoreApplications,
     refetch: refetchApplications,
-  } = useHandymanApplications()
+  } = useHandymanApplications({}, { enabled: loadedTabs.has('applicants') })
 
-  // Fetch approved applications for "Active Jobs" tab
+  // Fetch approved applications for "Active Jobs" tab - LAZY LOADED
   const {
     data: activeJobsData,
     isLoading: activeJobsLoading,
@@ -446,9 +706,9 @@ export function HandymanJobsScreen() {
     hasNextPage: hasMoreActiveJobs,
     isFetchingNextPage: isFetchingMoreActiveJobs,
     refetch: refetchActiveJobs,
-  } = useHandymanAssignedJobs()
+  } = useHandymanAssignedJobs({}, { enabled: loadedTabs.has('active') })
 
-  // Fetch direct offers for "Direct Offers" tab
+  // Fetch direct offers for "Direct Offers" tab - LAZY LOADED
   const {
     data: offersData,
     isLoading: offersLoading,
@@ -457,9 +717,9 @@ export function HandymanJobsScreen() {
     hasNextPage: hasMoreOffers,
     isFetchingNextPage: isFetchingMoreOffers,
     refetch: refetchOffers,
-  } = useHandymanDirectOffers()
+  } = useHandymanDirectOffers({}, { enabled: loadedTabs.has('offers') })
 
-  // Get pending offers count for tab badge
+  // Get pending offers count for tab badge - always fetch but with delay
   const { data: pendingOffersCount = 0, refetch: refetchPendingCount } =
     useHandymanPendingOffersCount()
 
@@ -479,10 +739,11 @@ export function HandymanJobsScreen() {
     }
   }, [activeTab, refetchApplications, refetchActiveJobs, refetchOffers, refetchPendingCount])
 
-  // Flatten paginated data
+  // Flatten paginated data - only compute for loaded tabs
   const allApplications = useMemo(() => {
+    if (!loadedTabs.has('applicants')) return []
     return applicationsData?.pages.flatMap((page) => page.results) || []
-  }, [applicationsData])
+  }, [applicationsData, loadedTabs])
 
   // Filter to show only non-approved applications in Job Applicants tab
   const pendingApplications = useMemo(() => {
@@ -490,39 +751,56 @@ export function HandymanJobsScreen() {
   }, [allApplications])
 
   const activeJobs = useMemo(() => {
+    if (!loadedTabs.has('active')) return []
     return activeJobsData?.pages.flatMap((page) => page.results) || []
-  }, [activeJobsData])
+  }, [activeJobsData, loadedTabs])
 
   const offers = useMemo(() => {
+    if (!loadedTabs.has('offers')) return []
     return offersData?.pages.flatMap((page) => page.results) || []
-  }, [offersData])
+  }, [offersData, loadedTabs])
 
-  const handleApplicationPress = (application: JobApplication) => {
-    router.push({
-      pathname: '/(handyman)/my-jobs/[id]',
-      params: {
-        id: application.public_id,
-        jobId: application.job.public_id,
-      },
-    } as any)
-  }
+  // Memoized event handlers
+  const handleApplicationPress = useCallback(
+    (application: JobApplication) => {
+      router.push({
+        pathname: '/(handyman)/my-jobs/[id]',
+        params: {
+          id: application.public_id,
+          jobId: application.job.public_id,
+        },
+      } as any)
+    },
+    [router]
+  )
 
-  const handleActiveJobPress = (job: HandymanAssignedJob) => {
-    router.push({
-      pathname: '/(handyman)/jobs/ongoing/[id]',
-      params: {
-        id: job.public_id,
-      },
-    } as any)
-  }
+  const handleActiveJobPress = useCallback(
+    (job: HandymanAssignedJob) => {
+      router.push({
+        pathname: '/(handyman)/jobs/ongoing/[id]',
+        params: {
+          id: job.public_id,
+        },
+      } as any)
+    },
+    [router]
+  )
 
-  const handleOfferPress = (offerId: string) => {
-    router.push({
-      pathname: '/(handyman)/direct-offers/[id]',
-      params: { id: offerId },
-    } as any)
-  }
+  const handleOfferPress = useCallback(
+    (offerId: string) => {
+      router.push({
+        pathname: '/(handyman)/direct-offers/[id]',
+        params: { id: offerId },
+      } as any)
+    },
+    [router]
+  )
 
+  const handleExplorePress = useCallback(() => {
+    router.push('/(handyman)/')
+  }, [router])
+
+  // Get current tab state
   const isLoading =
     activeTab === 'applicants'
       ? applicationsLoading
@@ -535,6 +813,90 @@ export function HandymanJobsScreen() {
       : activeTab === 'active'
         ? activeJobsError
         : offersError
+
+  // FlatList render item functions
+  const renderApplicationItem = useCallback(
+    ({ item }: { item: JobApplication }) => (
+      <ApplicationCard
+        application={item}
+        onPress={() => handleApplicationPress(item)}
+      />
+    ),
+    [handleApplicationPress]
+  )
+
+  const renderActiveJobItem = useCallback(
+    ({ item }: { item: HandymanAssignedJob }) => (
+      <ActiveJobCard
+        job={item}
+        onPress={() => handleActiveJobPress(item)}
+      />
+    ),
+    [handleActiveJobPress]
+  )
+
+  const renderOfferItem = useCallback(
+    ({ item }: { item: any }) => (
+      <DirectOfferCard
+        offer={item}
+        variant="handyman"
+        onPress={() => handleOfferPress(item.public_id)}
+      />
+    ),
+    [handleOfferPress]
+  )
+
+  const keyExtractor = useCallback((item: any) => item.public_id, [])
+
+  // Get current data and config based on active tab
+  const getCurrentTabConfig = () => {
+    switch (activeTab) {
+      case 'applicants':
+        return {
+          data: pendingApplications,
+          isLoading: applicationsLoading,
+          error: applicationsError,
+          emptyComponent: <EmptyApplicationsState onExplore={handleExplorePress} />,
+          hasMore: hasMoreApplications,
+          fetchMore: fetchMoreApplications,
+          isFetchingMore: isFetchingMoreApplications,
+          loadMoreLabel: 'Load more applications',
+          loadingMessage: 'Loading applications...',
+          errorMessage: 'applications',
+          renderItem: renderApplicationItem,
+        }
+      case 'active':
+        return {
+          data: activeJobs,
+          isLoading: activeJobsLoading,
+          error: activeJobsError,
+          emptyComponent: <EmptyActiveJobsState />,
+          hasMore: hasMoreActiveJobs,
+          fetchMore: fetchMoreActiveJobs,
+          isFetchingMore: isFetchingMoreActiveJobs,
+          loadMoreLabel: 'Load more jobs',
+          loadingMessage: 'Loading active jobs...',
+          errorMessage: 'jobs',
+          renderItem: renderActiveJobItem,
+        }
+      case 'offers':
+        return {
+          data: offers,
+          isLoading: offersLoading,
+          error: offersError,
+          emptyComponent: <EmptyOffersState />,
+          hasMore: hasMoreOffers,
+          fetchMore: fetchMoreOffers,
+          isFetchingMore: isFetchingMoreOffers,
+          loadMoreLabel: 'Load more offers',
+          loadingMessage: 'Loading offers...',
+          errorMessage: 'offers',
+          renderItem: renderOfferItem,
+        }
+    }
+  }
+
+  const currentConfig = getCurrentTabConfig()
 
   return (
     <GradientBackground>
@@ -560,7 +922,7 @@ export function HandymanJobsScreen() {
             borderBottomWidth={3}
             borderBottomColor={activeTab === 'applicants' ? '$primary' : 'transparent'}
             marginBottom={-1}
-            onPress={() => setActiveTab('applicants')}
+            onPress={() => handleTabChange('applicants')}
           >
             <Text
               fontSize="$3"
@@ -578,7 +940,7 @@ export function HandymanJobsScreen() {
             borderBottomWidth={3}
             borderBottomColor={activeTab === 'active' ? '$primary' : 'transparent'}
             marginBottom={-1}
-            onPress={() => setActiveTab('active')}
+            onPress={() => handleTabChange('active')}
           >
             <Text
               fontSize="$3"
@@ -596,7 +958,7 @@ export function HandymanJobsScreen() {
             borderBottomWidth={3}
             borderBottomColor={activeTab === 'offers' ? '$primary' : 'transparent'}
             marginBottom={-1}
-            onPress={() => setActiveTab('offers')}
+            onPress={() => handleTabChange('offers')}
           >
             <XStack
               alignItems="center"
@@ -634,365 +996,61 @@ export function HandymanJobsScreen() {
           </Button>
         </XStack>
 
-        <ScrollView
-          flex={1}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#0C9A5C"
-              colors={['#0C9A5C']}
-            />
-          }
-        >
+        {/* Content with FlatList for virtualization */}
+        {currentConfig.isLoading ? (
           <YStack
+            flex={1}
             px="$lg"
             py="$lg"
-            gap="$md"
           >
-            {/* Loading State */}
-            {isLoading ? (
-              <YStack
-                py="$xl"
-                alignItems="center"
-                gap="$md"
-              >
-                <Spinner
-                  size="large"
-                  color="$primary"
-                />
-                <Text
-                  color="$colorSubtle"
-                  fontSize="$3"
-                >
-                  {activeTab === 'applicants'
-                    ? 'Loading applications...'
-                    : activeTab === 'active'
-                      ? 'Loading active jobs...'
-                      : 'Loading offers...'}
-                </Text>
-              </YStack>
-            ) : error ? (
-              <YStack
-                py="$xl"
-                alignItems="center"
-                bg="rgba(255,255,255,0.7)"
-                borderRadius={20}
-                gap="$sm"
-              >
-                <Briefcase
-                  size={40}
-                  color="$error"
-                />
-                <Text
-                  color="$error"
-                  fontSize="$4"
-                  fontWeight="500"
-                >
-                  Failed to load{' '}
-                  {activeTab === 'applicants'
-                    ? 'applications'
-                    : activeTab === 'active'
-                      ? 'jobs'
-                      : 'offers'}
-                </Text>
-                <Text
-                  color="$colorSubtle"
-                  fontSize="$2"
-                  textAlign="center"
-                >
-                  Please try again later
-                </Text>
-              </YStack>
-            ) : activeTab === 'applicants' ? (
-              // Job Applicants Tab Content
-              pendingApplications.length === 0 ? (
-                <YStack
-                  py="$2xl"
-                  alignItems="center"
-                  bg="rgba(255,255,255,0.7)"
-                  borderRadius={20}
-                  gap="$md"
-                  px="$lg"
-                >
-                  <YStack
-                    width={80}
-                    height={80}
-                    borderRadius="$full"
-                    bg="rgba(12,154,92,0.1)"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Briefcase
-                      size={36}
-                      color="$primary"
-                    />
-                  </YStack>
-                  <Text
-                    color="$color"
-                    fontSize="$5"
-                    fontWeight="600"
-                  >
-                    No Pending Applications
-                  </Text>
-                  <Text
-                    color="$colorSubtle"
-                    fontSize="$3"
-                    textAlign="center"
-                  >
-                    Start exploring jobs and apply to opportunities that match your skills.
-                  </Text>
-                  <Button
-                    mt="$sm"
-                    bg="$primary"
-                    color="white"
-                    borderRadius="$lg"
-                    px="$xl"
-                    onPress={() => router.push('/(handyman)/')}
-                  >
-                    <Text
-                      color="white"
-                      fontWeight="600"
-                    >
-                      Explore Jobs
-                    </Text>
-                  </Button>
-                </YStack>
-              ) : (
-                <YStack gap="$sm">
-                  {pendingApplications.map((application) => (
-                    <ApplicationCard
-                      key={application.public_id}
-                      application={application}
-                      onPress={() => handleApplicationPress(application)}
-                    />
-                  ))}
-
-                  {/* Load More Button */}
-                  {hasMoreApplications && (
-                    <Button
-                      onPress={() => fetchMoreApplications()}
-                      disabled={isFetchingMoreApplications}
-                      bg="rgba(255,255,255,0.7)"
-                      borderRadius="$md"
-                      py="$sm"
-                      mt="$sm"
-                      borderWidth={1}
-                      borderColor="$borderColor"
-                    >
-                      {isFetchingMoreApplications ? (
-                        <XStack
-                          alignItems="center"
-                          gap="$sm"
-                        >
-                          <Spinner
-                            size="small"
-                            color="$primary"
-                          />
-                          <Text
-                            color="$colorSubtle"
-                            fontSize="$3"
-                          >
-                            Loading...
-                          </Text>
-                        </XStack>
-                      ) : (
-                        <Text
-                          color="$primary"
-                          fontSize="$3"
-                          fontWeight="500"
-                        >
-                          Load more applications
-                        </Text>
-                      )}
-                    </Button>
-                  )}
-                </YStack>
-              )
-            ) : // Active Jobs Tab Content
-            activeTab === 'active' ? (
-              activeJobs.length === 0 ? (
-                <YStack
-                  py="$2xl"
-                  alignItems="center"
-                  bg="rgba(255,255,255,0.7)"
-                  borderRadius={20}
-                  gap="$md"
-                  px="$lg"
-                >
-                  <YStack
-                    width={80}
-                    height={80}
-                    borderRadius="$full"
-                    bg="rgba(12,154,92,0.1)"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Play
-                      size={36}
-                      color="$primary"
-                    />
-                  </YStack>
-                  <Text
-                    color="$color"
-                    fontSize="$5"
-                    fontWeight="600"
-                  >
-                    No Active Jobs
-                  </Text>
-                  <Text
-                    color="$colorSubtle"
-                    fontSize="$3"
-                    textAlign="center"
-                  >
-                    Jobs you've been approved for will appear here. Keep applying to find your next
-                    opportunity!
-                  </Text>
-                </YStack>
-              ) : (
-                <YStack gap="$md">
-                  {activeJobs.map((job) => (
-                    <ActiveJobCard
-                      key={job.public_id}
-                      job={job}
-                      onPress={() => handleActiveJobPress(job)}
-                    />
-                  ))}
-
-                  {/* Load More Button */}
-                  {hasMoreActiveJobs && (
-                    <Button
-                      onPress={() => fetchMoreActiveJobs()}
-                      disabled={isFetchingMoreActiveJobs}
-                      bg="rgba(255,255,255,0.7)"
-                      borderRadius="$md"
-                      py="$sm"
-                      mt="$sm"
-                      borderWidth={1}
-                      borderColor="$borderColor"
-                    >
-                      {isFetchingMoreActiveJobs ? (
-                        <XStack
-                          alignItems="center"
-                          gap="$sm"
-                        >
-                          <Spinner
-                            size="small"
-                            color="$primary"
-                          />
-                          <Text
-                            color="$colorSubtle"
-                            fontSize="$3"
-                          >
-                            Loading...
-                          </Text>
-                        </XStack>
-                      ) : (
-                        <Text
-                          color="$primary"
-                          fontSize="$3"
-                          fontWeight="500"
-                        >
-                          Load more jobs
-                        </Text>
-                      )}
-                    </Button>
-                  )}
-                </YStack>
-              )
-            ) : // Direct Offers Tab Content
-            offers.length === 0 ? (
-              <YStack
-                py="$2xl"
-                alignItems="center"
-                bg="rgba(255,255,255,0.7)"
-                borderRadius={20}
-                gap="$md"
-                px="$lg"
-              >
-                <YStack
-                  width={80}
-                  height={80}
-                  borderRadius="$full"
-                  bg="rgba(12,154,92,0.1)"
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Briefcase
-                    size={36}
-                    color="$primary"
-                  />
-                </YStack>
-                <Text
-                  color="$color"
-                  fontSize="$5"
-                  fontWeight="600"
-                >
-                  No Direct Offers
-                </Text>
-                <Text
-                  color="$colorSubtle"
-                  fontSize="$3"
-                  textAlign="center"
-                >
-                  When homeowners send you private job offers, they'll appear here.
-                </Text>
-              </YStack>
-            ) : (
-              <YStack gap="$md">
-                {offers.map((offer) => (
-                  <DirectOfferCard
-                    key={offer.public_id}
-                    offer={offer}
-                    variant="handyman"
-                    onPress={() => handleOfferPress(offer.public_id)}
-                  />
-                ))}
-
-                {/* Load More Button */}
-                {hasMoreOffers && (
-                  <Button
-                    onPress={() => fetchMoreOffers()}
-                    disabled={isFetchingMoreOffers}
-                    bg="rgba(255,255,255,0.7)"
-                    borderRadius="$md"
-                    py="$sm"
-                    mt="$sm"
-                    borderWidth={1}
-                    borderColor="$borderColor"
-                  >
-                    {isFetchingMoreOffers ? (
-                      <XStack
-                        alignItems="center"
-                        gap="$sm"
-                      >
-                        <Spinner
-                          size="small"
-                          color="$primary"
-                        />
-                        <Text
-                          color="$colorSubtle"
-                          fontSize="$3"
-                        >
-                          Loading...
-                        </Text>
-                      </XStack>
-                    ) : (
-                      <Text
-                        color="$primary"
-                        fontSize="$3"
-                        fontWeight="500"
-                      >
-                        Load more offers
-                      </Text>
-                    )}
-                  </Button>
-                )}
-              </YStack>
-            )}
+            <LoadingSkeleton message={currentConfig.loadingMessage} />
           </YStack>
-        </ScrollView>
+        ) : currentConfig.error ? (
+          <YStack
+            flex={1}
+            px="$lg"
+            py="$lg"
+          >
+            <ErrorState message={currentConfig.errorMessage} />
+          </YStack>
+        ) : currentConfig.data.length === 0 ? (
+          <YStack
+            flex={1}
+            px="$lg"
+            py="$lg"
+          >
+            {currentConfig.emptyComponent}
+          </YStack>
+        ) : (
+          <FlatList
+            data={currentConfig.data as any[]}
+            renderItem={currentConfig.renderItem as any}
+            keyExtractor={keyExtractor}
+            contentContainerStyle={{ padding: 16, gap: 12 }}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={5}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            removeClippedSubviews={true}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#0C9A5C"
+                colors={['#0C9A5C']}
+              />
+            }
+            ListFooterComponent={
+              currentConfig.hasMore ? (
+                <LoadMoreButton
+                  onPress={currentConfig.fetchMore}
+                  isLoading={currentConfig.isFetchingMore}
+                  label={currentConfig.loadMoreLabel}
+                />
+              ) : null
+            }
+          />
+        )}
       </YStack>
     </GradientBackground>
   )

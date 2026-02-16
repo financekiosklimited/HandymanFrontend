@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import { Dialog, YStack, XStack, Text, Button, Spinner } from 'tamagui'
-import { AlertTriangle, Trash2 } from '@tamagui/lucide-icons'
+import { AlertTriangle, Trash2, Check, X } from '@tamagui/lucide-icons'
 
-type DialogType = 'confirm' | 'destructive'
+type DialogType = 'confirm' | 'destructive' | 'success'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -30,7 +30,8 @@ export function ConfirmDialog({
   isLoading = false,
 }: ConfirmDialogProps) {
   const isDestructive = type === 'destructive'
-  const defaultConfirmText = isDestructive ? 'Delete' : 'Confirm'
+  const isSuccess = type === 'success'
+  const defaultConfirmText = isDestructive ? 'Delete' : isSuccess ? 'Confirm' : 'Confirm'
 
   const handleConfirm = useCallback(async () => {
     await onConfirm()
@@ -40,6 +41,31 @@ export function ConfirmDialog({
     onCancel?.()
     onOpenChange(false)
   }, [onCancel, onOpenChange])
+
+  const getIconConfig = () => {
+    if (isDestructive) {
+      return {
+        backgroundColor: '#FEE2E2',
+        icon: Trash2,
+        iconColor: '#DC2626',
+      }
+    }
+    if (isSuccess) {
+      return {
+        backgroundColor: 'rgba(12, 154, 92, 0.1)',
+        icon: Check,
+        iconColor: '#0C9A5C',
+      }
+    }
+    return {
+      backgroundColor: '#FEF3C7',
+      icon: AlertTriangle,
+      iconColor: '#F59E0B',
+    }
+  }
+
+  const iconConfig = getIconConfig()
+  const IconComponent = iconConfig.icon
 
   return (
     <Dialog
@@ -52,7 +78,7 @@ export function ConfirmDialog({
           animation="lazy"
           enterStyle={{ opacity: 0 }}
           exitStyle={{ opacity: 0 }}
-          backgroundColor="rgba(0, 0, 0, 0.5)"
+          backgroundColor="rgba(40, 42, 55, 0.6)"
           flex={1}
         />
         <Dialog.Content
@@ -70,62 +96,49 @@ export function ConfirmDialog({
           x={0}
           scale={1}
           opacity={1}
-          backgroundColor="$backgroundStrong"
-          borderRadius="$2xl"
-          padding="$xl"
+          backgroundColor="#FFFFFF"
+          borderRadius={24}
+          padding={28}
           width="90%"
-          maxWidth={360}
+          maxWidth={380}
           alignSelf="center"
-          shadowColor="$shadowColor"
-          shadowOffset={{ width: 0, height: 4 }}
-          shadowOpacity={0.15}
-          shadowRadius={20}
+          shadowColor="rgba(12, 154, 92, 0.15)"
+          shadowOffset={{ width: 0, height: 8 }}
+          shadowOpacity={0.3}
+          shadowRadius={32}
           elevate
         >
           <YStack
-            gap="$lg"
+            gap={20}
             alignItems="center"
           >
-            {/* Icon for destructive actions */}
-            {isDestructive && (
-              <YStack
-                width={56}
-                height={56}
-                borderRadius="$full"
-                backgroundColor="$errorBackground"
-                alignItems="center"
-                justifyContent="center"
-              >
-                <Trash2
-                  size={28}
-                  color="$error"
-                />
-              </YStack>
-            )}
-
-            {/* Warning icon for confirm actions */}
-            {!isDestructive && (
-              <YStack
-                width={56}
-                height={56}
-                borderRadius="$full"
-                backgroundColor="$warningBackground"
-                alignItems="center"
-                justifyContent="center"
-              >
-                <AlertTriangle
-                  size={28}
-                  color="$warning"
-                />
-              </YStack>
-            )}
+            {/* Icon */}
+            <YStack
+              width={64}
+              height={64}
+              borderRadius={32}
+              backgroundColor={iconConfig.backgroundColor as any}
+              alignItems="center"
+              justifyContent="center"
+              shadowColor={iconConfig.iconColor as any}
+              shadowOffset={{ width: 0, height: 4 }}
+              shadowOpacity={0.15}
+              shadowRadius={12}
+            >
+              <IconComponent
+                size={28}
+                color={iconConfig.iconColor as any}
+                strokeWidth={2}
+              />
+            </YStack>
 
             {/* Title */}
             <Text
-              fontSize="$9"
+              fontSize={22}
               fontWeight="700"
-              color="$color"
+              color="#282A37"
               textAlign="center"
+              lineHeight={28}
             >
               {title}
             </Text>
@@ -133,10 +146,11 @@ export function ConfirmDialog({
             {/* Description */}
             {description && (
               <Text
-                fontSize="$4"
-                color="$colorSubtle"
+                fontSize={15}
+                color="#515978"
                 textAlign="center"
                 lineHeight={22}
+                paddingHorizontal={8}
               >
                 {description}
               </Text>
@@ -144,20 +158,30 @@ export function ConfirmDialog({
 
             {/* Action Buttons */}
             <XStack
-              gap="$md"
+              gap={12}
               width="100%"
-              marginTop="$sm"
+              marginTop={8}
             >
               <Button
                 flex={1}
                 size="$4"
-                backgroundColor="$backgroundMuted"
-                color="$color"
+                height={48}
+                backgroundColor="#F5F0EC"
+                color="#282A37"
                 fontWeight="600"
-                borderRadius="$xl"
-                pressStyle={{ scale: 0.98, backgroundColor: '$backgroundSubtle' }}
+                fontSize={15}
+                borderRadius={12}
+                pressStyle={{ scale: 0.97, backgroundColor: '#E5E0DC' }}
                 onPress={handleCancel}
                 disabled={isLoading}
+                icon={
+                  !isLoading ? (
+                    <X
+                      size={16}
+                      color="#515978"
+                    />
+                  ) : undefined
+                }
               >
                 {cancelText}
               </Button>
@@ -165,24 +189,30 @@ export function ConfirmDialog({
               <Button
                 flex={1}
                 size="$4"
-                backgroundColor={isDestructive ? '$error' : '$primary'}
-                color="$white"
+                height={48}
+                backgroundColor={isDestructive ? '#DC2626' : '#0C9A5C'}
+                color="#FFFFFF"
                 fontWeight="600"
-                borderRadius="$xl"
+                fontSize={15}
+                borderRadius={12}
                 pressStyle={{
-                  scale: 0.98,
-                  backgroundColor: isDestructive ? '$error' : '$primary',
-                  opacity: 0.9,
+                  scale: 0.97,
+                  backgroundColor: isDestructive ? '#B91C1C' : '#0A8550',
                 }}
                 onPress={handleConfirm}
                 disabled={isLoading}
                 icon={
                   isLoading ? (
                     <Spinner
-                      color="$white"
+                      color="#FFFFFF"
                       size="small"
                     />
-                  ) : undefined
+                  ) : (
+                    <Check
+                      size={16}
+                      color="#FFFFFF"
+                    />
+                  )
                 }
               >
                 {isLoading ? '' : confirmText || defaultConfirmText}

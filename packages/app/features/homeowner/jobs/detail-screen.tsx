@@ -15,6 +15,7 @@ import {
   DocumentThumbnail,
   PageHeader,
   ScrollIndicator,
+  useConfirmDialog,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -37,7 +38,7 @@ import {
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import { Alert, Dimensions, FlatList, Pressable } from 'react-native'
+import { Dimensions, FlatList, Pressable } from 'react-native'
 import { jobStatusColors, type JobStatus } from '@my/config'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -71,6 +72,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
     thumbnail?: string
   } | null>(null)
   const flatListRef = useRef<FlatList>(null)
+  const { showConfirm, ConfirmDialogWrapper } = useConfirmDialog()
 
   // Type-safe attachment access - must be before any early returns to satisfy Rules of Hooks
   const attachments = useMemo(() => {
@@ -122,37 +124,36 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
   const handleDelete = () => {
     if (!job) return
 
-    Alert.alert(
-      'Delete Job?',
-      'Are you sure you want to delete this job listing? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: confirmDelete,
-        },
-      ]
-    )
-  }
-
-  const confirmDelete = async () => {
-    if (!job) return
-
-    setIsDeleting(true)
-    try {
-      await deleteJobMutation.mutateAsync(job.public_id)
-      // Navigate to job management with toast
-      router.replace({
-        pathname: '/(homeowner)/jobs',
-        params: { toast: 'job-deleted' },
-      })
-    } catch (error: any) {
-      const errorMessage = error?.message || 'Failed to delete job'
-      Alert.alert('Delete Failed', errorMessage)
-    } finally {
-      setIsDeleting(false)
-    }
+    showConfirm({
+      title: 'Delete Job?',
+      description:
+        'Are you sure you want to delete this job listing? This action cannot be undone.',
+      type: 'destructive',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        setIsDeleting(true)
+        try {
+          await deleteJobMutation.mutateAsync(job.public_id)
+          // Navigate to job management with toast
+          router.replace({
+            pathname: '/(homeowner)/jobs',
+            params: { toast: 'job-deleted' },
+          })
+        } catch (error: any) {
+          const errorMessage = error?.message || 'Failed to delete job'
+          showConfirm({
+            title: 'Delete Failed',
+            description: errorMessage,
+            type: 'confirm',
+            confirmText: 'OK',
+            onConfirm: () => {},
+          })
+        } finally {
+          setIsDeleting(false)
+        }
+      },
+    })
   }
 
   if (isLoading) {
@@ -1085,6 +1086,9 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
             onClose={() => setSelectedVideo(null)}
           />
         )}
+
+        {/* Confirm Dialog */}
+        <ConfirmDialogWrapper />
       </YStack>
     </GradientBackground>
   )

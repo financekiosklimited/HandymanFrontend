@@ -186,7 +186,10 @@ interface HandymanAssignedJobsParams {
  * Hook to fetch handyman's assigned jobs (approved applications + accepted direct offers).
  * Uses GET /handyman/jobs/ endpoint.
  */
-export function useHandymanAssignedJobs(params?: HandymanAssignedJobsParams) {
+export function useHandymanAssignedJobs(
+  params?: HandymanAssignedJobsParams,
+  options?: { enabled?: boolean }
+) {
   return useInfiniteQuery({
     queryKey: ['handyman', 'assigned-jobs', params],
     queryFn: async ({ pageParam = 1 }) => {
@@ -223,6 +226,7 @@ export function useHandymanAssignedJobs(params?: HandymanAssignedJobsParams) {
       return undefined
     },
     retry: 1,
+    enabled: options?.enabled ?? true,
   })
 }
 
@@ -267,7 +271,10 @@ interface HandymanApplicationsParams {
 /**
  * Hook to fetch handyman's job applications.
  */
-export function useHandymanApplications(params?: HandymanApplicationsParams) {
+export function useHandymanApplications(
+  params?: HandymanApplicationsParams,
+  options?: { enabled?: boolean }
+) {
   return useInfiniteQuery({
     queryKey: ['handyman', 'applications', params],
     queryFn: async ({ pageParam = 1 }) => {
@@ -298,6 +305,7 @@ export function useHandymanApplications(params?: HandymanApplicationsParams) {
       return undefined
     },
     retry: 1,
+    enabled: options?.enabled ?? true,
   })
 }
 

@@ -1,7 +1,18 @@
 'use client'
 
 import { useMemo } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, PageHeader } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Image,
+  PageHeader,
+  useConfirmDialog,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
@@ -290,6 +301,7 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
   const router = useRouter()
   const insets = useSafeArea()
   const toast = useToastController()
+  const { showConfirm, ConfirmDialogWrapper } = useConfirmDialog()
 
   // Fetch job details
   const { data: job, isLoading: jobLoading, refetch: refetchJob } = useHomeownerJob(jobId)
@@ -361,25 +373,22 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
   }
 
   const handleApproveCompletion = () => {
-    Alert.alert(
-      'Approve Completion',
-      'This will mark the job as completed and release payment to the handyman. This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Approve & Release Payment',
-          style: 'default',
-          onPress: async () => {
-            try {
-              await approveCompletionMutation.mutateAsync(jobId)
-              router.back()
-            } catch (error: any) {
-              showSubmissionErrorToast(toast, error?.message)
-            }
-          },
-        },
-      ]
-    )
+    showConfirm({
+      title: 'Approve Completion',
+      description:
+        'This will mark the job as completed and release payment to the handyman. This action cannot be undone.',
+      type: 'success',
+      confirmText: 'Approve & Release',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await approveCompletionMutation.mutateAsync(jobId)
+          router.back()
+        } catch (error: any) {
+          showSubmissionErrorToast(toast, error?.message)
+        }
+      },
+    })
   }
 
   const handleRejectCompletion = () => {
@@ -872,6 +881,9 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
             </YStack>
           </YStack>
         </ScrollView>
+
+        {/* Confirm Dialog */}
+        <ConfirmDialogWrapper />
       </YStack>
     </GradientBackground>
   )

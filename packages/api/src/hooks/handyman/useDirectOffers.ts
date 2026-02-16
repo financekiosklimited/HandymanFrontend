@@ -21,7 +21,10 @@ interface HandymanDirectOffersParams {
  * Hook to fetch handyman's received direct offers list.
  * Supports filtering by offer_status.
  */
-export function useHandymanDirectOffers(params?: HandymanDirectOffersParams) {
+export function useHandymanDirectOffers(
+  params?: HandymanDirectOffersParams,
+  options?: { enabled?: boolean }
+) {
   return useInfiniteQuery({
     queryKey: ['handyman', 'direct-offers', params],
     queryFn: async ({ pageParam = 1 }) => {
@@ -55,6 +58,7 @@ export function useHandymanDirectOffers(params?: HandymanDirectOffersParams) {
       return undefined
     },
     retry: 1,
+    enabled: options?.enabled ?? true,
   })
 }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useMemo } from 'react'
-import { Alert, Pressable } from 'react-native'
+import { Pressable } from 'react-native'
 import {
   YStack,
   XStack,
@@ -15,6 +15,7 @@ import {
   AttachmentGrid,
   VideoPlayer,
   PageHeader,
+  useConfirmDialog,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -87,6 +88,7 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
     thumbnail?: string
   } | null>(null)
   const flatListRef = useRef<FlatList>(null)
+  const { showConfirm, ConfirmDialogWrapper } = useConfirmDialog()
 
   // Type-safe attachment access - must be before any early returns to satisfy Rules of Hooks
   const attachments = useMemo(() => {
@@ -123,24 +125,6 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
     setCurrentImageIndex(index)
   }
 
-  const handleWithdraw = () => {
-    Alert.alert(
-      'Withdraw Application',
-      'Are you sure you want to withdraw your application for this job? This action cannot be undone.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Withdraw',
-          style: 'destructive',
-          onPress: confirmWithdraw,
-        },
-      ]
-    )
-  }
-
   const confirmWithdraw = async () => {
     setIsWithdrawing(true)
     try {
@@ -152,6 +136,18 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
     } finally {
       setIsWithdrawing(false)
     }
+  }
+
+  const handleWithdraw = () => {
+    showConfirm({
+      title: 'Withdraw Application',
+      description:
+        'Are you sure you want to withdraw your application for this job? This action cannot be undone.',
+      type: 'destructive',
+      confirmText: 'Withdraw',
+      cancelText: 'Cancel',
+      onConfirm: confirmWithdraw,
+    })
   }
 
   if (isLoading) {
@@ -1362,6 +1358,9 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
             onClose={() => setSelectedVideo(null)}
           />
         )}
+
+        {/* Confirm Dialog */}
+        <ConfirmDialogWrapper />
       </YStack>
     </GradientBackground>
   )

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Alert } from 'react-native'
 import {
   YStack,
   XStack,
@@ -13,6 +12,7 @@ import {
   Image,
   AttachmentGrid,
   PageHeader,
+  useConfirmDialog,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -56,6 +56,7 @@ export function ApplicationDetailScreen() {
   const insets = useSafeArea()
   const applicationId = params.id || ''
   const toast = useToastController()
+  const { showConfirm, ConfirmDialogWrapper } = useConfirmDialog()
 
   const [isApproving, setIsApproving] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
@@ -68,61 +69,53 @@ export function ApplicationDetailScreen() {
   const rejectApplication = useRejectApplication()
 
   const handleApprove = () => {
-    Alert.alert(
-      'Approve Application',
-      `Are you sure you want to approve ${application?.handyman_profile.display_name}'s application? This will assign the job to them and reject all other pending applications.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Approve',
-          style: 'default',
-          onPress: async () => {
-            setIsApproving(true)
-            try {
-              await approveApplication.mutateAsync(applicationId)
-              router.replace({
-                pathname: '/(homeowner)/jobs',
-                params: { toast: 'application-approved' },
-              })
-            } catch (err) {
-              console.error('Error approving application:', err)
-              showSubmissionErrorToast(toast, 'Failed to approve application')
-            } finally {
-              setIsApproving(false)
-            }
-          },
-        },
-      ]
-    )
+    showConfirm({
+      title: 'Approve Application',
+      description: `Are you sure you want to approve ${application?.handyman_profile.display_name}'s application? This will assign the job to them and reject all other pending applications.`,
+      type: 'success',
+      confirmText: 'Approve',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        setIsApproving(true)
+        try {
+          await approveApplication.mutateAsync(applicationId)
+          router.replace({
+            pathname: '/(homeowner)/jobs',
+            params: { toast: 'application-approved' },
+          })
+        } catch (err) {
+          console.error('Error approving application:', err)
+          showSubmissionErrorToast(toast, 'Failed to approve application')
+        } finally {
+          setIsApproving(false)
+        }
+      },
+    })
   }
 
   const handleReject = () => {
-    Alert.alert(
-      'Reject Application',
-      `Are you sure you want to reject ${application?.handyman_profile.display_name}'s application?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reject',
-          style: 'destructive',
-          onPress: async () => {
-            setIsRejecting(true)
-            try {
-              await rejectApplication.mutateAsync(applicationId)
-              router.replace({
-                pathname: '/(homeowner)/jobs',
-                params: { toast: 'application-rejected' },
-              })
-            } catch (err) {
-              console.error('Error rejecting application:', err)
-              showSubmissionErrorToast(toast, 'Failed to reject application')
-            } finally {
-              setIsRejecting(false)
-            }
-          },
-        },
-      ]
-    )
+    showConfirm({
+      title: 'Reject Application',
+      description: `Are you sure you want to reject ${application?.handyman_profile.display_name}'s application?`,
+      type: 'destructive',
+      confirmText: 'Reject',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        setIsRejecting(true)
+        try {
+          await rejectApplication.mutateAsync(applicationId)
+          router.replace({
+            pathname: '/(homeowner)/jobs',
+            params: { toast: 'application-rejected' },
+          })
+        } catch (err) {
+          console.error('Error rejecting application:', err)
+          showSubmissionErrorToast(toast, 'Failed to reject application')
+        } finally {
+          setIsRejecting(false)
+        }
+      },
+    })
   }
 
   if (isLoading) {
@@ -843,6 +836,9 @@ export function ApplicationDetailScreen() {
             </Button>
           </XStack>
         )}
+
+        {/* Confirm Dialog */}
+        <ConfirmDialogWrapper />
       </YStack>
     </GradientBackground>
   )
