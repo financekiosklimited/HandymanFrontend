@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 import { Modal, Dimensions, FlatList, Pressable, Platform } from 'react-native'
 import { YStack, XStack, Text, Button, Image, View } from 'tamagui'
 import { X, ChevronLeft, ChevronRight } from '@tamagui/lucide-icons'
+import { ICON_BUTTON_PRESS } from './pressAnimations'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -95,7 +96,7 @@ export function ImageViewer({ images, initialIndex = 0, visible, onClose }: Imag
             p="$3"
             borderRadius="$full"
             onPress={onClose}
-            pressStyle={{ opacity: 0.7 }}
+            pressStyle={ICON_BUTTON_PRESS}
           >
             <X
               size={24}
@@ -154,7 +155,7 @@ export function ImageViewer({ images, initialIndex = 0, visible, onClose }: Imag
                 borderRadius="$full"
                 p="$3"
                 onPress={() => scrollToImage(currentIndex - 1)}
-                pressStyle={{ opacity: 0.8 }}
+                pressStyle={ICON_BUTTON_PRESS}
               >
                 <ChevronLeft
                   size={24}
@@ -173,7 +174,7 @@ export function ImageViewer({ images, initialIndex = 0, visible, onClose }: Imag
                 borderRadius="$full"
                 p="$3"
                 onPress={() => scrollToImage(currentIndex + 1)}
-                pressStyle={{ opacity: 0.8 }}
+                pressStyle={ICON_BUTTON_PRESS}
               >
                 <ChevronRight
                   size={24}

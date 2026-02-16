@@ -16,6 +16,7 @@ import {
   PageHeader,
   ScrollIndicator,
   useConfirmDialog,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -475,7 +476,8 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                             borderRadius="$full"
                             p="$2"
                             onPress={() => scrollToImage(currentImageIndex - 1)}
-                            pressStyle={{ opacity: 0.8 }}
+                            pressStyle={PressPresets.icon.pressStyle}
+                            animation={PressPresets.icon.animation}
                           >
                             <ChevronLeft
                               size={20}
@@ -494,7 +496,8 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                             borderRadius="$full"
                             p="$2"
                             onPress={() => scrollToImage(currentImageIndex + 1)}
-                            pressStyle={{ opacity: 0.8 }}
+                            pressStyle={PressPresets.icon.pressStyle}
+                            animation={PressPresets.icon.animation}
                           >
                             <ChevronRight
                               size={20}
@@ -966,7 +969,8 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
               fontWeight="600"
               fontSize="$4"
               onPress={handleEdit}
-              pressStyle={{ opacity: 0.8 }}
+              pressStyle={PressPresets.primary.pressStyle}
+              animation={PressPresets.primary.animation}
             >
               <XStack
                 alignItems="center"
@@ -997,7 +1001,8 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
               disabled={isDeleting}
               opacity={isDeleting ? 0.7 : 1}
               onPress={handleDelete}
-              pressStyle={{ opacity: 0.8 }}
+              pressStyle={PressPresets.secondary.pressStyle}
+              animation={PressPresets.secondary.animation}
             >
               {isDeleting ? (
                 <XStack

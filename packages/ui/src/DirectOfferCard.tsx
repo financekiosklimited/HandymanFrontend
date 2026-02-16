@@ -12,6 +12,7 @@ import type { HomeownerDirectOffer, HandymanDirectOffer } from '@my/api'
 import { formatOfferDate } from '@my/api'
 import { OfferStatusBadge } from './OfferStatusBadge'
 import { TimeRemainingBadge } from './TimeRemainingBadge'
+import { PressPresets } from './pressAnimations'
 
 type DirectOffer = HomeownerDirectOffer | HandymanDirectOffer
 
@@ -69,7 +70,8 @@ export function DirectOfferCard({ offer, onPress, variant }: DirectOfferCardProp
       borderRadius="$md"
       overflow="hidden"
       onPress={onPress}
-      pressStyle={{ opacity: 0.8 }}
+      pressStyle={PressPresets.card.pressStyle}
+      animation={PressPresets.card.animation}
       cursor="pointer"
       p="$md"
       gap="$sm"

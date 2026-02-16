@@ -2,7 +2,17 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import * as Location from 'expo-location'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, ScrollIndicator } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  ScrollIndicator,
+  PressPresets,
+} from '@my/ui'
 import { Animated as AnimatedRN, View as RNView, Easing as EasingRN } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -652,7 +662,8 @@ export function HomeownerHomeScreen() {
                     fontWeight="bold"
                     px="$6"
                     py="$3"
-                    pressStyle={{ scale: 0.98, opacity: 0.9 }}
+                    pressStyle={PressPresets.primary.pressStyle}
+                    animation={PressPresets.primary.animation}
                     onPress={() => router.push('/(homeowner)/jobs/add')}
                     shadowColor="rgba(0,0,0,0.15)"
                     shadowRadius={8}
@@ -1173,8 +1184,8 @@ export function HomeownerHomeScreen() {
               <Button
                 unstyled
                 onPress={() => setExpandHandymen(!expandHandymen)}
-                animation="micro"
-                pressStyle={{ scale: 0.95 }}
+                pressStyle={PressPresets.icon.pressStyle}
+                animation={PressPresets.icon.animation}
               >
                 <XStack
                   alignItems="center"

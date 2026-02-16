@@ -1,5 +1,6 @@
 import { YStack, XStack, Text, Image } from 'tamagui'
 import type { GuestHandyman } from '@my/api'
+import { PressPresets } from './pressAnimations'
 
 interface HandymanCardProps {
   handyman: GuestHandyman
@@ -13,8 +14,8 @@ export function HandymanCard({ handyman, onPress }: HandymanCardProps) {
       borderRadius="$md"
       overflow="hidden"
       onPress={onPress}
-      animation="micro"
-      pressStyle={{ scale: 0.97 }}
+      animation={PressPresets.card.animation}
+      pressStyle={PressPresets.card.pressStyle}
       cursor="pointer"
       height={180}
     >

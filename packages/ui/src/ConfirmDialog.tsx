@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Dialog, YStack, XStack, Text, Button, Spinner } from 'tamagui'
 import { AlertTriangle, Trash2, Check, X } from '@tamagui/lucide-icons'
+import { PRIMARY_BUTTON_PRESS, SECONDARY_BUTTON_PRESS } from './pressAnimations'
 
 type DialogType = 'confirm' | 'destructive' | 'success'
 
@@ -171,7 +172,7 @@ export function ConfirmDialog({
                 fontWeight="600"
                 fontSize={15}
                 borderRadius={12}
-                pressStyle={{ scale: 0.97, backgroundColor: '#E5E0DC' }}
+                pressStyle={SECONDARY_BUTTON_PRESS}
                 onPress={handleCancel}
                 disabled={isLoading}
                 icon={
@@ -195,8 +196,8 @@ export function ConfirmDialog({
                 fontWeight="600"
                 fontSize={15}
                 borderRadius={12}
-                pressStyle={{
-                  scale: 0.97,
+                pressStyle={PRIMARY_BUTTON_PRESS}
+                hoverStyle={{
                   backgroundColor: isDestructive ? '#B91C1C' : '#0A8550',
                 }}
                 onPress={handleConfirm}

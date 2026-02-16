@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { YStack, XStack, Text, Button, Input, Spinner, PageHeader } from '@my/ui'
-import { GradientBackground } from '@my/ui'
+import { GradientBackground, PressPresets } from '@my/ui'
 import { useLogin, useActivateRole, formatErrorMessage } from '@my/api'
 
 import { Eye, EyeOff } from '@tamagui/lucide-icons'
@@ -250,7 +250,8 @@ export function LoginScreen() {
                   p="$2"
                   mr="$2"
                   hitSlop={8}
-                  pressStyle={{ opacity: 0.7 }}
+                  pressStyle={PressPresets.icon.pressStyle}
+                  animation={PressPresets.icon.animation}
                 >
                   {showPassword ? (
                     <EyeOff
@@ -273,7 +274,8 @@ export function LoginScreen() {
                 <Button
                   unstyled
                   onPress={() => router.push('/auth/forgot-password/email')}
-                  pressStyle={{ opacity: 0.7 }}
+                  pressStyle={PressPresets.icon.pressStyle}
+                  animation={PressPresets.icon.animation}
                 >
                   <Text
                     fontSize="$3"
@@ -326,7 +328,8 @@ export function LoginScreen() {
             minHeight={54}
             onPress={() => handleLogin('homeowner')}
             disabled={isLoading}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.primary.pressStyle}
+            animation={PressPresets.primary.animation}
           >
             {isLoading && selectedRole === 'homeowner' ? (
               <XStack
@@ -367,7 +370,8 @@ export function LoginScreen() {
             minHeight={54}
             onPress={() => handleLogin('handyman')}
             disabled={isLoading}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.secondary.pressStyle}
+            animation={PressPresets.secondary.animation}
           >
             {isLoading && selectedRole === 'handyman' ? (
               <XStack
@@ -411,7 +415,8 @@ export function LoginScreen() {
             <Button
               unstyled
               onPress={() => router.push('/auth/register')}
-              pressStyle={{ opacity: 0.7 }}
+              pressStyle={PressPresets.icon.pressStyle}
+              animation={PressPresets.icon.animation}
             >
               <Text
                 fontSize="$3"

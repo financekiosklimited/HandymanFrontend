@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
+import { YStack, XStack, Text, Button, Input, Spinner, PressPresets } from '@my/ui'
 import { GradientBackground, PageHeader } from '@my/ui'
 import { useVerifyResetCode, useForgotPassword, useAuthStore, formatErrorMessage } from '@my/api'
 import { useRouter } from 'expo-router'
@@ -297,7 +297,8 @@ export function ForgotPasswordOtpScreen() {
               unstyled
               onPress={handleResend}
               disabled={!canResend || resendCodeMutation.isPending}
-              pressStyle={{ opacity: 0.7 }}
+              pressStyle={PressPresets.icon.pressStyle}
+              animation={PressPresets.icon.animation}
             >
               {resendCodeMutation.isPending ? (
                 <Spinner
@@ -331,7 +332,8 @@ export function ForgotPasswordOtpScreen() {
             minHeight={54}
             onPress={handleVerify}
             disabled={verifyCodeMutation.isPending || otp.join('').length !== 6}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.primary.pressStyle}
+            animation={PressPresets.primary.animation}
           >
             {verifyCodeMutation.isPending ? (
               <XStack

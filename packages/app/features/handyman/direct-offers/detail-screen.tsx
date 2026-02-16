@@ -498,7 +498,7 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
                         </View>
                       )
                     }}
-                    keyExtractor={(item) => item.public_id}
+                    keyExtractor={(item, index) => `${item.public_id}-${index}`}
                   />
 
                   {attachments.length > 1 && (

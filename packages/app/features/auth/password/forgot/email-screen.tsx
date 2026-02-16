@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
+import { YStack, XStack, Text, Button, Input, Spinner, PressPresets } from '@my/ui'
 import { GradientBackground, PageHeader } from '@my/ui'
 import { useForgotPassword, useAuthStore, formatErrorMessage } from '@my/api'
 import { useRouter } from 'expo-router'
@@ -168,7 +168,8 @@ export function ForgotPasswordEmailScreen() {
             minHeight={54}
             onPress={handleSendRequest}
             disabled={forgotPasswordMutation.isPending || !email.trim()}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.primary.pressStyle}
+            animation={PressPresets.primary.animation}
           >
             {forgotPasswordMutation.isPending ? (
               <XStack

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
+import { YStack, XStack, Text, Button, Input, Spinner, PressPresets } from '@my/ui'
 import { GradientBackground, PageHeader } from '@my/ui'
 import { useResetPassword, formatErrorMessage } from '@my/api'
 import { useRouter, useLocalSearchParams } from 'expo-router'
@@ -176,7 +176,8 @@ export function ForgotPasswordResetScreen() {
                   p="$2"
                   mr="$2"
                   hitSlop={8}
-                  pressStyle={{ opacity: 0.7 }}
+                  pressStyle={PressPresets.icon.pressStyle}
+                  animation={PressPresets.icon.animation}
                 >
                   {showNewPassword ? (
                     <EyeOff
@@ -233,7 +234,8 @@ export function ForgotPasswordResetScreen() {
                   p="$2"
                   mr="$2"
                   hitSlop={8}
-                  pressStyle={{ opacity: 0.7 }}
+                  pressStyle={PressPresets.icon.pressStyle}
+                  animation={PressPresets.icon.animation}
                 >
                   {showConfirmPassword ? (
                     <EyeOff
@@ -288,7 +290,8 @@ export function ForgotPasswordResetScreen() {
             minHeight={54}
             onPress={handleUpdatePassword}
             disabled={resetPasswordMutation.isPending || !isFormValid}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.primary.pressStyle}
+            animation={PressPresets.primary.animation}
           >
             {resetPasswordMutation.isPending ? (
               <XStack

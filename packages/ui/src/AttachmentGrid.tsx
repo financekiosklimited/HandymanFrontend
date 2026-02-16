@@ -8,6 +8,7 @@ import { VideoPlayer } from './VideoPlayer'
 import { DocumentThumbnail } from './DocumentThumbnail'
 import { ImageViewer } from './ImageViewer'
 import type { LocalAttachment } from './AttachmentPicker'
+import { ICON_BUTTON_PRESS } from './pressAnimations'
 
 // Attachment type from API (matches @my/api Attachment interface)
 interface Attachment {
@@ -128,7 +129,7 @@ export function AttachmentGrid({
         alignItems="center"
         justifyContent="center"
         onPress={() => onRemove(id)}
-        pressStyle={{ opacity: 0.8 }}
+        pressStyle={ICON_BUTTON_PRESS}
       >
         <X
           size={12}

@@ -1,6 +1,16 @@
 'use client'
 
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Avatar } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Avatar,
+  PressPresets,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useHomeownerProfile, useActivateRole, useLogout, useAuthStore } from '@my/api'
 import { useRouter, useNavigation } from 'expo-router'
@@ -144,7 +154,8 @@ export function HomeownerProfileViewScreen() {
                 height={48}
                 px="$6"
                 onPress={() => router.back()}
-                pressStyle={{ opacity: 0.9 }}
+                pressStyle={PressPresets.primary.pressStyle}
+                animation={PressPresets.primary.animation}
               >
                 <Text
                   color="white"
@@ -371,7 +382,8 @@ export function HomeownerProfileViewScreen() {
                   borderColor="$backgroundHover"
                   onPress={handleSwitchRole}
                   disabled={activateRoleMutation.isPending}
-                  pressStyle={{ opacity: 0.8, bg: '$backgroundHover' }}
+                  pressStyle={PressPresets.secondary.pressStyle}
+                  animation={PressPresets.secondary.animation}
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="row"
@@ -406,7 +418,8 @@ export function HomeownerProfileViewScreen() {
                   borderRadius={8}
                   height={52}
                   onPress={() => router.push('/(homeowner)/profile/edit')}
-                  pressStyle={{ opacity: 0.9 }}
+                  pressStyle={PressPresets.primary.pressStyle}
+                  animation={PressPresets.primary.animation}
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="row"
@@ -433,7 +446,8 @@ export function HomeownerProfileViewScreen() {
                   height={52}
                   onPress={handleLogout}
                   disabled={logoutMutation.isPending}
-                  pressStyle={{ opacity: 0.9 }}
+                  pressStyle={PressPresets.primary.pressStyle}
+                  animation={PressPresets.primary.animation}
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="row"
@@ -474,7 +488,8 @@ export function HomeownerProfileViewScreen() {
                       'All onboarding toasts will show again on next visit'
                     )
                   }}
-                  pressStyle={{ opacity: 0.9 }}
+                  pressStyle={PressPresets.secondary.pressStyle}
+                  animation={PressPresets.secondary.animation}
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="row"
@@ -510,7 +525,8 @@ export function HomeownerProfileViewScreen() {
                         : 'Normal onboarding behavior restored'
                     )
                   }}
-                  pressStyle={{ opacity: 0.9 }}
+                  pressStyle={PressPresets.secondary.pressStyle}
+                  animation={PressPresets.secondary.animation}
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="row"

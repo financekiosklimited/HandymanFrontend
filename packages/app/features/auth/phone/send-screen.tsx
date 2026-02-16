@@ -1,7 +1,17 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { YStack, XStack, Text, Button, Input, Spinner, ScrollView, Sheet } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  Text,
+  Button,
+  Input,
+  Spinner,
+  ScrollView,
+  Sheet,
+  PressPresets,
+} from '@my/ui'
 import { GradientBackground, PageHeader } from '@my/ui'
 import { useCountryCodes, useSendPhoneOtp, formatErrorMessage } from '@my/api'
 import type { CountryPhoneCode } from '@my/api'
@@ -265,7 +275,8 @@ export function PhoneSendScreen() {
             minHeight={54}
             onPress={handleSendOtp}
             disabled={sendOtpMutation.isPending || !phoneNumber.trim()}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.primary.pressStyle}
+            animation={PressPresets.primary.animation}
             opacity={!phoneNumber.trim() ? 0.6 : 1}
           >
             {sendOtpMutation.isPending ? (

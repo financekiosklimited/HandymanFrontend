@@ -5,6 +5,7 @@ import { YStack, XStack, Text, Button, View, Sheet, ScrollView } from 'tamagui'
 import { ArrowLeft, HelpCircle, X } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { ICON_BUTTON_PRESS, PRIMARY_BUTTON_PRESS } from './pressAnimations'
 
 interface PageHeaderProps {
   title: string
@@ -49,7 +50,7 @@ export function PageHeader({
             onPress={handleBack}
             p="$2"
             hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
+            pressStyle={ICON_BUTTON_PRESS}
             width={38}
             alignItems="flex-start"
           >
@@ -88,7 +89,7 @@ export function PageHeader({
             onPress={() => setHelpOpen(true)}
             p="$2"
             hitSlop={12}
-            pressStyle={{ opacity: 0.7 }}
+            pressStyle={ICON_BUTTON_PRESS}
             width={38}
             alignItems="flex-end"
           >
@@ -147,7 +148,7 @@ export function PageHeader({
                 onPress={() => setHelpOpen(false)}
                 p="$2"
                 hitSlop={12}
-                pressStyle={{ opacity: 0.7 }}
+                pressStyle={ICON_BUTTON_PRESS}
               >
                 <X
                   size={24}
@@ -176,7 +177,7 @@ export function PageHeader({
               borderRadius="$4"
               py="$3"
               onPress={() => setHelpOpen(false)}
-              pressStyle={{ opacity: 0.9 }}
+              pressStyle={PRIMARY_BUTTON_PRESS}
             >
               <Text
                 color="white"

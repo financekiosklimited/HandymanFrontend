@@ -86,9 +86,22 @@ function BottomNavComponent({
   const theme = useTheme()
   const insets = useSafeAreaInsets()
 
+  // Memoized route matcher - determines if a nav item is active
+  const isRouteActive = useCallback(
+    (route: string, id: string) => {
+      return activeRoute === route || activeRoute === id
+    },
+    [activeRoute]
+  )
+
   // Memoized navigation handler - navigation locking is handled by useNavigationGuard
   const handleNavPress = useCallback(
     (item: BottomNavItem) => {
+      // Don't navigate if already on this route
+      if (isRouteActive(item.route, item.id)) {
+        return
+      }
+
       // If it's the Add button and we have a custom handler, use it
       if (item.id === 'add' && onAddPress) {
         onAddPress()
@@ -102,15 +115,7 @@ function BottomNavComponent({
         onNavigate(item.route)
       }
     },
-    [variant, onAddPress, onNavigate]
-  )
-
-  // Memoized route matcher - determines if a nav item is active
-  const isRouteActive = useCallback(
-    (route: string, id: string) => {
-      return activeRoute === route || activeRoute === id
-    },
-    [activeRoute]
+    [variant, onAddPress, onNavigate, isRouteActive]
   )
 
   // Memoize theme colors to prevent recalculation

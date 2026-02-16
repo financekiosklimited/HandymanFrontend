@@ -3,6 +3,7 @@
 import { Linking, StyleSheet } from 'react-native'
 import { YStack, XStack, Text, Button, View } from 'tamagui'
 import { FileText, FileSpreadsheet, File, ExternalLink } from '@tamagui/lucide-icons'
+import { PressPresets } from './pressAnimations'
 
 // Document extension type
 type DocumentExtension =
@@ -193,7 +194,8 @@ export function DocumentThumbnail({
       <Button
         unstyled
         onPress={handlePress}
-        pressStyle={{ opacity: 0.8 }}
+        pressStyle={PressPresets.document.pressStyle}
+        animation={PressPresets.document.animation}
       >
         <View
           width={width}
@@ -235,7 +237,8 @@ export function DocumentThumbnail({
     <Button
       unstyled
       onPress={handlePress}
-      pressStyle={{ opacity: 0.8 }}
+      pressStyle={PressPresets.document.pressStyle}
+      animation={PressPresets.document.animation}
     >
       <View
         width={width}
@@ -358,7 +361,8 @@ export function DocumentLink({ fileUrl, fileName, fileSize, mimeType }: Document
     <Button
       unstyled
       onPress={handlePress}
-      pressStyle={{ opacity: 0.7 }}
+      pressStyle={PressPresets.document.pressStyle}
+      animation={PressPresets.document.animation}
     >
       <XStack
         alignItems="center"

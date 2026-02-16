@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
+import { YStack, XStack, Text, Button, Input, Spinner, PressPresets } from '@my/ui'
 import { GradientBackground, PageHeader } from '@my/ui'
 import { useVerifyPhoneOtp, useSendPhoneOtp, useAuthStore, formatErrorMessage } from '@my/api'
 import { useRouter } from 'expo-router'
@@ -292,7 +292,8 @@ export function PhoneVerifyScreen() {
               unstyled
               onPress={handleResend}
               disabled={!canResend || resendOtpMutation.isPending}
-              pressStyle={{ opacity: 0.7 }}
+              pressStyle={PressPresets.icon.pressStyle}
+              animation={PressPresets.icon.animation}
             >
               {resendOtpMutation.isPending ? (
                 <Spinner
@@ -326,7 +327,8 @@ export function PhoneVerifyScreen() {
             minHeight={54}
             onPress={handleVerify}
             disabled={verifyOtpMutation.isPending || otp.join('').length !== 6}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.primary.pressStyle}
+            animation={PressPresets.primary.animation}
             opacity={otp.join('').length !== 6 ? 0.6 : 1}
           >
             {verifyOtpMutation.isPending ? (

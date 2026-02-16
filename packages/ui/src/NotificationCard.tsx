@@ -2,6 +2,7 @@
 
 import { XStack, YStack, Text, Button, Image, View } from 'tamagui'
 import type { Notification } from '@my/api'
+import { PressPresets } from './pressAnimations'
 
 // Format relative time (e.g., "3 hours ago", "2 days ago")
 function formatRelativeTime(dateString: string): string {
@@ -55,8 +56,8 @@ export function NotificationCard({ notification, onPress }: NotificationCardProp
       borderWidth={1.5}
       borderColor={isUnread ? '$primary' : '$borderColor'}
       p="$md"
-      pressStyle={{ opacity: 0.7, scale: 0.98 }}
-      animation="quick"
+      pressStyle={PressPresets.listItem.pressStyle}
+      animation={PressPresets.listItem.animation}
     >
       <XStack
         gap="$md"

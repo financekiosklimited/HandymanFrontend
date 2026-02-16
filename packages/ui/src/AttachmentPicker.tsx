@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { Alert, Platform, Pressable } from 'react-native'
 import { YStack, XStack, Text, Button, View, Sheet } from 'tamagui'
 import { Camera, Image as ImageIcon, Video, FileText, Plus, Film } from '@tamagui/lucide-icons'
+import { PressPresets } from './pressAnimations'
 import * as ImagePicker from 'expo-image-picker'
 import * as DocumentPicker from 'expo-document-picker'
 import * as VideoThumbnails from 'expo-video-thumbnails'
@@ -565,6 +566,8 @@ export function AttachmentPicker({
       disabled={!canAddMore || isLoading}
       opacity={!canAddMore || isLoading ? 0.5 : 1}
       icon={<Plus size={20} />}
+      pressStyle={PressPresets.primary.pressStyle}
+      animation={PressPresets.primary.animation}
     >
       Add Attachment
     </Button>
@@ -666,6 +669,8 @@ export function AttachmentPicker({
               onPress={() => setSheetOpen(false)}
               chromeless
               marginTop="$sm"
+              pressStyle={PressPresets.secondary.pressStyle}
+              animation={PressPresets.secondary.animation}
             >
               <Text
                 color="$colorSubtle"

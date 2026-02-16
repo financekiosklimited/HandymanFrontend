@@ -1,6 +1,7 @@
 import { YStack, XStack, Text, Image, View } from 'tamagui'
 import type { GuestJob, HomeownerJob, HandymanJobForYou } from '@my/api'
 import { Play, User } from '@tamagui/lucide-icons'
+import { PressPresets } from './pressAnimations'
 
 interface JobCardProps {
   job: GuestJob | HomeownerJob | HandymanJobForYou
@@ -40,8 +41,8 @@ export function JobCard({
       borderRadius="$md"
       overflow="hidden"
       onPress={onPress}
-      animation="micro"
-      pressStyle={{ scale: 0.97 }}
+      animation={PressPresets.card.animation}
+      pressStyle={PressPresets.card.pressStyle}
       cursor="pointer"
       height={220}
     >

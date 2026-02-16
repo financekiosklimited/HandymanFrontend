@@ -1,4 +1,5 @@
 import { Anchor, Button } from 'tamagui'
+import { PressPresets } from './pressAnimations'
 
 export const SwitchRouterButton = ({ pagesMode = false }: { pagesMode?: boolean }) => {
   return (
@@ -7,7 +8,12 @@ export const SwitchRouterButton = ({ pagesMode = false }: { pagesMode?: boolean 
       color="$color12"
       href={pagesMode ? '/' : '/pages-example'}
     >
-      <Button>Change router: {pagesMode ? 'pages' : 'app'}</Button>
+      <Button
+        pressStyle={PressPresets.secondary.pressStyle}
+        animation={PressPresets.secondary.animation}
+      >
+        Change router: {pagesMode ? 'pages' : 'app'}
+      </Button>
     </Anchor>
   )
 }

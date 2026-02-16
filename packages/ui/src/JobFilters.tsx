@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { XStack, YStack, Text, Button, ScrollView, View } from 'tamagui'
 import { ChevronDown, Tag, MapPin, X } from '@tamagui/lucide-icons'
+import { PressPresets } from './pressAnimations'
 
 interface FilterOption {
   public_id: string
@@ -68,8 +69,8 @@ export function JobFilters({
             py="$sm"
             borderWidth={1}
             borderColor={selectedCategory ? '$primary' : 'rgba(0,0,0,0.08)'}
-            pressStyle={{ opacity: 0.8, scale: 0.98 }}
-            animation="quick"
+            pressStyle={PressPresets.filter.pressStyle}
+            animation={PressPresets.filter.animation}
             flexDirection="row"
             alignItems="center"
             gap="$xs"
@@ -119,8 +120,8 @@ export function JobFilters({
             py="$sm"
             borderWidth={1}
             borderColor={selectedCity ? '$primary' : 'rgba(0,0,0,0.08)'}
-            pressStyle={{ opacity: 0.8, scale: 0.98 }}
-            animation="quick"
+            pressStyle={PressPresets.filter.pressStyle}
+            animation={PressPresets.filter.animation}
             flexDirection="row"
             alignItems="center"
             gap="$xs"

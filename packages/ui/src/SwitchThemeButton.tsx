@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button, useIsomorphicLayoutEffect } from 'tamagui'
 import { useThemeSetting, useRootTheme } from '@tamagui/next-theme'
+import { PressPresets } from './pressAnimations'
 
 export const SwitchThemeButton = () => {
   const themeSetting = useThemeSetting()
@@ -14,5 +15,13 @@ export const SwitchThemeButton = () => {
     setClientTheme(themeSetting.forcedTheme || themeSetting.current || theme)
   }, [themeSetting.current, themeSetting.resolvedTheme])
 
-  return <Button onPress={themeSetting.toggle}>Change theme: {clientTheme}</Button>
+  return (
+    <Button
+      onPress={themeSetting.toggle}
+      pressStyle={PressPresets.secondary.pressStyle}
+      animation={PressPresets.secondary.animation}
+    >
+      Change theme: {clientTheme}
+    </Button>
+  )
 }

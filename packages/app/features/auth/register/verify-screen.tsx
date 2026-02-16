@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
+import { YStack, XStack, Text, Button, Input, Spinner, PressPresets } from '@my/ui'
 import { GradientBackground, PageHeader } from '@my/ui'
 import {
   useVerifyEmail,
@@ -299,7 +299,8 @@ export function RegisterVerifyScreen() {
               unstyled
               onPress={handleResend}
               disabled={!canResend || resendEmailMutation.isPending}
-              pressStyle={{ opacity: 0.7 }}
+              pressStyle={PressPresets.icon.pressStyle}
+              animation={PressPresets.icon.animation}
             >
               {resendEmailMutation.isPending ? (
                 <Spinner
@@ -333,7 +334,8 @@ export function RegisterVerifyScreen() {
             minHeight={54}
             onPress={handleVerify}
             disabled={verifyEmailMutation.isPending || otp.join('').length !== 6}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.primary.pressStyle}
+            animation={PressPresets.primary.animation}
             opacity={otp.join('').length !== 6 ? 0.6 : 1}
           >
             {verifyEmailMutation.isPending ? (

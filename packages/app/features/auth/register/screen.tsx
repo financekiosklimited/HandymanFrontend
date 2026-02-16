@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
-import { GradientBackground, PageHeader } from '@my/ui'
+import { GradientBackground, PageHeader, PressPresets } from '@my/ui'
 import { useRegister, useActivateRole, formatErrorMessage } from '@my/api'
 import { useRouter } from 'expo-router'
 import { Eye, EyeOff } from '@tamagui/lucide-icons'
@@ -224,7 +224,8 @@ export function RegisterScreen() {
                   p="$2"
                   mr="$2"
                   hitSlop={8}
-                  pressStyle={{ opacity: 0.7 }}
+                  pressStyle={PressPresets.icon.pressStyle}
+                  animation={PressPresets.icon.animation}
                 >
                   {showPassword ? (
                     <EyeOff
@@ -287,7 +288,8 @@ export function RegisterScreen() {
             minHeight={54}
             onPress={() => handleRegister('homeowner')}
             disabled={isLoading}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.primary.pressStyle}
+            animation={PressPresets.primary.animation}
           >
             {isLoading && selectedRole === 'homeowner' ? (
               <XStack
@@ -328,7 +330,8 @@ export function RegisterScreen() {
             minHeight={54}
             onPress={() => handleRegister('handyman')}
             disabled={isLoading}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.secondary.pressStyle}
+            animation={PressPresets.secondary.animation}
           >
             {isLoading && selectedRole === 'handyman' ? (
               <XStack
@@ -372,7 +375,8 @@ export function RegisterScreen() {
             <Button
               unstyled
               onPress={() => router.push('/auth/login')}
-              pressStyle={{ opacity: 0.7 }}
+              pressStyle={PressPresets.icon.pressStyle}
+              animation={PressPresets.icon.animation}
             >
               <Text
                 fontSize="$3"
