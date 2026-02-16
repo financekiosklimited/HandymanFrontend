@@ -76,6 +76,7 @@ export function ConfirmDialog({
     >
       <Dialog.Portal>
         <Dialog.Overlay
+          key="confirm-dialog-overlay"
           animation="lazy"
           enterStyle={{ opacity: 0 }}
           exitStyle={{ opacity: 0 }}
@@ -83,6 +84,7 @@ export function ConfirmDialog({
           flex={1}
         />
         <Dialog.Content
+          key="confirm-dialog-content"
           animation={[
             'lazy',
             {

@@ -1360,7 +1360,7 @@ export function GuestHomeScreen() {
                               <Star
                                 size={10}
                                 color="$accent"
-                                fill="$color9"
+                                fill="$accent"
                               />
                               <Text
                                 fontSize={10}
@@ -1500,7 +1500,7 @@ export function GuestHomeScreen() {
                                 <Star
                                   size={10}
                                   color="$accent"
-                                  fill="$color9"
+                                  fill="$accent"
                                 />
                                 <Text
                                   fontSize={10}

@@ -239,8 +239,8 @@ export function showApplicationApprovedHomeownerToast(toast: ToastController) {
 export function showApplicationRejectedHomeownerToast(toast: ToastController) {
   showSuccessToast(
     toast,
-    'Application declined',
-    "You've declined this proposal. You can review other applications or wait for more handymen to apply.",
+    'Application rejected',
+    "You rejected this handyman's application. Check other applicants that fit your criteria.",
     { icon: 'UserX' }
   )
 }

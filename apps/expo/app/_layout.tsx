@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
-import { useColorScheme } from 'react-native'
+import { useColorScheme, LogBox } from 'react-native'
+
+LogBox.ignoreLogs([/is not a valid color/])
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { useFonts } from 'expo-font'
 import { SplashScreen } from 'expo-router'

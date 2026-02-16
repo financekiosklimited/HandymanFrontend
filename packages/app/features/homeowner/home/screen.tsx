@@ -1337,7 +1337,7 @@ export function HomeownerHomeScreen() {
                             <Star
                               size={10}
                               color="$accent"
-                              fill="$color9"
+                              fill="$accent"
                             />
                             <Text
                               fontSize={10}
@@ -1491,7 +1491,7 @@ export function HomeownerHomeScreen() {
                                 <Star
                                   size={10}
                                   color="$accent"
-                                  fill="$color9"
+                                  fill="$accent"
                                 />
                                 <Text
                                   fontSize={10}

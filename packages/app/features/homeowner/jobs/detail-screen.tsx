@@ -674,7 +674,7 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                 <YStack gap="$md">
                   {job.tasks.map((task, index) => (
                     <XStack
-                      key={task.public_id}
+                      key={`${task.public_id}-${index}`}
                       gap="$md"
                       alignItems="flex-start"
                     >

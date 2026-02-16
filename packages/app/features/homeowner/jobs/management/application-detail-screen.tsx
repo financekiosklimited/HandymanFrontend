@@ -105,8 +105,8 @@ export function ApplicationDetailScreen() {
         try {
           await rejectApplication.mutateAsync(applicationId)
           router.replace({
-            pathname: '/(homeowner)/jobs',
-            params: { toast: 'application-rejected' },
+            pathname: `/(homeowner)/jobs/${application?.job.public_id}`,
+            params: { toast: 'application-rejected-homeowner' },
           })
         } catch (err) {
           console.error('Error rejecting application:', err)
@@ -759,7 +759,7 @@ export function ApplicationDetailScreen() {
           <XStack
             px="$lg"
             py="$md"
-            pb={insets.bottom + 16}
+            pb={insets.bottom - 20}
             gap="$md"
             bg="rgba(255,255,255,0.95)"
             borderTopWidth={1}
