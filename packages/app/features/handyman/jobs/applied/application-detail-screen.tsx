@@ -16,6 +16,7 @@ import {
   VideoPlayer,
   PageHeader,
   useConfirmDialog,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -734,7 +735,8 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                             borderRadius="$full"
                             p="$2"
                             onPress={() => scrollToImage(currentImageIndex - 1)}
-                            pressStyle={{ opacity: 0.8 }}
+                            pressStyle={PressPresets.icon.pressStyle}
+                            animation={PressPresets.icon.animation}
                           >
                             <ChevronLeft
                               size={20}
@@ -753,7 +755,8 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                             borderRadius="$full"
                             p="$2"
                             onPress={() => scrollToImage(currentImageIndex + 1)}
-                            pressStyle={{ opacity: 0.8 }}
+                            pressStyle={PressPresets.icon.pressStyle}
+                            animation={PressPresets.icon.animation}
                           >
                             <ChevronRight
                               size={20}
@@ -1098,7 +1101,8 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
                         params.append('avatar', job.homeowner.avatar_url)
                       router.push(`/(handyman)/messages/new?${params.toString()}`)
                     }}
-                    pressStyle={{ opacity: 0.8 }}
+                    pressStyle={PressPresets.primary.pressStyle}
+                    animation={PressPresets.primary.animation}
                   >
                     <XStack
                       alignItems="center"
@@ -1309,7 +1313,8 @@ export function ApplicationDetailScreen({ applicationId, jobId }: ApplicationDet
               disabled={isWithdrawing}
               opacity={isWithdrawing ? 0.7 : 1}
               onPress={handleWithdraw}
-              pressStyle={{ opacity: 0.8 }}
+              pressStyle={PressPresets.secondary.pressStyle}
+              animation={PressPresets.secondary.animation}
             >
               {isWithdrawing ? (
                 <XStack

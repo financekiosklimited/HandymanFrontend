@@ -5,7 +5,7 @@ import {
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native'
-import { YStack, XStack, Text, Button, Theme } from '@my/ui'
+import { YStack, XStack, Text, Button, Theme, PressPresets } from '@my/ui'
 import { Shield, ArrowRight, CheckCircle, Gavel, Hammer } from '@tamagui/lucide-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -398,7 +398,7 @@ export function OnboardingScreen() {
                   color="$gray11"
                   fontWeight="bold"
                   fontSize="$3"
-                  pressStyle={{ opacity: 0.7 }}
+                  {...PressPresets.secondary}
                 >
                   Skip
                 </Button>
@@ -416,7 +416,7 @@ export function OnboardingScreen() {
                 }
                 onPress={handleNext}
                 hoverStyle={{ backgroundColor: '$color11' }}
-                pressStyle={{ scale: 0.95 }}
+                {...PressPresets.primary}
                 shadowColor="$shadowColor"
                 shadowRadius={10}
                 shadowOffset={{ width: 0, height: 5 }}

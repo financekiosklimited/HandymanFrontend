@@ -10,6 +10,7 @@ import {
   Spinner,
   Sheet,
   GradientBackground,
+  PressPresets,
 } from '@my/ui'
 import { FormInput, FormSelect } from '@my/ui'
 import { useHomeownerProfile, useUpdateHomeownerProfile } from '@my/api'
@@ -329,7 +330,7 @@ export function HomeownerProfileEditScreen() {
               height={52}
               onPress={handleSubmit}
               disabled={updateMutation.isPending}
-              pressStyle={{ opacity: 0.9 }}
+              {...PressPresets.primary}
               alignItems="center"
               justifyContent="center"
               flexDirection="row"

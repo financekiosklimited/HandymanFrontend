@@ -12,6 +12,7 @@ import {
   Image,
   TextArea,
   PageHeader,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -306,7 +307,7 @@ export function CreateReportScreen() {
                     borderRadius="$full"
                     alignItems="center"
                     justifyContent="center"
-                    pressStyle={{ opacity: 0.8 }}
+                    {...PressPresets.icon}
                   >
                     <Plus
                       size={20}
@@ -337,7 +338,7 @@ export function CreateReportScreen() {
                     borderRadius="$full"
                     alignItems="center"
                     justifyContent="center"
-                    pressStyle={{ opacity: 0.8 }}
+                    {...PressPresets.icon}
                   >
                     <Minus
                       size={20}
@@ -368,7 +369,7 @@ export function CreateReportScreen() {
                     borderRadius="$full"
                     alignItems="center"
                     justifyContent="center"
-                    pressStyle={{ opacity: 0.8 }}
+                    {...PressPresets.icon}
                   >
                     <Plus
                       size={20}
@@ -399,7 +400,7 @@ export function CreateReportScreen() {
                     borderRadius="$full"
                     alignItems="center"
                     justifyContent="center"
-                    pressStyle={{ opacity: 0.8 }}
+                    {...PressPresets.icon}
                   >
                     <Minus
                       size={20}
@@ -465,7 +466,7 @@ export function CreateReportScreen() {
                       bg={task.marked_complete ? '$successBackground' : '$backgroundMuted'}
                       borderRadius={12}
                       p="$md"
-                      pressStyle={{ opacity: 0.8 }}
+                      {...PressPresets.icon}
                     >
                       <XStack
                         alignItems="center"
@@ -589,7 +590,7 @@ export function CreateReportScreen() {
                     borderStyle="dashed"
                     alignItems="center"
                     justifyContent="center"
-                    pressStyle={{ opacity: 0.8 }}
+                    {...PressPresets.icon}
                   >
                     <Camera
                       size={24}
@@ -617,7 +618,7 @@ export function CreateReportScreen() {
             py="$md"
             onPress={handleSubmit}
             disabled={isSubmitting}
-            pressStyle={{ opacity: 0.9 }}
+            {...PressPresets.primary}
           >
             {isSubmitting ? (
               <XStack

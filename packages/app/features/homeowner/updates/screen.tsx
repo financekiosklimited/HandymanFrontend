@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useCallback } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View, PressPresets } from '@my/ui'
 import { NotificationCard, NotificationEmptyState } from '@my/ui'
 import {
   useHomeownerNotifications,
@@ -115,7 +115,7 @@ export function HomeownerUpdatesScreen() {
           unstyled
           onPress={() => router.back()}
           hitSlop={12}
-          pressStyle={{ opacity: 0.7 }}
+          {...PressPresets.icon}
         >
           <ArrowLeft
             size={22}
@@ -136,7 +136,7 @@ export function HomeownerUpdatesScreen() {
         <Button
           unstyled
           hitSlop={12}
-          pressStyle={{ opacity: 0.7 }}
+          {...PressPresets.icon}
         >
           <MoreHorizontal
             size={24}
@@ -221,7 +221,7 @@ export function HomeownerUpdatesScreen() {
                   unstyled
                   onPress={handleClearAll}
                   disabled={unreadCount === 0}
-                  pressStyle={{ opacity: 0.7 }}
+                  {...PressPresets.icon}
                 >
                   <Text
                     fontSize={14}

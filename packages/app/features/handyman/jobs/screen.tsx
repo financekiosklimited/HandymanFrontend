@@ -2,7 +2,17 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react'
 import { RefreshControl, FlatList } from 'react-native'
-import { YStack, XStack, Text, Button, Spinner, View, Image, PageHeader } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Image,
+  PageHeader,
+  PressPresets,
+} from '@my/ui'
 import { GradientBackground, DirectOfferCard } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import {
@@ -56,8 +66,8 @@ const ApplicationCard = memo(function ApplicationCard({
       p="$md"
       borderWidth={1}
       borderColor="rgba(255,255,255,0.5)"
-      pressStyle={{ opacity: 0.8, scale: 0.98 }}
-      animation="quick"
+      pressStyle={PressPresets.card.pressStyle}
+      animation={PressPresets.card.animation}
     >
       <YStack gap="$sm">
         {/* Header Row */}
@@ -209,7 +219,8 @@ const ActiveJobCard = memo(function ActiveJobCard({ job, onPress }: ActiveJobCar
       p="$md"
       gap="$sm"
       onPress={onPress}
-      pressStyle={{ opacity: 0.8 }}
+      pressStyle={PressPresets.card.pressStyle}
+      animation={PressPresets.card.animation}
       cursor="pointer"
     >
       {/* Header: Status Badge */}

@@ -2,7 +2,17 @@
 
 import { useState, useCallback } from 'react'
 import { Alert, Pressable } from 'react-native'
-import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Image,
+  Spinner,
+  View,
+  PressPresets,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useGuestHandyman, useHomeownerProfile, formatErrorMessage, apiClient } from '@my/api'
 import type { ChatConversationResponse } from '@my/api'
@@ -351,7 +361,7 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                 py="$md"
                 onPress={handleSendDirectOffer}
                 disabled={isCheckingPhone}
-                pressStyle={{ opacity: 0.8 }}
+                {...PressPresets.primary}
                 shadowColor="$primary"
                 shadowOffset={{ width: 0, height: 4 }}
                 shadowOpacity={0.3}
@@ -413,7 +423,7 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                 borderColor="$borderColor"
                 onPress={handleStartChat}
                 disabled={isChatLoading}
-                pressStyle={{ opacity: 0.8 }}
+                {...PressPresets.secondary}
               >
                 <XStack
                   alignItems="center"

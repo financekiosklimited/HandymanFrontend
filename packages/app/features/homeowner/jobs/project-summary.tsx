@@ -12,6 +12,7 @@ import {
   Image,
   PageHeader,
   useConfirmDialog,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -246,7 +247,7 @@ function ReportTimelineCard({
             py="$sm"
             onPress={onApprove}
             disabled={isReviewing}
-            pressStyle={{ opacity: 0.8 }}
+            {...PressPresets.primary}
           >
             <XStack
               alignItems="center"
@@ -272,7 +273,7 @@ function ReportTimelineCard({
             py="$sm"
             onPress={onReject}
             disabled={isReviewing}
-            pressStyle={{ opacity: 0.8 }}
+            {...PressPresets.primary}
           >
             <XStack
               alignItems="center"
@@ -717,7 +718,7 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                     borderRadius="$md"
                     py="$md"
                     onPress={handleApproveCompletion}
-                    pressStyle={{ opacity: 0.9 }}
+                    {...PressPresets.primary}
                   >
                     <XStack
                       alignItems="center"
@@ -741,7 +742,7 @@ export function ProjectSummaryScreen({ jobId }: ProjectSummaryScreenProps) {
                     borderRadius="$md"
                     py="$md"
                     onPress={handleRejectCompletion}
-                    pressStyle={{ opacity: 0.9 }}
+                    {...PressPresets.primary}
                   >
                     <XStack
                       alignItems="center"

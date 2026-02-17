@@ -13,6 +13,7 @@ import {
   Input,
   TextArea,
   PageHeader,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground, ImageViewer, AttachmentGrid } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -534,7 +535,7 @@ function ReviewSection({ jobId, onSubmitted }: { jobId: string; onSubmitted: () 
         height={54}
         onPress={handleSubmit}
         disabled={isSubmitting || rating === 0}
-        pressStyle={{ opacity: 0.9, scale: 0.98 }}
+        {...PressPresets.primary}
       >
         {isSubmitting ? (
           <Spinner
@@ -1169,7 +1170,7 @@ function UploadPreviewModal({
                   height={54}
                   onPress={onCancel}
                   disabled={isLoading}
-                  pressStyle={{ opacity: 0.8 }}
+                  {...PressPresets.secondary}
                 >
                   <Text
                     color="$color"
@@ -1185,7 +1186,7 @@ function UploadPreviewModal({
                   height={54}
                   onPress={() => onConfirm(description)}
                   disabled={isLoading}
-                  pressStyle={{ opacity: 0.9, scale: 0.98 }}
+                  {...PressPresets.primary}
                 >
                   {isLoading ? (
                     <Spinner

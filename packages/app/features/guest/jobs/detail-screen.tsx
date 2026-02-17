@@ -13,6 +13,7 @@ import {
   ImageViewer,
   VideoPlayer,
   DocumentThumbnail,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useGuestJob, formatErrorMessage } from '@my/api'
@@ -399,7 +400,7 @@ export function JobDetailScreen({ jobId }: JobDetailScreenProps) {
                             borderRadius="$full"
                             p="$2"
                             onPress={() => scrollToImage(currentImageIndex - 1)}
-                            pressStyle={{ opacity: 0.8 }}
+                            {...PressPresets.icon}
                           >
                             <ChevronLeft
                               size={20}
@@ -418,7 +419,7 @@ export function JobDetailScreen({ jobId }: JobDetailScreenProps) {
                             borderRadius="$full"
                             p="$2"
                             onPress={() => scrollToImage(currentImageIndex + 1)}
-                            pressStyle={{ opacity: 0.8 }}
+                            {...PressPresets.icon}
                           >
                             <ChevronRight
                               size={20}

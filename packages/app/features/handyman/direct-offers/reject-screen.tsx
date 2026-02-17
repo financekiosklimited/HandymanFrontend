@@ -1,7 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, TextArea } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  TextArea,
+  PressPresets,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useHandymanDirectOffer, useRejectDirectOffer, QUICK_REJECTION_REASONS } from '@my/api'
 import { X, AlertCircle, Check } from '@tamagui/lucide-icons'
@@ -261,7 +271,7 @@ export function HandymanDirectOfferRejectScreen({ offerId }: HandymanDirectOffer
                       p="$4"
                       borderWidth={2}
                       borderColor={selectedReason === reason.id ? '$primary' : '$borderColor'}
-                      pressStyle={{ opacity: 0.8 }}
+                      {...PressPresets.listItem}
                     >
                       <XStack
                         alignItems="center"
@@ -348,7 +358,7 @@ export function HandymanDirectOfferRejectScreen({ offerId }: HandymanDirectOffer
               minHeight={54}
               onPress={handleReject}
               disabled={rejectMutation.isPending}
-              pressStyle={{ opacity: 0.9 }}
+              {...PressPresets.primary}
             >
               <XStack
                 alignItems="center"

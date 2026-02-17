@@ -14,6 +14,7 @@ import {
   VideoPlayer,
   DocumentThumbnail,
   useConfirmDialog,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground, OfferStatusBadge, TimeRemainingBadge } from '@my/ui'
 import {
@@ -615,7 +616,7 @@ export function HomeownerDirectOfferDetailScreen({
                       params.append('avatar', offer.target_handyman.avatar_url)
                     router.push(`/(homeowner)/messages/new?${params.toString()}`)
                   }}
-                  pressStyle={{ opacity: 0.8 }}
+                  {...PressPresets.primary}
                 >
                   <XStack
                     alignItems="center"
@@ -774,7 +775,7 @@ export function HomeownerDirectOfferDetailScreen({
                           borderRadius="$full"
                           p="$2"
                           onPress={() => scrollToImage(currentImageIndex - 1)}
-                          pressStyle={{ opacity: 0.8 }}
+                          {...PressPresets.icon}
                         >
                           <ChevronLeft
                             size={20}
@@ -793,7 +794,7 @@ export function HomeownerDirectOfferDetailScreen({
                           borderRadius="$full"
                           p="$2"
                           onPress={() => scrollToImage(currentImageIndex + 1)}
-                          pressStyle={{ opacity: 0.8 }}
+                          {...PressPresets.icon}
                         >
                           <ChevronRight
                             size={20}
@@ -1218,7 +1219,7 @@ export function HomeownerDirectOfferDetailScreen({
                 minHeight={54}
                 onPress={handleConvert}
                 disabled={convertMutation.isPending}
-                pressStyle={{ opacity: 0.9 }}
+                {...PressPresets.primary}
               >
                 <XStack
                   alignItems="center"
@@ -1254,7 +1255,7 @@ export function HomeownerDirectOfferDetailScreen({
                 minHeight={54}
                 onPress={handleCancel}
                 disabled={cancelMutation.isPending}
-                pressStyle={{ opacity: 0.9 }}
+                {...PressPresets.primary}
               >
                 <XStack
                   alignItems="center"

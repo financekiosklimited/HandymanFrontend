@@ -1,7 +1,18 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Image, PageHeader } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Image,
+  PageHeader,
+  PressPresets,
+} from '@my/ui'
 import { GradientBackground, SearchBar, DirectOfferCard } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useHomeownerJobs, useHomeownerApplications, useHomeownerDirectOffers } from '@my/api'
@@ -81,8 +92,8 @@ function ApplicantCard({ application, onPress }: ApplicantCardProps) {
       p="$sm"
       borderWidth={1}
       borderColor="rgba(0,0,0,0.05)"
-      pressStyle={{ opacity: 0.8, scale: 0.98 }}
-      animation="quick"
+      pressStyle={PressPresets.card.pressStyle}
+      animation={PressPresets.card.animation}
     >
       <XStack
         gap="$sm"
@@ -247,7 +258,8 @@ function ExpandableJobCard({
         unstyled
         onPress={onToggle}
         p="$md"
-        pressStyle={{ opacity: 0.9 }}
+        pressStyle={PressPresets.listItem.pressStyle}
+        animation={PressPresets.listItem.animation}
       >
         <XStack
           gap="$md"
@@ -396,7 +408,8 @@ function ExpandableJobCard({
             bg="rgba(0,0,0,0.05)"
             borderRadius="$md"
             py="$sm"
-            pressStyle={{ opacity: 0.7 }}
+            pressStyle={PressPresets.secondary.pressStyle}
+            animation={PressPresets.secondary.animation}
           >
             <XStack
               gap="$xs"
@@ -431,7 +444,8 @@ function ExpandableJobCard({
               bg="$primary"
               borderRadius="$md"
               py="$sm"
-              pressStyle={{ opacity: 0.8 }}
+              pressStyle={PressPresets.primary.pressStyle}
+              animation={PressPresets.primary.animation}
             >
               <XStack
                 gap="$xs"
@@ -854,7 +868,8 @@ export function JobManagementScreen() {
             py="$sm"
             borderWidth={1}
             borderColor="rgba(0,0,0,0.1)"
-            pressStyle={{ opacity: 0.8 }}
+            pressStyle={PressPresets.filter.pressStyle}
+            animation={PressPresets.filter.animation}
           >
             <XStack
               alignItems="center"
@@ -901,7 +916,8 @@ export function JobManagementScreen() {
                 px="$md"
                 py="$sm"
                 bg={statusFilter === option.value ? '$primary' : 'transparent'}
-                pressStyle={{ bg: '$backgroundMuted' }}
+                pressStyle={PressPresets.listItem.pressStyle}
+                animation={PressPresets.listItem.animation}
               >
                 <Text
                   fontSize="$3"
@@ -1036,7 +1052,8 @@ export function JobManagementScreen() {
                       px="$sm"
                       py={4}
                       borderRadius="$full"
-                      pressStyle={{ opacity: 0.8 }}
+                      pressStyle={PressPresets.filter.pressStyle}
+                      animation={PressPresets.filter.animation}
                     >
                       <XStack
                         alignItems="center"

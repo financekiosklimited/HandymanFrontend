@@ -1,6 +1,16 @@
 'use client'
 
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, Avatar } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  Avatar,
+  PressPresets,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useHandymanProfile, useActivateRole, useLogout } from '@my/api'
 import { useRouter, useNavigation } from 'expo-router'
@@ -158,7 +168,7 @@ export function HandymanProfileViewScreen() {
                 height={48}
                 px="$6"
                 onPress={() => router.back()}
-                pressStyle={{ opacity: 0.9 }}
+                {...PressPresets.primary}
                 alignItems="center"
                 justifyContent="center"
               >
@@ -921,7 +931,7 @@ export function HandymanProfileViewScreen() {
                   borderColor="$backgroundHover"
                   onPress={handleSwitchRole}
                   disabled={activateRoleMutation.isPending}
-                  pressStyle={{ opacity: 0.8, bg: '$backgroundHover' }}
+                  {...PressPresets.secondary}
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="row"
@@ -956,7 +966,7 @@ export function HandymanProfileViewScreen() {
                   borderRadius={8}
                   height={52}
                   onPress={() => router.push('/(handyman)/profile/edit')}
-                  pressStyle={{ opacity: 0.9 }}
+                  {...PressPresets.primary}
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="row"
@@ -983,7 +993,7 @@ export function HandymanProfileViewScreen() {
                   height={52}
                   onPress={handleLogout}
                   disabled={logoutMutation.isPending}
-                  pressStyle={{ opacity: 0.9 }}
+                  {...PressPresets.primary}
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="row"
@@ -1024,7 +1034,7 @@ export function HandymanProfileViewScreen() {
                       'All onboarding toasts will show again on next visit'
                     )
                   }}
-                  pressStyle={{ opacity: 0.9 }}
+                  {...PressPresets.primary}
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="row"
@@ -1060,7 +1070,7 @@ export function HandymanProfileViewScreen() {
                         : 'Normal onboarding behavior restored'
                     )
                   }}
-                  pressStyle={{ opacity: 0.9 }}
+                  {...PressPresets.primary}
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="row"

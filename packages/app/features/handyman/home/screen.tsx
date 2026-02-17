@@ -498,8 +498,8 @@ export function HandymanHomeScreen() {
                   borderRadius="$4"
                   p="$3"
                   onPress={() => router.push('/(handyman)/jobs?tab=offers')}
-                  animation="micro"
-                  pressStyle={{ scale: 0.95 }}
+                  pressStyle={PressPresets.primary.pressStyle}
+                  animation={PressPresets.primary.animation}
                 >
                   <YStack
                     alignItems="center"
@@ -565,8 +565,8 @@ export function HandymanHomeScreen() {
                   borderRadius="$4"
                   p="$3"
                   onPress={() => router.push('/(handyman)/jobs?tab=applicants')}
-                  animation="micro"
-                  pressStyle={{ scale: 0.95 }}
+                  pressStyle={PressPresets.primary.pressStyle}
+                  animation={PressPresets.primary.animation}
                 >
                   <YStack
                     alignItems="center"
@@ -609,8 +609,8 @@ export function HandymanHomeScreen() {
                   borderRadius="$4"
                   p="$3"
                   onPress={() => router.push('/(handyman)/jobs?tab=active')}
-                  animation="micro"
-                  pressStyle={{ scale: 0.95 }}
+                  pressStyle={PressPresets.primary.pressStyle}
+                  animation={PressPresets.primary.animation}
                 >
                   <YStack
                     alignItems="center"
@@ -788,7 +788,8 @@ export function HandymanHomeScreen() {
                     bg="$backgroundSubtle"
                     p="$2.5"
                     borderRadius="$4"
-                    pressStyle={{ bg: '$borderSubtle' }}
+                    pressStyle={PressPresets.listItem.pressStyle}
+                    animation={PressPresets.listItem.animation}
                     onPress={() => setShowCityDropdown(!showCityDropdown)}
                   >
                     <View
@@ -990,8 +991,8 @@ export function HandymanHomeScreen() {
                     fontWeight="bold"
                     px="$2"
                     onPress={() => setShowBudgetDropdown(!showBudgetDropdown)}
-                    animation="micro"
-                    pressStyle={{ scale: 0.95 }}
+                    pressStyle={PressPresets.filter.pressStyle}
+                    animation={PressPresets.filter.animation}
                   >
                     {budgetLabel || 'Budget'} <ChevronDown size={10} />
                   </Button>

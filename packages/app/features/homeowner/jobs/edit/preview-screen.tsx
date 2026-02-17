@@ -13,6 +13,7 @@ import {
   ImageViewer,
   VideoPlayer,
   PageHeader,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -568,7 +569,8 @@ export function EditJobPreviewScreen() {
                           borderRadius="$full"
                           p="$2"
                           onPress={() => scrollToImage(currentImageIndex - 1)}
-                          pressStyle={{ opacity: 0.8 }}
+                          pressStyle={PressPresets.icon.pressStyle}
+                          animation={PressPresets.icon.animation}
                         >
                           <ChevronLeft
                             size={20}
@@ -587,7 +589,8 @@ export function EditJobPreviewScreen() {
                           borderRadius="$full"
                           p="$2"
                           onPress={() => scrollToImage(currentImageIndex + 1)}
-                          pressStyle={{ opacity: 0.8 }}
+                          pressStyle={PressPresets.icon.pressStyle}
+                          animation={PressPresets.icon.animation}
                         >
                           <ChevronRight
                             size={20}
@@ -1044,7 +1047,8 @@ export function EditJobPreviewScreen() {
             minHeight={54}
             onPress={handleUpdate}
             disabled={updateJobMutation.isPending}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.primary.pressStyle}
+            animation={PressPresets.primary.animation}
           >
             <XStack
               alignItems="center"
@@ -1080,7 +1084,8 @@ export function EditJobPreviewScreen() {
             minHeight={54}
             onPress={() => router.back()}
             disabled={updateJobMutation.isPending}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.secondary.pressStyle}
+            animation={PressPresets.secondary.animation}
           >
             <XStack
               alignItems="center"

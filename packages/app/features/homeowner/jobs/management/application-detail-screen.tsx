@@ -13,6 +13,7 @@ import {
   AttachmentGrid,
   PageHeader,
   useConfirmDialog,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -266,7 +267,7 @@ export function ApplicationDetailScreen() {
                 gap="$md"
                 alignItems="center"
                 onPress={handleViewHandymanProfile}
-                pressStyle={{ opacity: 0.7 }}
+                {...PressPresets.card}
                 cursor="pointer"
               >
                 <View
@@ -774,7 +775,7 @@ export function ApplicationDetailScreen() {
               borderColor="$error"
               borderRadius="$lg"
               py="$md"
-              pressStyle={{ opacity: 0.8, bg: 'rgba(255,59,48,0.05)' }}
+              {...PressPresets.secondary}
             >
               {isRejecting ? (
                 <Spinner
@@ -808,7 +809,7 @@ export function ApplicationDetailScreen() {
               bg="$primary"
               borderRadius="$lg"
               py="$md"
-              pressStyle={{ opacity: 0.8 }}
+              {...PressPresets.primary}
             >
               {isApproving ? (
                 <Spinner

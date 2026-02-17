@@ -1,7 +1,17 @@
 'use client'
 
 import { useMemo } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, PageHeader } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  PageHeader,
+  PressPresets,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useHandymanApplications } from '@my/api'
@@ -44,8 +54,8 @@ function ApplicationCard({ application, onPress }: ApplicationCardProps) {
       p="$md"
       borderWidth={1}
       borderColor="rgba(255,255,255,0.5)"
-      pressStyle={{ opacity: 0.8, scale: 0.98 }}
-      animation="quick"
+      pressStyle={PressPresets.card.pressStyle}
+      animation={PressPresets.card.animation}
     >
       <YStack gap="$sm">
         {/* Header Row */}

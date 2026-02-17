@@ -14,6 +14,7 @@ import {
   VideoPlayer,
   DocumentThumbnail,
   useConfirmDialog,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground, OfferStatusBadge, TimeRemainingBadge } from '@my/ui'
 import {
@@ -355,7 +356,7 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
                       params.append('avatar', offer.homeowner.avatar_url)
                     router.push(`/(handyman)/messages/new?${params.toString()}`)
                   }}
-                  pressStyle={{ opacity: 0.8 }}
+                  {...PressPresets.primary}
                 >
                   <XStack
                     alignItems="center"
@@ -514,7 +515,7 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
                           borderRadius="$full"
                           p="$2"
                           onPress={() => scrollToImage(currentImageIndex - 1)}
-                          pressStyle={{ opacity: 0.8 }}
+                          {...PressPresets.icon}
                         >
                           <ChevronLeft
                             size={20}
@@ -533,7 +534,7 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
                           borderRadius="$full"
                           p="$2"
                           onPress={() => scrollToImage(currentImageIndex + 1)}
-                          pressStyle={{ opacity: 0.8 }}
+                          {...PressPresets.icon}
                         >
                           <ChevronRight
                             size={20}
@@ -957,7 +958,7 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
               minHeight={54}
               onPress={handleAccept}
               disabled={acceptMutation.isPending}
-              pressStyle={{ opacity: 0.9 }}
+              {...PressPresets.primary}
             >
               <XStack
                 alignItems="center"
@@ -991,7 +992,7 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
               minHeight={54}
               onPress={handleReject}
               disabled={rejectMutation.isPending}
-              pressStyle={{ opacity: 0.9 }}
+              {...PressPresets.primary}
             >
               <XStack
                 alignItems="center"

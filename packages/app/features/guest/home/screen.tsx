@@ -2,7 +2,17 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import * as Location from 'expo-location'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View, ScrollIndicator } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Spinner,
+  View,
+  ScrollIndicator,
+  PressPresets,
+} from '@my/ui'
 import { Pressable } from 'react-native'
 import { useGuestJobs, useGuestHandymen, useCategories, useCities } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -769,7 +779,7 @@ export function GuestHomeScreen() {
                     fontWeight="bold"
                     px="$6"
                     py="$3"
-                    pressStyle={{ scale: 0.98, opacity: 0.9 }}
+                    {...PressPresets.primary}
                     onPress={redirectToLogin}
                     shadowColor="rgba(0,0,0,0.15)"
                     shadowRadius={8}
@@ -846,7 +856,7 @@ export function GuestHomeScreen() {
                     bg="$backgroundSubtle"
                     p="$2.5"
                     borderRadius="$4"
-                    pressStyle={{ bg: '$borderSubtle' }}
+                    {...PressPresets.listItem}
                     onPress={() => setShowCityDropdown(!showCityDropdown)}
                   >
                     <View
@@ -1208,8 +1218,7 @@ export function GuestHomeScreen() {
               <Button
                 unstyled
                 onPress={() => setExpandHandymen(!expandHandymen)}
-                animation="micro"
-                pressStyle={{ scale: 0.95 }}
+                {...PressPresets.icon}
               >
                 <XStack
                   alignItems="center"
@@ -1401,7 +1410,7 @@ export function GuestHomeScreen() {
                             borderRadius="$4"
                             mt="$2"
                             fontWeight="bold"
-                            pressStyle={{ opacity: 0.9 }}
+                            {...PressPresets.primary}
                             onPress={redirectToLogin}
                           >
                             Invite to Job
@@ -1562,7 +1571,7 @@ export function GuestHomeScreen() {
               alignItems="center"
               gap="$3"
               onPress={() => router.push('/auth/login')}
-              pressStyle={{ scale: 0.98 }}
+              {...PressPresets.card}
             >
               <View
                 bg="#FFB800"
@@ -1619,8 +1628,7 @@ export function GuestHomeScreen() {
               <Button
                 unstyled
                 onPress={() => setExpandJobs(!expandJobs)}
-                animation="micro"
-                pressStyle={{ scale: 0.95 }}
+                {...PressPresets.icon}
               >
                 <XStack
                   alignItems="center"

@@ -565,7 +565,8 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                   mb="$lg"
                   borderWidth={1}
                   borderColor="rgba(59, 130, 246, 0.2)"
-                  pressStyle={{ opacity: 0.9, scale: 0.99 }}
+                  pressStyle={PressPresets.card.pressStyle}
+                  animation={PressPresets.card.animation}
                 >
                   <XStack
                     alignItems="center"

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Spinner, View } from '@my/ui'
+import { YStack, XStack, ScrollView, Text, Button, Spinner, View, PressPresets } from '@my/ui'
 import { GradientBackground, DirectOfferCard } from '@my/ui'
 import { useHandymanDirectOffers } from '@my/api'
 import type { HandymanDirectOffer, DirectOfferStatus } from '@my/api'
@@ -78,7 +78,7 @@ export function HandymanDirectOffersListScreen() {
                 borderRadius="$full"
                 borderWidth={1}
                 borderColor={activeFilter === option.value ? '$primary' : '$borderColor'}
-                pressStyle={{ opacity: 0.8 }}
+                {...PressPresets.filter}
               >
                 <Text
                   fontSize="$2"

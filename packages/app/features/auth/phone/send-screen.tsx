@@ -185,7 +185,7 @@ export function PhoneSendScreen() {
                 alignItems="center"
                 justifyContent="space-between"
                 gap="$1"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                {...PressPresets.listItem}
               >
                 {isLoadingCountryCodes ? (
                   <Spinner
@@ -391,7 +391,7 @@ export function PhoneSendScreen() {
                       px="$4"
                       py="$3"
                       borderRadius="$3"
-                      pressStyle={{ bg: '$backgroundMuted' }}
+                      {...PressPresets.listItem}
                     >
                       <XStack
                         flex={1}

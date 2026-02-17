@@ -101,6 +101,8 @@ function MessageBadgeButton({
       unstyled
       onPress={onPress}
       position="relative"
+      pressStyle={PressPresets.icon.pressStyle}
+      animation={PressPresets.icon.animation}
     >
       <MessageCircle
         size={20}
@@ -753,7 +755,8 @@ export function HomeownerHomeScreen() {
                     bg="$backgroundSubtle"
                     p="$2.5"
                     borderRadius="$4"
-                    pressStyle={{ bg: '$borderSubtle' }}
+                    pressStyle={PressPresets.listItem.pressStyle}
+                    animation={PressPresets.listItem.animation}
                     onPress={() => setShowCityDropdown(!showCityDropdown)}
                   >
                     <View
@@ -826,6 +829,8 @@ export function HomeownerHomeScreen() {
                               }}
                               px="$2"
                               py="$1.5"
+                              pressStyle={PressPresets.listItem.pressStyle}
+                              animation={PressPresets.listItem.animation}
                             >
                               <Text
                                 color={!selectedCity ? '$primary' : '$color'}
@@ -845,6 +850,8 @@ export function HomeownerHomeScreen() {
                                 }}
                                 px="$2"
                                 py="$1.5"
+                                pressStyle={PressPresets.listItem.pressStyle}
+                                animation={PressPresets.listItem.animation}
                               >
                                 <Text
                                   color={selectedCity === city.public_id ? '$primary' : '$color'}
@@ -916,8 +923,8 @@ export function HomeownerHomeScreen() {
                                           onPress={() =>
                                             setSelectedCategory(isSelected ? null : topCat.slug)
                                           }
-                                          animation="micro"
-                                          pressStyle={{ scale: 0.9 }}
+                                          animation={PressPresets.icon.animation}
+                                          pressStyle={PressPresets.icon.pressStyle}
                                         >
                                           <View
                                             width={56}
@@ -966,8 +973,8 @@ export function HomeownerHomeScreen() {
                                           onPress={() =>
                                             setSelectedCategory(isSelected ? null : bottomCat.slug)
                                           }
-                                          animation="micro"
-                                          pressStyle={{ scale: 0.9 }}
+                                          animation={PressPresets.icon.animation}
+                                          pressStyle={PressPresets.icon.pressStyle}
                                         >
                                           <View
                                             width={56}
@@ -1034,6 +1041,8 @@ export function HomeownerHomeScreen() {
                         setShowRatingDropdown(false)
                         setShowHourlyRateDropdown(!showHourlyRateDropdown)
                       }}
+                      pressStyle={PressPresets.filter.pressStyle}
+                      animation={PressPresets.filter.animation}
                     >
                       {hourlyRateLabel || 'Hourly Rate'} <ChevronDown size={10} />
                     </Button>
@@ -1054,6 +1063,8 @@ export function HomeownerHomeScreen() {
                         setShowHourlyRateDropdown(false)
                         setShowRatingDropdown(!showRatingDropdown)
                       }}
+                      pressStyle={PressPresets.filter.pressStyle}
+                      animation={PressPresets.filter.animation}
                     >
                       {ratingLabel || 'Rating'} <ChevronDown size={10} />
                     </Button>
@@ -1078,6 +1089,8 @@ export function HomeownerHomeScreen() {
                         }}
                         px="$2"
                         py="$1.5"
+                        pressStyle={PressPresets.listItem.pressStyle}
+                        animation={PressPresets.listItem.animation}
                       >
                         <Text
                           color={!maxHourlyRate ? '$primary' : '$color'}
@@ -1097,6 +1110,8 @@ export function HomeownerHomeScreen() {
                           }}
                           px="$2"
                           py="$1.5"
+                          pressStyle={PressPresets.listItem.pressStyle}
+                          animation={PressPresets.listItem.animation}
                         >
                           <Text
                             color={maxHourlyRate === rate ? '$primary' : '$color'}
@@ -1128,6 +1143,8 @@ export function HomeownerHomeScreen() {
                         }}
                         px="$2"
                         py="$1.5"
+                        pressStyle={PressPresets.listItem.pressStyle}
+                        animation={PressPresets.listItem.animation}
                       >
                         <Text
                           color={!minRating ? '$primary' : '$color'}
@@ -1147,6 +1164,8 @@ export function HomeownerHomeScreen() {
                           }}
                           px="$2"
                           py="$1.5"
+                          pressStyle={PressPresets.listItem.pressStyle}
+                          animation={PressPresets.listItem.animation}
                         >
                           <Text
                             color={minRating === rating ? '$primary' : '$color'}
@@ -1237,6 +1256,8 @@ export function HomeownerHomeScreen() {
                       gap="$3"
                       onPress={() => router.push(`/(homeowner)/handymen/${pro.public_id}`)}
                       mb="$3"
+                      pressStyle={PressPresets.card.pressStyle}
+                      animation={PressPresets.card.animation}
                     >
                       <View position="relative">
                         {/* Placeholder for now since API might not return image yet, or use Avatar if available */}
@@ -1391,6 +1412,8 @@ export function HomeownerHomeScreen() {
                           gap="$3"
                           onPress={() => router.push(`/(homeowner)/handymen/${pro.public_id}`)}
                           mb="$3"
+                          pressStyle={PressPresets.card.pressStyle}
+                          animation={PressPresets.card.animation}
                         >
                           <View position="relative">
                             {/* Placeholder for now since API might not return image yet, or use Avatar if available */}

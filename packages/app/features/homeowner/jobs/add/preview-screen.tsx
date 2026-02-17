@@ -13,6 +13,7 @@ import {
   ImageViewer,
   VideoPlayer,
   PageHeader,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -466,7 +467,8 @@ export function JobPreviewScreen() {
                           borderRadius="$full"
                           p="$2"
                           onPress={() => scrollToImage(currentImageIndex - 1)}
-                          pressStyle={{ opacity: 0.8 }}
+                          pressStyle={PressPresets.icon.pressStyle}
+                          animation={PressPresets.icon.animation}
                         >
                           <ChevronLeft
                             size={20}
@@ -485,7 +487,8 @@ export function JobPreviewScreen() {
                           borderRadius="$full"
                           p="$2"
                           onPress={() => scrollToImage(currentImageIndex + 1)}
-                          pressStyle={{ opacity: 0.8 }}
+                          pressStyle={PressPresets.icon.pressStyle}
+                          animation={PressPresets.icon.animation}
                         >
                           <ChevronRight
                             size={20}
@@ -942,7 +945,8 @@ export function JobPreviewScreen() {
             minHeight={54}
             onPress={handlePublish}
             disabled={createJobMutation.isPending}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.primary.pressStyle}
+            animation={PressPresets.primary.animation}
           >
             <XStack
               alignItems="center"
@@ -978,7 +982,8 @@ export function JobPreviewScreen() {
             minHeight={54}
             onPress={() => router.back()}
             disabled={createJobMutation.isPending}
-            pressStyle={{ opacity: 0.9 }}
+            pressStyle={PressPresets.secondary.pressStyle}
+            animation={PressPresets.secondary.animation}
           >
             <XStack
               alignItems="center"

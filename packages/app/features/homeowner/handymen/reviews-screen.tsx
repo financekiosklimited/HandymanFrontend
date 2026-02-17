@@ -1,7 +1,17 @@
 'use client'
 
 import { useMemo } from 'react'
-import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Image,
+  Spinner,
+  View,
+  PressPresets,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import {
   useHandymanReviews,
@@ -414,7 +424,7 @@ export function HandymanReviewsScreen({
               onPress={() => router.back()}
               p="$2"
               hitSlop={12}
-              pressStyle={{ opacity: 0.7 }}
+              {...PressPresets.icon}
             >
               <Text
                 fontSize={17}
@@ -554,7 +564,7 @@ export function HandymanReviewsScreen({
                     borderColor="$borderColor"
                     onPress={() => fetchNextPage()}
                     disabled={isFetchingNextPage}
-                    pressStyle={{ opacity: 0.8 }}
+                    {...PressPresets.secondary}
                     mt="$sm"
                   >
                     {isFetchingNextPage ? (

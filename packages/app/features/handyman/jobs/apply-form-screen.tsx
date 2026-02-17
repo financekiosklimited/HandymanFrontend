@@ -14,6 +14,7 @@ import {
   Image,
   Sheet,
   PageHeader,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -861,7 +862,8 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                             onPress={() => removeMaterial(material.id)}
                             p="$1"
                             hitSlop={8}
-                            pressStyle={{ opacity: 0.7 }}
+                            pressStyle={PressPresets.icon.pressStyle}
+                            animation={PressPresets.icon.animation}
                           >
                             <X
                               size={18}
@@ -954,7 +956,8 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                       }
                       borderRadius="$lg"
                       py="$3"
-                      pressStyle={{ opacity: 0.8 }}
+                      pressStyle={PressPresets.primary.pressStyle}
+                      animation={PressPresets.primary.animation}
                     >
                       <XStack
                         alignItems="center"
@@ -1116,7 +1119,8 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                     borderRadius="$lg"
                     py="$3"
                     borderStyle="dashed"
-                    pressStyle={{ opacity: 0.8, bg: 'rgba(12,154,92,0.05)' }}
+                    pressStyle={PressPresets.secondary.pressStyle}
+                    animation={PressPresets.secondary.animation}
                   >
                     <XStack
                       alignItems="center"
@@ -1159,7 +1163,8 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
               borderRadius="$lg"
               py="$4"
               minHeight={56}
-              pressStyle={{ opacity: 0.9 }}
+              pressStyle={PressPresets.primary.pressStyle}
+              animation={PressPresets.primary.animation}
             >
               {isSubmitting ? (
                 <Spinner
@@ -1233,7 +1238,8 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                 borderRadius="$4"
                 px="$4"
                 py="$3"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                pressStyle={PressPresets.listItem.pressStyle}
+                animation={PressPresets.listItem.animation}
               >
                 <XStack
                   alignItems="center"
@@ -1261,7 +1267,8 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                 borderRadius="$4"
                 px="$4"
                 py="$3"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                pressStyle={PressPresets.listItem.pressStyle}
+                animation={PressPresets.listItem.animation}
               >
                 <XStack
                   alignItems="center"
@@ -1289,7 +1296,8 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                 borderRadius="$4"
                 px="$4"
                 py="$3"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                pressStyle={PressPresets.listItem.pressStyle}
+                animation={PressPresets.listItem.animation}
               >
                 <XStack
                   alignItems="center"
@@ -1317,7 +1325,8 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                 borderRadius="$4"
                 px="$4"
                 py="$3"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                pressStyle={PressPresets.listItem.pressStyle}
+                animation={PressPresets.listItem.animation}
               >
                 <XStack
                   alignItems="center"
@@ -1345,7 +1354,8 @@ export function ApplyFormScreen({ jobId }: ApplyFormScreenProps) {
                 borderRadius="$4"
                 px="$4"
                 py="$3"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                pressStyle={PressPresets.listItem.pressStyle}
+                animation={PressPresets.listItem.animation}
               >
                 <XStack
                   alignItems="center"

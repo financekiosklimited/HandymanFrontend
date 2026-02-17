@@ -15,6 +15,7 @@ import {
   View,
   Image,
   PageHeader,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useFormEntrance } from 'app/hooks/useFormEntrance'
@@ -951,7 +952,8 @@ export function AddJobScreen() {
                                 onPress={() => removeTask(task.id)}
                                 p="$1"
                                 hitSlop={8}
-                                pressStyle={{ opacity: 0.7 }}
+                                pressStyle={PressPresets.icon.pressStyle}
+                                animation={PressPresets.icon.animation}
                               >
                                 <X
                                   size={18}
@@ -1006,7 +1008,8 @@ export function AddJobScreen() {
                         borderRadius="$3"
                         p="$2"
                         disabled={!newTaskTitle.trim()}
-                        pressStyle={{ opacity: 0.8 }}
+                        pressStyle={PressPresets.primary.pressStyle}
+                        animation={PressPresets.primary.animation}
                       >
                         <Plus
                           size={18}
@@ -1162,7 +1165,8 @@ export function AddJobScreen() {
                             bg="rgba(0,0,0,0.6)"
                             borderRadius="$full"
                             p={4}
-                            pressStyle={{ opacity: 0.8 }}
+                            pressStyle={PressPresets.icon.pressStyle}
+                            animation={PressPresets.icon.animation}
                           >
                             <X
                               size={12}
@@ -1211,7 +1215,8 @@ export function AddJobScreen() {
                           borderStyle="dashed"
                           alignItems="center"
                           justifyContent="center"
-                          pressStyle={{ opacity: 0.7, bg: '$backgroundMuted' }}
+                          pressStyle={PressPresets.secondary.pressStyle}
+                          animation={PressPresets.secondary.animation}
                         >
                           <Plus
                             size={24}
@@ -1243,7 +1248,8 @@ export function AddJobScreen() {
               minHeight={54}
               onPress={handleContinue}
               disabled={createJobMutation.isPending}
-              pressStyle={{ opacity: 0.9 }}
+              pressStyle={PressPresets.primary.pressStyle}
+              animation={PressPresets.primary.animation}
             >
               <Text
                 color="white"
@@ -1321,7 +1327,8 @@ export function AddJobScreen() {
                       unstyled
                       onPress={() => setCategorySearch('')}
                       p="$1"
-                      pressStyle={{ opacity: 0.7 }}
+                      pressStyle={PressPresets.icon.pressStyle}
+                      animation={PressPresets.icon.animation}
                     >
                       <X
                         size={16}
@@ -1368,10 +1375,8 @@ export function AddJobScreen() {
                             borderRadius="$4"
                             px="$4"
                             py="$3"
-                            pressStyle={{
-                              opacity: 0.8,
-                              bg: isSelected ? '$primary' : '$backgroundMuted',
-                            }}
+                            pressStyle={PressPresets.listItem.pressStyle}
+                            animation={PressPresets.listItem.animation}
                           >
                             <Text
                               color={isSelected ? 'white' : '$color'}
@@ -1455,7 +1460,8 @@ export function AddJobScreen() {
                       unstyled
                       onPress={() => setCitySearch('')}
                       p="$1"
-                      pressStyle={{ opacity: 0.7 }}
+                      pressStyle={PressPresets.icon.pressStyle}
+                      animation={PressPresets.icon.animation}
                     >
                       <X
                         size={16}
@@ -1502,10 +1508,8 @@ export function AddJobScreen() {
                             borderRadius="$4"
                             px="$4"
                             py="$3"
-                            pressStyle={{
-                              opacity: 0.8,
-                              bg: isSelected ? '$primary' : '$backgroundMuted',
-                            }}
+                            pressStyle={PressPresets.listItem.pressStyle}
+                            animation={PressPresets.listItem.animation}
                           >
                             <Text
                               color={isSelected ? 'white' : '$color'}
@@ -1567,7 +1571,8 @@ export function AddJobScreen() {
                     borderRadius="$4"
                     px="$4"
                     py="$3"
-                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                    pressStyle={PressPresets.listItem.pressStyle}
+                    animation={PressPresets.listItem.animation}
                   >
                     <XStack
                       alignItems="center"
@@ -1595,7 +1600,8 @@ export function AddJobScreen() {
                     borderRadius="$4"
                     px="$4"
                     py="$3"
-                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                    pressStyle={PressPresets.listItem.pressStyle}
+                    animation={PressPresets.listItem.animation}
                   >
                     <XStack
                       alignItems="center"
@@ -1623,7 +1629,8 @@ export function AddJobScreen() {
                     borderRadius="$4"
                     px="$4"
                     py="$3"
-                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                    pressStyle={PressPresets.listItem.pressStyle}
+                    animation={PressPresets.listItem.animation}
                   >
                     <XStack
                       alignItems="center"
@@ -1651,7 +1658,8 @@ export function AddJobScreen() {
                     borderRadius="$4"
                     px="$4"
                     py="$3"
-                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                    pressStyle={PressPresets.listItem.pressStyle}
+                    animation={PressPresets.listItem.animation}
                   >
                     <XStack
                       alignItems="center"

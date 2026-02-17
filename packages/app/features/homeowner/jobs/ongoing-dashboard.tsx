@@ -12,6 +12,7 @@ import {
   Image,
   TextArea,
   PageHeader,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground, ImageViewer, AttachmentGrid } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -2434,7 +2435,7 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
                     py="$md"
                     onPress={handleRejectCompletion}
                     disabled={isRejecting}
-                    pressStyle={{ opacity: 0.9, scale: 0.98 }}
+                    {...PressPresets.primary}
                   >
                     {isRejecting ? (
                       <Spinner
@@ -2466,7 +2467,7 @@ export function HomeownerJobDashboard({ jobId }: HomeownerJobDashboardProps) {
                     py="$md"
                     onPress={handleApproveCompletion}
                     disabled={isApproving}
-                    pressStyle={{ opacity: 0.9, scale: 0.98 }}
+                    {...PressPresets.primary}
                   >
                     {isApproving ? (
                       <Spinner

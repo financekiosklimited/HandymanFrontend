@@ -12,6 +12,7 @@ import {
   Image,
   ImageViewer,
   VideoPlayer,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import {
@@ -572,7 +573,7 @@ export function DirectOfferPreviewScreen() {
                           borderRadius="$full"
                           p="$2"
                           onPress={() => scrollToImage(currentImageIndex - 1)}
-                          pressStyle={{ opacity: 0.8 }}
+                          {...PressPresets.icon}
                         >
                           <ChevronLeft
                             size={20}
@@ -591,7 +592,7 @@ export function DirectOfferPreviewScreen() {
                           borderRadius="$full"
                           p="$2"
                           onPress={() => scrollToImage(currentImageIndex + 1)}
-                          pressStyle={{ opacity: 0.8 }}
+                          {...PressPresets.icon}
                         >
                           <ChevronRight
                             size={20}
@@ -1007,7 +1008,7 @@ export function DirectOfferPreviewScreen() {
             minHeight={54}
             onPress={handleSendOffer}
             disabled={createOfferMutation.isPending}
-            pressStyle={{ opacity: 0.9 }}
+            {...PressPresets.primary}
           >
             <XStack
               alignItems="center"
@@ -1043,7 +1044,7 @@ export function DirectOfferPreviewScreen() {
             minHeight={54}
             onPress={() => router.back()}
             disabled={createOfferMutation.isPending}
-            pressStyle={{ opacity: 0.9 }}
+            {...PressPresets.secondary}
           >
             <XStack
               alignItems="center"

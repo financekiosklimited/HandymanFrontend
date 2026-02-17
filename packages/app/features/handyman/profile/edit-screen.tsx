@@ -12,6 +12,7 @@ import {
   Switch,
   Input,
   GradientBackground,
+  PressPresets,
 } from '@my/ui'
 import { FormInput, FormSelect } from '@my/ui'
 import { useHandymanProfile, useUpdateHandymanProfile, useHandymanCategories } from '@my/api'
@@ -549,7 +550,7 @@ export function HandymanProfileEditScreen() {
               height={52}
               onPress={handleSubmit}
               disabled={updateMutation.isPending}
-              pressStyle={{ opacity: 0.9 }}
+              {...PressPresets.primary}
               alignItems="center"
               justifyContent="center"
               flexDirection="row"
@@ -661,7 +662,7 @@ export function HandymanProfileEditScreen() {
                     }
                     borderRadius={8}
                     p="$3.5"
-                    pressStyle={{ opacity: 0.8, bg: '$backgroundHover' }}
+                    {...PressPresets.listItem}
                     borderWidth={1}
                     borderColor={
                       formData.category_id === category.public_id ? '$primary' : '$borderColorHover'

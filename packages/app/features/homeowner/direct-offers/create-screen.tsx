@@ -12,6 +12,7 @@ import {
   Sheet,
   View,
   Image,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useCategories, useCities, OFFER_EXPIRY_OPTIONS, DEFAULT_OFFER_EXPIRY_DAYS } from '@my/api'
@@ -1021,7 +1022,7 @@ export function CreateDirectOfferScreen() {
                             onPress={() => removeTask(task.id)}
                             p="$1"
                             hitSlop={8}
-                            pressStyle={{ opacity: 0.7 }}
+                            {...PressPresets.icon}
                           >
                             <X
                               size={18}
@@ -1064,7 +1065,7 @@ export function CreateDirectOfferScreen() {
                       borderRadius="$3"
                       p="$2"
                       disabled={!newTaskTitle.trim()}
-                      pressStyle={{ opacity: 0.8 }}
+                      {...PressPresets.primary}
                     >
                       <Plus
                         size={18}
@@ -1218,7 +1219,7 @@ export function CreateDirectOfferScreen() {
                           bg="rgba(0,0,0,0.6)"
                           borderRadius="$full"
                           p={4}
-                          pressStyle={{ opacity: 0.8 }}
+                          {...PressPresets.icon}
                         >
                           <X
                             size={12}
@@ -1242,7 +1243,7 @@ export function CreateDirectOfferScreen() {
                         borderStyle="dashed"
                         alignItems="center"
                         justifyContent="center"
-                        pressStyle={{ opacity: 0.7, bg: '$backgroundMuted' }}
+                        {...PressPresets.card}
                       >
                         <Plus
                           size={24}
@@ -1272,7 +1273,7 @@ export function CreateDirectOfferScreen() {
               py="$3"
               minHeight={54}
               onPress={handleContinue}
-              pressStyle={{ opacity: 0.9 }}
+              {...PressPresets.primary}
             >
               <Text
                 color="white"
@@ -1351,7 +1352,7 @@ export function CreateDirectOfferScreen() {
                       unstyled
                       onPress={() => setCategorySearch('')}
                       p="$1"
-                      pressStyle={{ opacity: 0.7 }}
+                      {...PressPresets.icon}
                     >
                       <X
                         size={16}
@@ -1398,10 +1399,7 @@ export function CreateDirectOfferScreen() {
                             borderRadius="$4"
                             px="$4"
                             py="$3"
-                            pressStyle={{
-                              opacity: 0.8,
-                              bg: isSelected ? '$primary' : '$backgroundMuted',
-                            }}
+                            {...PressPresets.listItem}
                           >
                             <Text
                               color={isSelected ? 'white' : '$color'}
@@ -1486,7 +1484,7 @@ export function CreateDirectOfferScreen() {
                       unstyled
                       onPress={() => setCitySearch('')}
                       p="$1"
-                      pressStyle={{ opacity: 0.7 }}
+                      {...PressPresets.icon}
                     >
                       <X
                         size={16}
@@ -1533,10 +1531,7 @@ export function CreateDirectOfferScreen() {
                             borderRadius="$4"
                             px="$4"
                             py="$3"
-                            pressStyle={{
-                              opacity: 0.8,
-                              bg: isSelected ? '$primary' : '$backgroundMuted',
-                            }}
+                            {...PressPresets.listItem}
                           >
                             <Text
                               color={isSelected ? 'white' : '$color'}
@@ -1604,10 +1599,7 @@ export function CreateDirectOfferScreen() {
                         borderRadius="$4"
                         px="$4"
                         py="$3"
-                        pressStyle={{
-                          opacity: 0.8,
-                          bg: isSelected ? '$primary' : '$backgroundMuted',
-                        }}
+                        {...PressPresets.listItem}
                       >
                         <Text
                           color={isSelected ? 'white' : '$color'}
@@ -1668,7 +1660,7 @@ export function CreateDirectOfferScreen() {
                     borderRadius="$4"
                     px="$4"
                     py="$3"
-                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                    {...PressPresets.listItem}
                   >
                     <XStack
                       alignItems="center"
@@ -1696,7 +1688,7 @@ export function CreateDirectOfferScreen() {
                     borderRadius="$4"
                     px="$4"
                     py="$3"
-                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                    {...PressPresets.listItem}
                   >
                     <XStack
                       alignItems="center"
@@ -1724,7 +1716,7 @@ export function CreateDirectOfferScreen() {
                     borderRadius="$4"
                     px="$4"
                     py="$3"
-                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                    {...PressPresets.listItem}
                   >
                     <XStack
                       alignItems="center"
@@ -1752,7 +1744,7 @@ export function CreateDirectOfferScreen() {
                     borderRadius="$4"
                     px="$4"
                     py="$3"
-                    pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                    {...PressPresets.listItem}
                   >
                     <XStack
                       alignItems="center"

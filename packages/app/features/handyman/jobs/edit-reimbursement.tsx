@@ -14,6 +14,7 @@ import {
   Input,
   Sheet,
   PageHeader,
+  PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
@@ -1267,7 +1268,7 @@ export function EditReimbursementScreen() {
                 borderRadius="$4"
                 px="$4"
                 py="$3"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                {...PressPresets.listItem}
               >
                 <XStack
                   alignItems="center"
@@ -1295,7 +1296,7 @@ export function EditReimbursementScreen() {
                 borderRadius="$4"
                 px="$4"
                 py="$3"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                {...PressPresets.listItem}
               >
                 <XStack
                   alignItems="center"
@@ -1323,7 +1324,7 @@ export function EditReimbursementScreen() {
                 borderRadius="$4"
                 px="$4"
                 py="$3"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                {...PressPresets.listItem}
               >
                 <XStack
                   alignItems="center"
@@ -1351,7 +1352,7 @@ export function EditReimbursementScreen() {
                 borderRadius="$4"
                 px="$4"
                 py="$3"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                {...PressPresets.listItem}
               >
                 <XStack
                   alignItems="center"
@@ -1379,7 +1380,7 @@ export function EditReimbursementScreen() {
                 borderRadius="$4"
                 px="$4"
                 py="$3"
-                pressStyle={{ opacity: 0.8, bg: '$backgroundMuted' }}
+                {...PressPresets.listItem}
               >
                 <XStack
                   alignItems="center"

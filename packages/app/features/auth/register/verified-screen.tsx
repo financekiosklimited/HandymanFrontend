@@ -1,6 +1,6 @@
 'use client'
 
-import { YStack, Text, Button } from '@my/ui'
+import { YStack, Text, Button, PressPresets } from '@my/ui'
 import { GradientBackground, PageHeader } from '@my/ui'
 import { useRouter } from 'expo-router'
 import { useAuthStore } from '@my/api'
@@ -53,7 +53,7 @@ export function RegisterVerifiedScreen() {
             px="$4"
             minHeight={54}
             onPress={handleContinue}
-            pressStyle={{ opacity: 0.9 }}
+            {...PressPresets.primary}
           >
             <Text
               color="white"

@@ -1,6 +1,6 @@
 'use client'
 
-import { YStack, Text, Button } from '@my/ui'
+import { YStack, Text, Button, PressPresets } from '@my/ui'
 import { GradientBackground, PageHeader } from '@my/ui'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -50,7 +50,7 @@ export function ForgotPasswordVerifiedScreen() {
             px="$4"
             minHeight={54}
             onPress={handleContinue}
-            pressStyle={{ opacity: 0.9 }}
+            {...PressPresets.primary}
           >
             <Text
               color="white"

@@ -1,6 +1,6 @@
 'use client'
 
-import { YStack, XStack, Text, Button, View } from '@my/ui'
+import { YStack, XStack, Text, Button, View, PressPresets } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { CheckCircle2, Clock, Home, Eye } from '@tamagui/lucide-icons'
@@ -253,7 +253,7 @@ export function DirectOfferSuccessScreen() {
                   params: { id: offerId },
                 })
               }}
-              pressStyle={{ opacity: 0.9 }}
+              {...PressPresets.primary}
             >
               <XStack
                 alignItems="center"
@@ -287,7 +287,7 @@ export function DirectOfferSuccessScreen() {
                 params: { toast: 'direct-offer-sent', tab: 'offers' },
               })
             }
-            pressStyle={{ opacity: 0.9 }}
+            {...PressPresets.secondary}
           >
             <XStack
               alignItems="center"
