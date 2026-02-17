@@ -12,10 +12,13 @@ import {
   View,
   ScrollIndicator,
   PressPresets,
+  GradientBackground,
 } from '@my/ui'
+import { useAnimatedScrollHandler } from 'react-native-reanimated'
 import { Pressable } from 'react-native'
 import { useGuestJobs, useGuestHandymen, useCategories, useCities } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useDebounce } from 'app/hooks'
@@ -29,7 +32,6 @@ import Animated, {
   withRepeat,
   Easing,
   interpolate,
-  useAnimatedScrollHandler,
   LinearTransition,
 } from 'react-native-reanimated'
 import { Animated as AnimatedRN, Easing as EasingRN, View as RNView } from 'react-native'
@@ -55,13 +57,20 @@ import {
   Settings,
   DollarSign,
   ArrowRight,
+  Gift,
+  Tag,
+  Clock,
 } from '@tamagui/lucide-icons'
+
+// CTA Banner Background Image
+const CTA_BACKGROUND_IMAGE = require('../../../../../apps/expo/assets/cta-construction-bg.jpg')
 
 // Create animated components
 const AnimatedYStack = Animated.createAnimatedComponent(YStack)
 const AnimatedXStack = Animated.createAnimatedComponent(XStack)
 const AnimatedView = Animated.createAnimatedComponent(View)
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView)
+const AnimatedButton = Animated.createAnimatedComponent(Button)
 
 // Icon mapping for API categories (Material Design names → Lucide icons)
 const iconMap: Record<string, any> = {
@@ -289,6 +298,71 @@ const SEARCH_SUGGESTIONS = [
   'clean my gutters',
 ]
 
+// Mock promo codes data for guest users
+interface PromoCode {
+  code: string
+  discount: string
+  description: string
+  color: string
+  icon: 'sparkles' | 'gift' | 'wrench' | 'tag'
+  badge?: string
+  expiryText: string
+}
+
+const PROMO_CODES: PromoCode[] = [
+  {
+    code: 'FIRST20',
+    discount: '20% OFF',
+    description: 'First job discount',
+    color: '#0C9A5C',
+    icon: 'sparkles',
+    badge: 'POPULAR',
+    expiryText: 'Ends in 5 days',
+  },
+  {
+    code: 'WELCOME15',
+    discount: '$15 OFF',
+    description: 'Welcome bonus',
+    color: '#FF9500',
+    icon: 'gift',
+    expiryText: 'Ends in 7 days',
+  },
+  {
+    code: 'REPAIR10',
+    discount: '10% OFF',
+    description: 'Any repair service',
+    color: '#AF52DE',
+    icon: 'wrench',
+    expiryText: 'Ends in 3 days',
+  },
+  {
+    code: 'WINTERFIX',
+    discount: '$25 OFF',
+    description: 'Winter repairs',
+    color: '#007AFF',
+    icon: 'tag',
+    badge: 'NEW',
+    expiryText: 'Ends in 10 days',
+  },
+  {
+    code: 'QUICK50',
+    discount: '50% OFF',
+    description: 'Quick fixes',
+    color: '#FF2D55',
+    icon: 'sparkles',
+    badge: 'LIMITED',
+    expiryText: 'Ends in 2 days',
+  },
+]
+
+// Icon mapping for promo codes
+const promoIconMap: Record<string, any> = {
+  sparkles: Sparkles,
+  gift: Gift,
+  wrench: Wrench,
+  tag: Tag,
+}
+
 export function GuestHomeScreen() {
   const router = useRouter()
   const insets = useSafeArea()
@@ -443,6 +517,15 @@ export function GuestHomeScreen() {
   const handymenTranslateY = useSharedValue(30)
   const jobsOpacity = useSharedValue(0)
   const jobsTranslateY = useSharedValue(30)
+
+  // Scroll-responsive background
+  const scrollY = useSharedValue(0)
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+    },
+  })
 
   useEffect(() => {
     // Staggered entrance animations
@@ -610,10 +693,7 @@ export function GuestHomeScreen() {
   const hourlyRateLabel = maxHourlyRate ? `$${maxHourlyRate}/hr or less` : null
 
   return (
-    <View
-      flex={1}
-      backgroundColor="$background"
-    >
+    <GradientBackground>
       <YStack
         flex={1}
         pt={insets.top}
@@ -679,9 +759,11 @@ export function GuestHomeScreen() {
           </XStack>
         </XStack>
 
-        <ScrollView
+        <AnimatedScrollView
           flex={1}
           showsVerticalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         >
           {/* Welcome Message */}
           <AnimatedYStack
@@ -706,7 +788,7 @@ export function GuestHomeScreen() {
             </Text>
           </AnimatedYStack>
 
-          {/* Job Posting Panel - Minimalist CTA */}
+          {/* Job Posting Panel - Photo Background CTA */}
           <AnimatedYStack
             px="$4"
             pb="$3"
@@ -716,96 +798,302 @@ export function GuestHomeScreen() {
             <YStack
               overflow="hidden"
               borderRadius="$8"
-              p="$5"
+              height={280}
               shadowColor="#0C9A5C"
-              shadowRadius={12}
-              shadowOffset={{ width: 0, height: 4 }}
-              shadowOpacity={0.1}
+              shadowRadius={16}
+              shadowOffset={{ width: 0, height: 6 }}
+              shadowOpacity={0.2}
               position="relative"
             >
-              {/* Gradient Background */}
+              {/* Background Image */}
+              <Image
+                source={CTA_BACKGROUND_IMAGE}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  width: '100%',
+                  height: '100%',
+                }}
+                contentFit="cover"
+              />
+
+              {/* Subtle Green Tint Overlay */}
               <LinearGradient
-                colors={['#0C9A5C', '#34C759']}
+                colors={['rgba(12,154,92,0.20)', 'rgba(12,154,92,0.30)', 'rgba(12,154,92,0.40)']}
                 start={[0, 0]}
                 end={[1, 1]}
                 style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
               />
 
-              {/* Decorative Blurs (Simulated) */}
-              <View
-                position="absolute"
-                top={-32}
-                right={-32}
-                width={128}
-                height={128}
-                bg="rgba(255,255,255,0.2)"
-                borderRadius={100}
-                style={{ filter: 'blur(30px)' }}
-                pointerEvents="none"
+              {/* Subtle Dark Vignette for text readability */}
+              <LinearGradient
+                colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.3)']}
+                start={[0.5, 0]}
+                end={[0.5, 1]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
               />
+
+              {/* Decorative Accent Circle */}
               <View
                 position="absolute"
-                bottom={-32}
-                left={-32}
-                width={96}
-                height={96}
-                bg="rgba(0,0,0,0.1)"
+                top={-40}
+                right={-40}
+                width={120}
+                height={120}
+                bg="rgba(255,255,255,0.15)"
                 borderRadius={100}
-                style={{ filter: 'blur(20px)' }}
                 pointerEvents="none"
               />
 
+              {/* Content */}
               <YStack
-                zIndex={10}
+                flex={1}
+                justifyContent="center"
                 alignItems="center"
-                gap="$3"
+                p="$5"
+                gap="$5"
+                zIndex={10}
+              >
+                {/* Headline */}
+                <YStack
+                  alignItems="center"
+                  gap="$2"
+                >
+                  <Text
+                    fontSize="$9"
+                    fontWeight="bold"
+                    color="white"
+                    textAlign="center"
+                    letterSpacing={-0.5}
+                  >
+                    What needs fixing?
+                  </Text>
+                  <Text
+                    fontSize="$4"
+                    color="rgba(255,255,255,0.9)"
+                    textAlign="center"
+                  >
+                    Expert handymen ready to help
+                  </Text>
+                </YStack>
+
+                {/* CTA Button with Continuous Pulse Animation */}
+                <AnimatedButton
+                  size="$6"
+                  bg="white"
+                  color="#0C9A5C"
+                  borderRadius="$6"
+                  fontWeight="bold"
+                  px="$7"
+                  py="$3"
+                  fontSize="$5"
+                  style={ctaPulseAnimatedStyle}
+                  onPress={redirectToLogin}
+                  shadowColor="rgba(0,0,0,0.25)"
+                  shadowRadius={12}
+                  shadowOffset={{ width: 0, height: 4 }}
+                  icon={
+                    <Plus
+                      size={24}
+                      color="white"
+                      strokeWidth={2.5}
+                      bg="#0C9A5C"
+                      borderRadius={100}
+                    />
+                  }
+                >
+                  Post a Job
+                </AnimatedButton>
+              </YStack>
+            </YStack>
+          </AnimatedYStack>
+
+          {/* Promo Codes Section */}
+          <AnimatedYStack
+            px="$4"
+            pb="$4"
+            style={filtersAnimatedStyle}
+          >
+            <YStack gap="$2">
+              <XStack
+                alignItems="center"
+                justifyContent="space-between"
+                mb="$1"
               >
                 <Text
-                  fontSize="$6"
+                  fontSize="$5"
                   fontWeight="bold"
-                  color="white"
-                  textAlign="center"
+                  color="$color"
                 >
-                  What needs fixing?
+                  Special Offers
                 </Text>
-
-                {/* Minimalist CTA Button with Pulse Animation */}
-                <AnimatedView style={ctaPulseAnimatedStyle}>
-                  <Button
-                    size="$5"
-                    bg="white"
-                    color="#0C9A5C"
-                    borderRadius="$6"
-                    fontWeight="bold"
-                    px="$6"
-                    py="$3"
-                    {...PressPresets.primary}
-                    onPress={redirectToLogin}
-                    shadowColor="rgba(0,0,0,0.15)"
-                    shadowRadius={8}
-                    shadowOffset={{ width: 0, height: 2 }}
-                    icon={
-                      <Plus
-                        size={22}
-                        color="white"
-                        strokeWidth={2.5}
-                        bg="#0C9A5C"
-                        borderRadius={100}
-                      />
-                    }
-                  >
-                    Describe Your Task
-                  </Button>
-                </AnimatedView>
-
                 <Text
                   fontSize="$2"
-                  color="rgba(255,255,255,0.8)"
-                  textAlign="center"
+                  color="$colorSubtle"
                 >
-                  Skilled handymen will fix everything for you.
+                  Save on your first job
                 </Text>
-              </YStack>
+              </XStack>
+
+              <ScrollIndicator>
+                <Animated.ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingRight: 24 }}
+                >
+                  <XStack gap="$3">
+                    {PROMO_CODES.map((promo, index) => {
+                      const IconComponent = promoIconMap[promo.icon]
+                      return (
+                        <AnimatedCard
+                          key={promo.code}
+                          index={index}
+                          onPress={redirectToLogin}
+                          style={{
+                            backgroundColor: 'rgba(255,255,255,0.92)',
+                            borderRadius: 16,
+                            overflow: 'hidden',
+                            backdropFilter: 'blur(10px)',
+                            shadowColor: 'rgba(12,154,92,0.15)',
+                            shadowRadius: 15,
+                            shadowOpacity: 1,
+                            shadowOffset: { width: 0, height: 6 },
+                            elevation: 4,
+                            width: 180,
+                            borderWidth: 1,
+                            borderColor: 'rgba(255,255,255,0.8)',
+                          }}
+                        >
+                          {/* Gradient Header */}
+                          <LinearGradient
+                            colors={[promo.color, `${promo.color}DD`]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{
+                              paddingHorizontal: 12,
+                              paddingVertical: 10,
+                              minHeight: 70,
+                            }}
+                          >
+                            <XStack
+                              alignItems="flex-start"
+                              justifyContent="space-between"
+                            >
+                              <YStack>
+                                <Text
+                                  fontSize="$6"
+                                  fontWeight="bold"
+                                  color="white"
+                                >
+                                  {promo.discount}
+                                </Text>
+                                {promo.badge && (
+                                  <View
+                                    bg="rgba(255,255,255,0.25)"
+                                    px="$1.5"
+                                    py="$0.5"
+                                    borderRadius="$2"
+                                    mt="$1"
+                                    alignSelf="flex-start"
+                                  >
+                                    <Text
+                                      fontSize={9}
+                                      fontWeight="bold"
+                                      color="white"
+                                      textTransform="uppercase"
+                                      letterSpacing={0.5}
+                                    >
+                                      {promo.badge}
+                                    </Text>
+                                  </View>
+                                )}
+                              </YStack>
+                              <View
+                                bg="rgba(255,255,255,0.2)"
+                                p="$1.5"
+                                borderRadius="$3"
+                              >
+                                <IconComponent
+                                  size={18}
+                                  color="white"
+                                />
+                              </View>
+                            </XStack>
+                          </LinearGradient>
+
+                          {/* Card Body */}
+                          <YStack
+                            p="$3"
+                            gap="$1"
+                          >
+                            <Text
+                              fontSize="$4"
+                              fontWeight="bold"
+                              color="$color"
+                              letterSpacing={2}
+                            >
+                              {promo.code}
+                            </Text>
+                            <Text
+                              fontSize="$2"
+                              color="$colorSubtle"
+                              numberOfLines={1}
+                            >
+                              {promo.description}
+                            </Text>
+                            <XStack
+                              alignItems="center"
+                              gap="$1"
+                              mt="$1"
+                            >
+                              <Clock
+                                size={10}
+                                color="rgba(12,154,92,0.8)"
+                              />
+                              <Text
+                                fontSize={10}
+                                color="rgba(12,154,92,0.8)"
+                              >
+                                {promo.expiryText}
+                              </Text>
+                            </XStack>
+                          </YStack>
+
+                          {/* Apply Button */}
+                          <XStack
+                            px="$3"
+                            pb="$3"
+                          >
+                            <Button
+                              unstyled
+                              flex={1}
+                              borderRadius="$3"
+                              py="$2"
+                              px="$3"
+                              {...PressPresets.secondary}
+                              onPress={redirectToLogin}
+                              style={{
+                                backgroundColor: `${promo.color}20`,
+                              }}
+                            >
+                              <Text
+                                fontSize="$2"
+                                fontWeight="bold"
+                                style={{ color: promo.color }}
+                              >
+                                Apply Code
+                              </Text>
+                            </Button>
+                          </XStack>
+                        </AnimatedCard>
+                      )
+                    })}
+                  </XStack>
+                </Animated.ScrollView>
+              </ScrollIndicator>
             </YStack>
           </AnimatedYStack>
 
@@ -816,15 +1104,18 @@ export function GuestHomeScreen() {
             style={filtersAnimatedStyle}
           >
             <YStack
-              bg="white"
               borderRadius="$6"
               p="$4"
-              borderColor="$borderSubtle"
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.82)',
+                backdropFilter: 'blur(20px)',
+              }}
               borderWidth={1}
-              shadowColor="$shadowColor"
-              shadowRadius={5}
-              shadowOpacity={0.05}
-              shadowOffset={{ width: 0, height: 2 }}
+              borderColor="rgba(255,255,255,0.6)"
+              shadowColor="rgba(12,154,92,0.08)"
+              shadowRadius={20}
+              shadowOpacity={1}
+              shadowOffset={{ width: 0, height: 8 }}
             >
               <YStack>
                 <Text
@@ -1563,15 +1854,22 @@ export function GuestHomeScreen() {
             pb="$4"
           >
             <XStack
-              bg="rgba(255,184,0,0.15)"
               borderRadius="$6"
               p="$4"
-              borderColor="#FFB800"
-              borderWidth={1}
               alignItems="center"
               gap="$3"
               onPress={() => router.push('/auth/login')}
               {...PressPresets.card}
+              style={{
+                backgroundColor: 'rgba(255,184,0,0.12)',
+                backdropFilter: 'blur(10px)',
+              }}
+              borderWidth={1}
+              borderColor="rgba(255,184,0,0.3)"
+              shadowColor="rgba(255,184,0,0.15)"
+              shadowRadius={15}
+              shadowOpacity={1}
+              shadowOffset={{ width: 0, height: 4 }}
             >
               <View
                 bg="#FFB800"
@@ -1863,8 +2161,8 @@ export function GuestHomeScreen() {
               </YStack>
             )}
           </AnimatedYStack>
-        </ScrollView>
+        </AnimatedScrollView>
       </YStack>
-    </View>
+    </GradientBackground>
   )
 }

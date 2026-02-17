@@ -132,6 +132,41 @@ yarn android           # Run Android emulator
 - Use `pressStyle` for touch feedback
 - Support web/native with `.web.tsx` extensions when needed
 
+### Press Animations (PressPresets)
+**⚠️ MANDATORY: All interactive elements MUST use `PressPresets` from `@my/ui`**
+
+When adding any new interactive element (Button, Pressable, Touchable, etc.), you **MUST** use the standardized `PressPresets` pattern:
+
+```tsx
+import { PressPresets } from '@my/ui'
+
+// Correct usage
+<Button {...PressPresets.primary}>
+  <Text>Submit</Text>
+</Button>
+
+<Button unstyled {...PressPresets.icon}>
+  <XIcon />
+</Button>
+```
+
+**Available Presets:**
+- `PressPresets.primary` - Main CTAs (scale: 0.97, opacity: 0.9)
+- `PressPresets.secondary` - Cancel/outline buttons (scale: 0.98, opacity: 0.8)
+- `PressPresets.card` - Content cards (scale: 0.97)
+- `PressPresets.listItem` - List rows, dropdown items (scale: 0.98, opacity: 0.9)
+- `PressPresets.filter` - Filter pills/toggles (scale: 0.98, opacity: 0.8)
+- `PressPresets.icon` - Icon buttons, small targets (scale: 0.95, opacity: 0.8)
+- `PressPresets.document` - File thumbnails (opacity: 0.8 only)
+
+**❌ NEVER use inline `pressStyle` definitions:**
+```tsx
+// INCORRECT - Do not do this
+<Button pressStyle={{ scale: 0.95 }}>...</Button>
+```
+
+**Presets are defined in:** `packages/ui/src/pressAnimations.ts`
+
 ### API Hooks (TanStack Query)
 - Use `useQuery` for reads, `useMutation` for writes
 - Set appropriate `staleTime` for cached data

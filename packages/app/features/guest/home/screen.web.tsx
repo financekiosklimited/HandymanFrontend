@@ -5,13 +5,80 @@ import { useRouter } from 'next/navigation'
 import { Button, ScrollView, Spinner, Text, XStack, YStack } from '@my/ui'
 import { BottomNav, GradientBackground, HandymanCard, JobCard, SearchBar } from '@my/ui'
 import { useGuestHandymen, useGuestJobs } from '@my/api'
-import { Bookmark, Briefcase, Menu, MessageCircle, Plus, Users } from '@tamagui/lucide-icons'
+import {
+  Bookmark,
+  Briefcase,
+  Menu,
+  MessageCircle,
+  Plus,
+  Users,
+  Sparkles,
+  Gift,
+  Wrench,
+  Tag,
+  Clock,
+} from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useDebounce } from 'app/hooks'
 
 function normalizeExpoRouteToNextPath(route: string) {
   // Expo Router uses route groups like "/(guest)/jobs/123" which aren't valid URL paths for Next.
   return route.replace(/^\/\([^/]+\)/, '')
+}
+
+// Mock promo codes data for guest users
+interface PromoCode {
+  code: string
+  discount: string
+  description: string
+  color: string
+  icon: 'sparkles' | 'gift' | 'wrench' | 'tag'
+  badge?: string
+  expiryText: string
+}
+
+const PROMO_CODES: PromoCode[] = [
+  {
+    code: 'FIRST20',
+    discount: '20% OFF',
+    description: 'First job discount',
+    color: '#0C9A5C',
+    icon: 'sparkles',
+    badge: 'POPULAR',
+    expiryText: 'Ends in 5 days',
+  },
+  {
+    code: 'WELCOME15',
+    discount: '$15 OFF',
+    description: 'Welcome bonus',
+    color: '#FF9500',
+    icon: 'gift',
+    expiryText: 'Ends in 7 days',
+  },
+  {
+    code: 'REPAIR10',
+    discount: '10% OFF',
+    description: 'Any repair service',
+    color: '#AF52DE',
+    icon: 'wrench',
+    expiryText: 'Ends in 3 days',
+  },
+  {
+    code: 'WINTERFIX',
+    discount: '$25 OFF',
+    description: 'Winter repairs',
+    color: '#007AFF',
+    icon: 'tag',
+    badge: 'NEW',
+    expiryText: 'Ends in 10 days',
+  },
+]
+
+const promoIconMap: Record<string, any> = {
+  sparkles: Sparkles,
+  gift: Gift,
+  wrench: Wrench,
+  tag: Tag,
 }
 
 export function GuestHomeScreen() {
@@ -159,6 +226,166 @@ export function GuestHomeScreen() {
             pb="$xl"
             pt="$sm"
           >
+            {/* Promo Codes Section */}
+            <YStack gap="$sm">
+              <XStack
+                alignItems="center"
+                justifyContent="space-between"
+                mb="$1"
+              >
+                <Text
+                  fontSize="$5"
+                  fontWeight="bold"
+                  color="$color"
+                >
+                  Special Offers
+                </Text>
+                <Text
+                  fontSize="$2"
+                  color="$colorSubtle"
+                >
+                  Save on your first job
+                </Text>
+              </XStack>
+
+              <XStack
+                gap="$md"
+                flexWrap="wrap"
+              >
+                {PROMO_CODES.map((promo) => {
+                  const IconComponent = promoIconMap[promo.icon]
+                  return (
+                    <YStack
+                      key={promo.code}
+                      flex={1}
+                      minWidth={200}
+                      maxWidth="48%"
+                      bg="white"
+                      borderRadius="$lg"
+                      overflow="hidden"
+                      shadowColor="rgba(0,0,0,0.08)"
+                      shadowRadius={8}
+                      shadowOpacity={1}
+                      shadowOffset={{ width: 0, height: 2 }}
+                      borderWidth={1}
+                      borderColor="rgba(0,0,0,0.06)"
+                    >
+                      {/* Header */}
+                      <XStack
+                        p="$sm"
+                        gap="$sm"
+                        style={{ backgroundColor: promo.color }}
+                        alignItems="flex-start"
+                        justifyContent="space-between"
+                      >
+                        <YStack>
+                          <Text
+                            fontSize="$6"
+                            fontWeight="bold"
+                            color="white"
+                          >
+                            {promo.discount}
+                          </Text>
+                          {promo.badge && (
+                            <Text
+                              fontSize={9}
+                              fontWeight="bold"
+                              color="white"
+                              textTransform="uppercase"
+                              letterSpacing={0.5}
+                              mt="$xs"
+                              px="$xs"
+                              py="$xs"
+                              bg="rgba(255,255,255,0.25)"
+                              borderRadius="$sm"
+                              alignSelf="flex-start"
+                            >
+                              {promo.badge}
+                            </Text>
+                          )}
+                        </YStack>
+                        <YStack
+                          p="$xs"
+                          borderRadius="$sm"
+                          bg="rgba(255,255,255,0.2)"
+                        >
+                          <IconComponent
+                            size={18}
+                            color="white"
+                          />
+                        </YStack>
+                      </XStack>
+
+                      {/* Body */}
+                      <YStack
+                        p="$sm"
+                        gap="$xs"
+                      >
+                        <Text
+                          fontSize="$4"
+                          fontWeight="bold"
+                          color="$color"
+                          letterSpacing={2}
+                        >
+                          {promo.code}
+                        </Text>
+                        <Text
+                          fontSize="$2"
+                          color="$colorSubtle"
+                        >
+                          {promo.description}
+                        </Text>
+                        <XStack
+                          alignItems="center"
+                          gap="$xs"
+                          mt="$xs"
+                        >
+                          <Clock
+                            size={12}
+                            color="rgba(12,154,92,0.8)"
+                          />
+                          <Text
+                            fontSize={11}
+                            color="rgba(12,154,92,0.8)"
+                          >
+                            {promo.expiryText}
+                          </Text>
+                        </XStack>
+                      </YStack>
+
+                      {/* Apply Button */}
+                      <YStack
+                        px="$sm"
+                        pb="$sm"
+                      >
+                        <Button
+                          unstyled
+                          flex={1}
+                          borderRadius="$md"
+                          py="$sm"
+                          px="$sm"
+                          alignItems="center"
+                          justifyContent="center"
+                          bg="rgba(12,154,92,0.1)"
+                          onPress={() => router.push('/auth/login')}
+                          pressStyle={{ scale: 0.98, opacity: 0.9 }}
+                          animation="quick"
+                        >
+                          <Text
+                            fontSize="$2"
+                            fontWeight="bold"
+                            color="rgba(12,154,92,1)"
+                          >
+                            Apply Code
+                          </Text>
+                        </Button>
+                      </YStack>
+                    </YStack>
+                  )
+                })}
+              </XStack>
+            </YStack>
+
             {/* Job List Section */}
             <YStack gap="$md">
               <XStack

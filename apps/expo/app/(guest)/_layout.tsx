@@ -3,7 +3,6 @@ import { useRouter, usePathname } from 'expo-router'
 import { YStack } from 'tamagui'
 import { BottomNav } from '@my/ui'
 import { useAuthStore } from '@my/api'
-import { useNavigationGuard } from 'app/hooks/useNavigationGuard'
 import { Stack } from 'expo-router'
 import { defaultScreenOptions } from 'app/navigation/config'
 
@@ -13,19 +12,16 @@ export default function GuestLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const activeRole = useAuthStore((state) => state.activeRole)
 
-  // Use navigation guard to prevent double navigation
-  const { push, replace, isNavigating } = useNavigationGuard({ delay: 400 })
-
   useEffect(() => {
     // If user is already authenticated, redirect to their homepage
     if (isAuthenticated && activeRole) {
       if (activeRole === 'handyman') {
-        replace('/(handyman)/')
+        router.replace('/(handyman)/')
       } else if (activeRole === 'homeowner') {
-        replace('/(homeowner)/')
+        router.replace('/(homeowner)/')
       }
     }
-  }, [isAuthenticated, activeRole, replace])
+  }, [isAuthenticated, activeRole, router])
 
   // Map pathname to active route for bottom nav
   const getActiveRoute = () => {
@@ -67,8 +63,7 @@ export default function GuestLayout() {
         <BottomNav
           activeRoute={getActiveRoute()}
           variant="guest"
-          onNavigate={(route) => push(route as any)}
-          isNavigating={isNavigating}
+          onNavigate={(route) => router.push(route as any)}
         />
       )}
     </YStack>
