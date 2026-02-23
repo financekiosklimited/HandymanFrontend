@@ -12,6 +12,7 @@
     "jsx": "react-jsx",
     "module": "system",
     "moduleResolution": "node",
+    "noEmit": true,
     "noEmitOnError": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,
@@ -27,10 +28,17 @@
     "sourceMap": false,
     "strictNullChecks": true,
     "target": "es2020",
-    "types": ["node"],
-    "lib": ["dom", "esnext"]
+    "types": [
+      "node"
+    ],
+    "lib": [
+      "dom",
+      "esnext"
+    ]
   },
-  "exclude": ["_"],
+  "exclude": [
+    "_"
+  ],
   "typeAcquisition": {
     "enable": true
   }

@@ -1,0 +1,86 @@
+System.register(["@tanstack/react-query", "../../client"], function (exports_1, context_1) {
+    "use strict";
+    var react_query_1, client_1;
+    var __moduleName = context_1 && context_1.id;
+    /**
+     * Hook to create a new job listing for homeowner.
+     * Supports multipart/form-data for attachment uploads (images, videos, documents).
+     * Uses indexed format: attachments[0].file, attachments[1].file, etc.
+     */
+    function useCreateJob() {
+        const queryClient = react_query_1.useQueryClient();
+        return react_query_1.useMutation({
+            mutationFn: async (data) => {
+                const formData = new FormData();
+                // Add basic fields
+                formData.append('title', data.title);
+                formData.append('description', data.description);
+                formData.append('estimated_budget', data.estimated_budget.toString());
+                formData.append('category_id', data.category_id);
+                formData.append('city_id', data.city_id);
+                formData.append('address', data.address);
+                if (data.postal_code) {
+                    formData.append('postal_code', data.postal_code);
+                }
+                if (data.latitude !== undefined) {
+                    formData.append('latitude', data.latitude.toString());
+                }
+                if (data.longitude !== undefined) {
+                    formData.append('longitude', data.longitude.toString());
+                }
+                if (data.status) {
+                    formData.append('status', data.status);
+                }
+                // Add tasks as JSON array
+                if (data.tasks && data.tasks.length > 0) {
+                    data.tasks.forEach((task, index) => {
+                        formData.append(`tasks[${index}]title`, task.title);
+                    });
+                }
+                // Add attachments using indexed format
+                if (data.attachments && data.attachments.length > 0) {
+                    data.attachments.forEach((attachment, index) => {
+                        // Main file
+                        // @ts-ignore - React Native FormData accepts RNFile object
+                        formData.append(`attachments[${index}].file`, attachment.file);
+                        // Thumbnail for videos (required)
+                        if (attachment.thumbnail) {
+                            // @ts-ignore - React Native FormData accepts RNFile object
+                            formData.append(`attachments[${index}].thumbnail`, attachment.thumbnail);
+                        }
+                        // Duration for videos (required)
+                        if (attachment.duration_seconds !== undefined) {
+                            formData.append(`attachments[${index}].duration_seconds`, attachment.duration_seconds.toString());
+                        }
+                    });
+                }
+                const response = await client_1.apiClient
+                    .post('homeowner/jobs/', {
+                    body: formData,
+                    headers: {
+                        'Content-Type': undefined,
+                    },
+                })
+                    .json();
+                return response.data;
+            },
+            onSuccess: () => {
+                // Invalidate homeowner jobs cache to refetch
+                queryClient.invalidateQueries({ queryKey: ['homeowner', 'jobs'] });
+            },
+        });
+    }
+    exports_1("useCreateJob", useCreateJob);
+    return {
+        setters: [
+            function (react_query_1_1) {
+                react_query_1 = react_query_1_1;
+            },
+            function (client_1_1) {
+                client_1 = client_1_1;
+            }
+        ],
+        execute: function () {
+        }
+    };
+});
