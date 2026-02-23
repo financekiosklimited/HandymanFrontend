@@ -92,6 +92,27 @@ yarn android           # Run Android emulator
 ### Decisions
 - always keep in mind of edge cases
 - be critical, ask detailed and important questions
+- always consider performance when giving suggestions/possible fixes
+
+When given a complex task:
+1. Write Python code that uses asyncio to call tools in parallel
+2. Process the results programmatically
+3. Return only the final aggregated result
+
+Example:
+```python
+import asyncio
+
+async def research_topic(topic):
+    # Parallel tool calls
+    search_task = search(f"{topic} latest news")
+    data_task = database_query(f"SELECT * FROM articles WHERE topic='{topic}'")
+
+    results = await asyncio.gather(search_task, data_task)
+    return synthesize_results(results)
+
+print(asyncio.run(research_topic("AI safety")))
+```
 
 ### Imports
 - Group imports: React/hooks → External libraries → Internal packages → Types

@@ -664,10 +664,16 @@ export function GuestHomeScreen() {
     if (minRating) {
       filteredHandymen = filteredHandymen.filter((h) => h.rating >= minRating)
     }
-    if (maxHourlyRate) {
-      filteredHandymen = filteredHandymen.filter(
-        (h) => h.hourly_rate && h.hourly_rate <= maxHourlyRate
-      )
+    if (maxHourlyRate !== null) {
+      if (maxHourlyRate === -1) {
+        // $101+ option - filter for rates greater than $100
+        filteredHandymen = filteredHandymen.filter((h) => h.hourly_rate && h.hourly_rate > 100)
+      } else {
+        // Standard "or less" options
+        filteredHandymen = filteredHandymen.filter(
+          (h) => h.hourly_rate && h.hourly_rate <= maxHourlyRate
+        )
+      }
     }
     return filteredHandymen
   }, [handymenData, minRating, maxHourlyRate])
@@ -690,122 +696,35 @@ export function GuestHomeScreen() {
     : null
 
   const ratingLabel = minRating ? `${minRating}+ Stars` : null
-  const hourlyRateLabel = maxHourlyRate ? `$${maxHourlyRate}/hr or less` : null
+  const hourlyRateLabel =
+    maxHourlyRate !== null
+      ? maxHourlyRate === -1
+        ? '$101/hr or more'
+        : `$${maxHourlyRate}/hr or less`
+      : null
 
   return (
     <GradientBackground>
-      <YStack
-        flex={1}
-        pt={insets.top}
-      >
-        {/* Header */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-          gap="$3"
-          justifyContent="space-between"
-        >
-          {/* Search Input Placeholder */}
-          <Pressable
-            onPress={handleSearchPress}
-            style={{ flex: 1 }}
-          >
-            <XStack
-              bg="$backgroundSubtle"
-              borderColor="$borderColor"
-              borderWidth={1}
-              borderRadius="$4"
-              px="$3"
-              py="$2.5"
-              alignItems="center"
-              gap="$2"
-            >
-              <Search
-                pointerEvents="none"
-                size={18}
-                color="$colorSubtle"
-              />
-              <Text
-                color="$colorSubtle"
-                fontSize="$3"
-              >
-                {displayText || ' '}
-                <Text
-                  color="$colorSubtle"
-                  fontSize="$3"
-                  opacity={showCursor ? 1 : 0}
-                >
-                  |
-                </Text>
-              </Text>
-            </XStack>
-          </Pressable>
-
-          <XStack
-            alignItems="center"
-            gap="$3"
-          >
-            <Button
-              unstyled
-              onPress={redirectToLogin}
-              position="relative"
-            >
-              <MessageCircle
-                size={20}
-                color="$color"
-              />
-            </Button>
-          </XStack>
-        </XStack>
-
+      <YStack flex={1}>
         <AnimatedScrollView
           flex={1}
           showsVerticalScrollIndicator={false}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
         >
-          {/* Welcome Message */}
+          {/* Job Posting Panel - Photo Background CTA with integrated search */}
           <AnimatedYStack
-            px="$4"
-            py="$4"
-            style={welcomeAnimatedStyle}
-          >
-            <Text
-              fontSize="$8"
-              fontWeight="bold"
-              color="$color"
-              lineHeight="$8"
-            >
-              Welcome, <Text color="$primary">Guest</Text>
-            </Text>
-            <Text
-              fontSize="$3"
-              color="$colorSubtle"
-              mt="$1"
-            >
-              Ready to improve your house?
-            </Text>
-          </AnimatedYStack>
-
-          {/* Job Posting Panel - Photo Background CTA */}
-          <AnimatedYStack
-            px="$4"
             pb="$3"
-            pt="$2"
             style={ctaAnimatedStyle}
           >
             <YStack
               overflow="hidden"
-              borderRadius="$8"
-              height={280}
-              shadowColor="#0C9A5C"
-              shadowRadius={16}
-              shadowOffset={{ width: 0, height: 6 }}
-              shadowOpacity={0.2}
+              height={380}
               position="relative"
+              borderBottomLeftRadius="$6"
+              borderBottomRightRadius="$6"
             >
-              {/* Background Image */}
+              {/* Background Image - Full Width */}
               <Image
                 source={CTA_BACKGROUND_IMAGE}
                 style={{
@@ -818,6 +737,14 @@ export function GuestHomeScreen() {
                   height: '100%',
                 }}
                 contentFit="cover"
+              />
+
+              {/* Top Gradient - Subtle fade to half transparency */}
+              <LinearGradient
+                colors={['rgba(0,0,0,0.5)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0)']}
+                start={[0.5, 0]}
+                end={[0.5, 0.5]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 120, zIndex: 5 }}
               />
 
               {/* Subtle Green Tint Overlay */}
@@ -848,12 +775,69 @@ export function GuestHomeScreen() {
                 pointerEvents="none"
               />
 
+              {/* Search Bar - Integrated at top */}
+              <XStack
+                px="$4"
+                py="$3"
+                pt={insets.top + 12}
+                alignItems="center"
+                gap="$3"
+                justifyContent="space-between"
+                zIndex={20}
+              >
+                <Pressable
+                  onPress={handleSearchPress}
+                  style={{ flex: 1 }}
+                >
+                  <XStack
+                    bg="rgba(255,255,255,0.9)"
+                    borderRadius="$4"
+                    px="$3"
+                    py="$2.5"
+                    alignItems="center"
+                    gap="$2"
+                  >
+                    <Search
+                      pointerEvents="none"
+                      size={18}
+                      color="#666"
+                    />
+                    <Text
+                      color="#666"
+                      fontSize="$3"
+                    >
+                      {displayText || ' '}
+                      <Text
+                        color="#666"
+                        fontSize="$3"
+                        opacity={showCursor ? 1 : 0}
+                      >
+                        |
+                      </Text>
+                    </Text>
+                  </XStack>
+                </Pressable>
+
+                <Button
+                  unstyled
+                  onPress={redirectToLogin}
+                  position="relative"
+                >
+                  <MessageCircle
+                    size={22}
+                    color="white"
+                    fill="white"
+                  />
+                </Button>
+              </XStack>
+
               {/* Content */}
               <YStack
                 flex={1}
                 justifyContent="center"
                 alignItems="center"
-                p="$5"
+                px="$5"
+                pb="$6"
                 gap="$5"
                 zIndex={10}
               >
@@ -861,6 +845,7 @@ export function GuestHomeScreen() {
                 <YStack
                   alignItems="center"
                   gap="$2"
+                  pt="$3"
                 >
                   <Text
                     fontSize="$9"
@@ -1429,6 +1414,24 @@ export function GuestHomeScreen() {
                           </Text>
                         </Button>
                       ))}
+                      {/* $101+ option - stored as -1 for "or more" logic */}
+                      <Button
+                        size="$2"
+                        unstyled
+                        onPress={() => {
+                          setMaxHourlyRate(-1)
+                          setShowHourlyRateDropdown(false)
+                        }}
+                        px="$2"
+                        py="$1.5"
+                      >
+                        <Text
+                          color={maxHourlyRate === -1 ? '$primary' : '$color'}
+                          fontWeight={maxHourlyRate === -1 ? 'bold' : 'normal'}
+                        >
+                          $101/hr or more
+                        </Text>
+                      </Button>
                     </YStack>
                   </CollapsibleSection>
 
@@ -1860,19 +1863,14 @@ export function GuestHomeScreen() {
               gap="$3"
               onPress={() => router.push('/auth/login')}
               {...PressPresets.card}
-              style={{
-                backgroundColor: 'rgba(255,184,0,0.12)',
-                backdropFilter: 'blur(10px)',
-              }}
-              borderWidth={1}
-              borderColor="rgba(255,184,0,0.3)"
-              shadowColor="rgba(255,184,0,0.15)"
+              bg="#FFB800"
+              shadowColor="rgba(0,0,0,0.1)"
               shadowRadius={15}
               shadowOpacity={1}
               shadowOffset={{ width: 0, height: 4 }}
             >
               <View
-                bg="#FFB800"
+                bg="rgba(0,0,0,0.15)"
                 p="$2.5"
                 borderRadius="$4"
               >
@@ -1886,13 +1884,13 @@ export function GuestHomeScreen() {
                 <Text
                   fontSize="$4"
                   fontWeight="bold"
-                  color="$color"
+                  color="#1A1A1A"
                 >
                   Earn Money as a Handyman
                 </Text>
                 <Text
                   fontSize="$2"
-                  color="$colorSubtle"
+                  color="#4A4A4A"
                 >
                   Set your own schedule and rates
                 </Text>

@@ -23,7 +23,7 @@ export function ScrollIndicator({ children }: ScrollIndicatorProps) {
       {children}
       {/* Gradient fade indicator on the right edge */}
       <LinearGradient
-        colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.8)']}
+        colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.35)']}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={{

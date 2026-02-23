@@ -390,10 +390,16 @@ export function HomeownerHomeScreen() {
     if (minRating) {
       filteredHandymen = filteredHandymen.filter((h) => h.rating >= minRating)
     }
-    if (maxHourlyRate) {
-      filteredHandymen = filteredHandymen.filter(
-        (h) => h.hourly_rate && h.hourly_rate <= maxHourlyRate
-      )
+    if (maxHourlyRate !== null) {
+      if (maxHourlyRate === -1) {
+        // $101+ option - filter for rates greater than $100
+        filteredHandymen = filteredHandymen.filter((h) => h.hourly_rate && h.hourly_rate > 100)
+      } else {
+        // Standard "or less" options
+        filteredHandymen = filteredHandymen.filter(
+          (h) => h.hourly_rate && h.hourly_rate <= maxHourlyRate
+        )
+      }
     }
     return filteredHandymen
   }, [handymenData, minRating, maxHourlyRate])
@@ -418,7 +424,12 @@ export function HomeownerHomeScreen() {
     ? categories?.find((c) => c.slug === selectedCategory)?.name
     : null
   const ratingLabel = minRating ? `${minRating}+ Stars` : null
-  const hourlyRateLabel = maxHourlyRate ? `$${maxHourlyRate}/hr or less` : null
+  const hourlyRateLabel =
+    maxHourlyRate !== null
+      ? maxHourlyRate === -1
+        ? '$101/hr or more'
+        : `$${maxHourlyRate}/hr or less`
+      : null
 
   const [isCheckingPhone, setIsCheckingPhone] = useState(false)
 
@@ -1121,6 +1132,26 @@ export function HomeownerHomeScreen() {
                           </Text>
                         </Button>
                       ))}
+                      {/* $101+ option - stored as -1 for "or more" logic */}
+                      <Button
+                        size="$2"
+                        unstyled
+                        onPress={() => {
+                          setMaxHourlyRate(-1)
+                          setShowHourlyRateDropdown(false)
+                        }}
+                        px="$2"
+                        py="$1.5"
+                        pressStyle={PressPresets.listItem.pressStyle}
+                        animation={PressPresets.listItem.animation}
+                      >
+                        <Text
+                          color={maxHourlyRate === -1 ? '$primary' : '$color'}
+                          fontWeight={maxHourlyRate === -1 ? 'bold' : 'normal'}
+                        >
+                          $101/hr or more
+                        </Text>
+                      </Button>
                     </YStack>
                   </CollapsibleSection>
 
