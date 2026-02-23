@@ -1,18 +1,17 @@
 # Project Specification
 
-> Status: DRAFT
-> Change the status above to FINALIZED when ready to begin planning.
+> Status: FINALIZED
 
 ## 1. Description
-Briefly describe what we are building. (e.g., Handyman Kiosk Application)
+Apply the home page design from the guest screen homepage to the homeowner homepage.
 
 ## 2. Goals
-- Goal 1
-- Goal 2
+- Update the layout, styling, and visual design of the homeowner homepage to match the guest homepage.
+- Retain the existing components and functionality of the homeowner homepage.
 
 ## 3. Non-Goals
-- What are we explicitly NOT building right now?
+- Do NOT add new components into the homeowner homepage.
+- Do NOT alter the underlying business logic or data fetching of the homeowner homepage.
 
 ## 4. Key Workflows / Features
-1. Feature A
-2. Feature B
+1. Homeowner Home Screen Redesign
