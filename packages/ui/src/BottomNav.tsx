@@ -3,6 +3,7 @@ import { XStack, YStack, Text, Button, View, Spinner, useTheme } from 'tamagui'
 import { Search, Bell, Plus, Briefcase, User } from '@tamagui/lucide-icons'
 import type { IconProps } from '@tamagui/helpers-icon'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { InteractionManager } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -108,12 +109,16 @@ function BottomNavComponent({
         return
       }
 
-      // If guest tries to access protected route, redirect to login
-      if (variant === 'guest' && item.requiresAuth) {
-        onNavigate('/auth/login')
-      } else {
-        onNavigate(item.route)
-      }
+      // Defer navigation to allow the Native ripple/press animation to start
+      // before Expo Router synchronous routing heavily blocks the JS thread
+      setTimeout(() => {
+        // If guest tries to access protected route, redirect to login
+        if (variant === 'guest' && item.requiresAuth) {
+          onNavigate('/auth/login')
+        } else {
+          onNavigate(item.route)
+        }
+      }, 50)
     },
     [variant, onAddPress, onNavigate, isRouteActive]
   )
@@ -223,7 +228,8 @@ function BottomNavComponent({
             alignItems="center"
             gap="$1"
             flex={1}
-            pressStyle={{ scale: 0.9 }}
+            animation="quick"
+            pressStyle={{ scale: 0.9, opacity: 0.7 }}
             disabled={isNavigating && !isAddButton}
             opacity={isNavigating && !isAddButton ? 0.7 : 1}
           >

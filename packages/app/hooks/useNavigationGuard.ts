@@ -41,7 +41,17 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
     (value: boolean) => {
       isNavigatingRef.current = value
       if (trackLoading) {
-        setIsNavigating(value)
+        if (value) {
+          // Delay turning ON the loading state slightly to let press animations start
+          setTimeout(() => {
+            if (isNavigatingRef.current) {
+              setIsNavigating(true)
+            }
+          }, 50)
+        } else {
+          // Turn OFF immediately
+          setIsNavigating(false)
+        }
       }
     },
     [trackLoading]
