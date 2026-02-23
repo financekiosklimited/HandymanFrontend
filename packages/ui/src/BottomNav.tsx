@@ -24,6 +24,9 @@ interface BottomNavItem {
   requiresAuth?: boolean
 }
 
+// Set to true to completely disable all animations in the bottom nav for performance tuning
+const DISABLE_ANIMATIONS = true
+
 // Nav items for each variant - defined outside component for stable reference
 const guestNavItems: BottomNavItem[] = [
   { id: 'explore', label: 'Explore', icon: Search, route: '/' },
@@ -111,14 +114,16 @@ function BottomNavComponent({
 
       // Defer navigation to allow the Native ripple/press animation to start
       // before Expo Router synchronous routing heavily blocks the JS thread
-      setTimeout(() => {
-        // If guest tries to access protected route, redirect to login
-        if (variant === 'guest' && item.requiresAuth) {
-          onNavigate('/auth/login')
-        } else {
-          onNavigate(item.route)
-        }
-      }, 50)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // If guest tries to access protected route, redirect to login
+          if (variant === 'guest' && item.requiresAuth) {
+            onNavigate('/auth/login')
+          } else {
+            onNavigate(item.route)
+          }
+        })
+      })
     },
     [variant, onAddPress, onNavigate, isRouteActive]
   )
@@ -141,22 +146,31 @@ function BottomNavComponent({
   const bellRingCount = useRef(0)
 
   useEffect(() => {
+    if (DISABLE_ANIMATIONS) return
+
     // Continuous shimmer loop - slower (2.5 seconds)
-    shimmerProgress.value = withRepeat(
-      withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      false
-    )
-  }, [shimmerProgress])
+    // Only run when not navigating
+    if (!isNavigating) {
+      shimmerProgress.value = withRepeat(
+        withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        false
+      )
+    } else {
+      shimmerProgress.value = 0
+    }
+  }, [shimmerProgress, isNavigating])
 
   // Trigger bell shake animation periodically when there are unread notifications
   useEffect(() => {
-    if (notificationCount <= 0) {
+    if (DISABLE_ANIMATIONS || notificationCount <= 0) {
       return
     }
 
     // Function to trigger the bell shake animation
     const triggerBellAnimation = () => {
+      if (isNavigating) return
+
       bellShakeProgress.value = 0
       bellShakeProgress.value = withRepeat(
         withTiming(1, { duration: 300, easing: Easing.inOut(Easing.ease) }),
@@ -184,7 +198,7 @@ function BottomNavComponent({
     return () => {
       clearInterval(intervalId)
     }
-  }, [notificationCount, bellShakeProgress])
+  }, [notificationCount, bellShakeProgress, isNavigating])
 
   const shimmerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: interpolate(shimmerProgress.value, [0, 1], [-150, 350]) }],
@@ -228,8 +242,8 @@ function BottomNavComponent({
             alignItems="center"
             gap="$1"
             flex={1}
-            animation="quick"
-            pressStyle={{ scale: 0.9, opacity: 0.7 }}
+            animation={DISABLE_ANIMATIONS ? undefined : 'quick'}
+            pressStyle={DISABLE_ANIMATIONS ? undefined : { scale: 0.9, opacity: 0.7 }}
             disabled={isNavigating && !isAddButton}
             opacity={isNavigating && !isAddButton ? 0.7 : 1}
           >
@@ -263,33 +277,35 @@ function BottomNavComponent({
                     />
                   )}
                   {/* Shimmer Overlay */}
-                  <Animated.View
-                    style={[
-                      {
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        width: 80,
-                      },
-                      shimmerAnimatedStyle,
-                    ]}
-                    pointerEvents="none"
-                  >
-                    <LinearGradient
-                      colors={[
-                        'rgba(255,255,255,0)',
-                        'rgba(255,255,255,0.85)',
-                        'rgba(255,255,255,0.85)',
-                        'rgba(255,255,255,0)',
+                  {!DISABLE_ANIMATIONS && (
+                    <Animated.View
+                      style={[
+                        {
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          width: 80,
+                        },
+                        shimmerAnimatedStyle,
                       ]}
-                      locations={[0, 0.4, 0.6, 1]}
-                      start={[0, 0.5]}
-                      end={[1, 0.5]}
-                      style={{ width: 80, height: '100%' }}
-                    />
-                  </Animated.View>
+                      pointerEvents="none"
+                    >
+                      <LinearGradient
+                        colors={[
+                          'rgba(255,255,255,0)',
+                          'rgba(255,255,255,0.85)',
+                          'rgba(255,255,255,0.85)',
+                          'rgba(255,255,255,0)',
+                        ]}
+                        locations={[0, 0.4, 0.6, 1]}
+                        start={[0, 0.5]}
+                        end={[1, 0.5]}
+                        style={{ width: 80, height: '100%' }}
+                      />
+                    </Animated.View>
+                  )}
                 </View>
                 {/* Spacer to align text with other tabs that have 24px icons */}
                 <View height={24} />
@@ -297,7 +313,7 @@ function BottomNavComponent({
             ) : (
               <View position="relative">
                 {/* Bell shake animation wrapper for Updates button */}
-                {isUpdatesButton && showBadge ? (
+                {isUpdatesButton && showBadge && !DISABLE_ANIMATIONS ? (
                   <Animated.View style={bellShakeAnimatedStyle}>
                     <Icon
                       size={24}

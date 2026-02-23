@@ -86,7 +86,9 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
       setNavigating(true)
 
       try {
+        console.time(`router.navigate -> ${href}`)
         router.navigate(href)
+        console.timeEnd(`router.navigate -> ${href}`)
         clearNavigationLock()
       } catch (error) {
         setNavigating(false)
@@ -109,7 +111,9 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
       setNavigating(true)
 
       try {
+        console.time(`router.push -> ${href}`)
         router.push(href)
+        console.timeEnd(`router.push -> ${href}`)
         clearNavigationLock()
       } catch (error) {
         setNavigating(false)
@@ -132,7 +136,9 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
       setNavigating(true)
 
       try {
+        console.time(`router.replace -> ${href}`)
         router.replace(href)
+        console.timeEnd(`router.replace -> ${href}`)
         clearNavigationLock()
       } catch (error) {
         setNavigating(false)
