@@ -12,6 +12,7 @@ import {
   PressPresets,
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
+import { colors } from '@my/config'
 import { useHandymanProfile, useActivateRole, useLogout } from '@my/api'
 import { useRouter, useNavigation } from 'expo-router'
 import {
@@ -253,7 +254,7 @@ export function HandymanProfileViewScreen() {
                     <Star
                       size={16}
                       color="$accent"
-                      fill="$accent"
+                      fill={colors.accent}
                     />
                     <Text
                       fontSize={14}

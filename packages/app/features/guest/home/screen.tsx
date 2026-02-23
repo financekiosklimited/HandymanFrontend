@@ -16,6 +16,7 @@ import {
 } from '@my/ui'
 import { useAnimatedScrollHandler } from 'react-native-reanimated'
 import { Pressable } from 'react-native'
+import { colors } from '@my/config'
 import { useGuestJobs, useGuestHandymen, useCategories, useCities } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
@@ -1663,7 +1664,7 @@ export function GuestHomeScreen() {
                               <Star
                                 size={10}
                                 color="$accent"
-                                fill="$accent"
+                                fill={colors.accent}
                               />
                               <Text
                                 fontSize={10}
@@ -1803,7 +1804,7 @@ export function GuestHomeScreen() {
                                 <Star
                                   size={10}
                                   color="$accent"
-                                  fill="$accent"
+                                  fill={colors.accent}
                                 />
                                 <Text
                                   fontSize={10}

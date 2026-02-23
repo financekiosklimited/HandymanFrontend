@@ -41,7 +41,7 @@ import { JobCard } from '@my/ui'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { Alert } from 'react-native'
-import { jobStatusColors, type JobStatus } from '@my/config'
+import { jobStatusColors, type JobStatus, colors } from '@my/config'
 import { useDebounce } from 'app/hooks'
 import { useToastController } from '@tamagui/toast'
 import {
@@ -1432,7 +1432,7 @@ export function HomeownerHomeScreen() {
                             <Star
                               size={10}
                               color="$accent"
-                              fill="$accent"
+                              fill={colors.accent}
                             />
                             <Text
                               fontSize={10}
@@ -1588,7 +1588,7 @@ export function HomeownerHomeScreen() {
                                 <Star
                                   size={10}
                                   color="$accent"
-                                  fill="$accent"
+                                  fill={colors.accent}
                                 />
                                 <Text
                                   fontSize={10}
