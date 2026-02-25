@@ -26,6 +26,71 @@ const ERROR_MESSAGES: Record<string, string> = {
 }
 
 /**
+ * Known 403 error reasons from backend permission classes.
+ */
+export type ForbiddenReason =
+  | 'phone_not_verified'
+  | 'email_not_verified'
+  | 'role_mismatch'
+  | 'platform_mismatch'
+  | 'unknown'
+
+/**
+ * Extracts the specific reason for a 403 Forbidden error from the API response.
+ * Returns null if the error is not a 403.
+ */
+export async function extractForbiddenReason(error: any): Promise<ForbiddenReason | null> {
+  const isHttpError = error instanceof HTTPError || (error && typeof error === 'object' && error.name === 'HTTPError' && error.response)
+  if (!isHttpError) return null
+  if (error.response?.status !== 403) return null
+
+  try {
+    // In React Native/Expo, sometimes clone() doesn't work perfectly with ky, or the response was already parsed.
+    // Let's try to parse the JSON.
+    const body = await error.response.clone().json().catch(async () => {
+      // If clone().json() fails, try to just use .json() in case it wasn't consumed
+      return await error.response.json().catch(() => null)
+    })
+    
+    if (!body) return 'unknown'
+
+    const errors = body?.errors
+
+    if (errors?.phone) return 'phone_not_verified'
+    if (errors?.email) return 'email_not_verified'
+    if (errors?.role) return 'role_mismatch'
+    if (errors?.platform) return 'platform_mismatch'
+
+    // Check message as fallback
+    const message = body?.message?.toLowerCase() || ''
+    if (message.includes('phone')) return 'phone_not_verified'
+    if (message.includes('email')) return 'email_not_verified'
+    if (message.includes('role')) return 'role_mismatch'
+    if (message.includes('platform')) return 'platform_mismatch'
+  } catch (e) {
+    console.error('Failed to extract forbidden reason:', e)
+    // Failed to parse response body
+  }
+
+  return 'unknown'
+}
+
+/**
+ * Synchronously checks if an error looks like a phone verification 403.
+ * Uses the error message string when the response body is not available.
+ */
+export function isPhoneVerificationError(error: unknown): boolean {
+  if (error instanceof HTTPError && error.response?.status === 403) {
+    // Check the error message for hints
+    const message = error.message?.toLowerCase() || ''
+    if (message.includes('phone')) return true
+    // For 403s, we'll need the async version for definitive check
+    return false
+  }
+  return false
+}
+
+/**
  * Formats error into human-readable message for display to users.
  * Strips URLs, technical details, and provides user-friendly messages.
  */

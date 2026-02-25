@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   YStack,
   XStack,
@@ -14,8 +14,9 @@ import {
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
-import { useHandymanApplications } from '@my/api'
-import { Briefcase, MapPin, ChevronRight } from '@tamagui/lucide-icons'
+import { useHandymanApplications, extractForbiddenReason } from '@my/api'
+import type { ForbiddenReason } from '@my/api'
+import { Briefcase, MapPin, ChevronRight, Phone } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastFromParams } from 'app/hooks/useToastFromParams'
@@ -190,6 +191,17 @@ export function MyJobsScreen() {
     isFetchingNextPage,
   } = useHandymanApplications()
 
+  // Detect specific 403 reason (phone not verified, etc.)
+  const [forbiddenReason, setForbiddenReason] = useState<ForbiddenReason | null>(null)
+
+  useEffect(() => {
+    if (error) {
+      extractForbiddenReason(error).then(setForbiddenReason)
+    } else {
+      setForbiddenReason(null)
+    }
+  }, [error])
+
   // Flatten paginated data
   const applications = useMemo(() => {
     return applicationsData?.pages.flatMap((page) => page.results) || []
@@ -270,25 +282,66 @@ export function MyJobsScreen() {
                 bg="rgba(255,255,255,0.7)"
                 borderRadius={20}
                 gap="$sm"
+                px="$lg"
               >
-                <Briefcase
-                  size={40}
-                  color="$error"
-                />
-                <Text
-                  color="$error"
-                  fontSize="$4"
-                  fontWeight="500"
-                >
-                  Failed to load applications
-                </Text>
-                <Text
-                  color="$colorSubtle"
-                  fontSize="$2"
-                  textAlign="center"
-                >
-                  Please try again later
-                </Text>
+                {forbiddenReason === 'phone_not_verified' ? (
+                  <>
+                    <Phone
+                      size={40}
+                      color="$primary"
+                    />
+                    <Text
+                      color="$color"
+                      fontSize="$4"
+                      fontWeight="600"
+                    >
+                      Phone Verification Required
+                    </Text>
+                    <Text
+                      color="$colorSubtle"
+                      fontSize="$2"
+                      textAlign="center"
+                    >
+                      Please verify your phone number to view your job applications.
+                    </Text>
+                    <Button
+                      mt="$sm"
+                      bg="$primary"
+                      color="white"
+                      borderRadius="$lg"
+                      px="$xl"
+                      onPress={() => router.push('/user/phone/send')}
+                    >
+                      <Text
+                        color="white"
+                        fontWeight="600"
+                      >
+                        Verify Phone Number
+                      </Text>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Briefcase
+                      size={40}
+                      color="$error"
+                    />
+                    <Text
+                      color="$error"
+                      fontSize="$4"
+                      fontWeight="500"
+                    >
+                      Failed to load applications
+                    </Text>
+                    <Text
+                      color="$colorSubtle"
+                      fontSize="$2"
+                      textAlign="center"
+                    >
+                      Please try again later
+                    </Text>
+                  </>
+                )}
               </YStack>
             ) : applications.length === 0 ? (
               <YStack

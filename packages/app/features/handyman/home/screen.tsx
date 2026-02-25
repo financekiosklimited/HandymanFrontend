@@ -147,6 +147,7 @@ const BUDGET_OPTIONS = [
   { value: 1000, label: 'Under $1,000' },
   { value: 2500, label: 'Under $2,500' },
   { value: 5000, label: 'Under $5,000' },
+  { value: -1, label: 'Over $5,000' },
 ]
 
 // Mock promo codes data for handyman users
@@ -579,7 +580,10 @@ export function HandymanHomeScreen() {
     return jobs.filter((job) => {
       if (!job.estimated_budget) return true
       const aboveMin = minBudget === null || job.estimated_budget >= minBudget
-      const belowMax = maxBudget === null || job.estimated_budget <= maxBudget
+      // Handle "Over $5,000" case where maxBudget is -1
+      const belowMax =
+        maxBudget === null ||
+        (maxBudget === -1 ? job.estimated_budget > 5000 : job.estimated_budget <= maxBudget)
       return aboveMin && belowMax
     })
   }, [jobs, minBudget, maxBudget])
@@ -602,6 +606,7 @@ export function HandymanHomeScreen() {
       if (maxBudget === 1000) return 'Under $1,000'
       if (maxBudget === 2500) return 'Under $2,500'
       if (maxBudget === 5000) return 'Under $5,000'
+      if (maxBudget === -1) return 'Over $5,000'
       return `Under $${maxBudget.toLocaleString()}`
     }
     return null
@@ -701,15 +706,14 @@ export function HandymanHomeScreen() {
                   <Search
                     pointerEvents="none"
                     size={18}
-                    color="#666"
+                    color="$colorSubtle"
                   />
                   <Input
                     unstyled
                     flex={1}
                     placeholder="Search jobs..."
-                    placeholderTextColor="#666"
+                    placeholderTextColor="$colorSubtle"
                     color="$color"
-                    fontSize="$3"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                   />
@@ -1487,11 +1491,14 @@ export function HandymanHomeScreen() {
                           py="$2"
                           bg={budgetTab === 'presets' ? '$primary' : 'transparent'}
                           onPress={() => setBudgetTab('presets')}
+                          pressStyle={PressPresets.filter.pressStyle}
+                          animation={PressPresets.filter.animation}
                         >
                           <Text
                             fontSize="$3"
                             fontWeight="bold"
                             color={budgetTab === 'presets' ? 'white' : '$color'}
+                            textAlign="center"
                           >
                             Presets
                           </Text>
@@ -1502,11 +1509,14 @@ export function HandymanHomeScreen() {
                           py="$2"
                           bg={budgetTab === 'custom' ? '$primary' : 'transparent'}
                           onPress={() => setBudgetTab('custom')}
+                          pressStyle={PressPresets.filter.pressStyle}
+                          animation={PressPresets.filter.animation}
                         >
                           <Text
                             fontSize="$3"
                             fontWeight="bold"
                             color={budgetTab === 'custom' ? 'white' : '$color'}
+                            textAlign="center"
                           >
                             Custom
                           </Text>
@@ -1519,15 +1529,13 @@ export function HandymanHomeScreen() {
                         gap="$2"
                       >
                         {budgetTab === 'presets' ? (
-                          // Presets Tab
+                          // Presets Tab - Grid Layout
                           <YStack gap="$2">
-                            <XStack
-                              flexWrap="wrap"
-                              gap="$2"
-                            >
-                              {BUDGET_OPTIONS.map((option) => (
+                            <XStack gap="$2">
+                              {BUDGET_OPTIONS.slice(0, 3).map((option) => (
                                 <Button
                                   key={option.label}
+                                  flex={1}
                                   size="$2"
                                   unstyled
                                   bg={
@@ -1540,8 +1548,7 @@ export function HandymanHomeScreen() {
                                       ? '$primary'
                                       : '$backgroundSubtle'
                                   }
-                                  px="$3"
-                                  py="$1.5"
+                                  py="$2"
                                   borderRadius="$3"
                                   onPress={() => {
                                     if (option.value === null) {
@@ -1558,6 +1565,58 @@ export function HandymanHomeScreen() {
                                   <Text
                                     fontSize="$2"
                                     fontWeight="600"
+                                    textAlign="center"
+                                    color={
+                                      (option.value === null &&
+                                        minBudget === null &&
+                                        maxBudget === null) ||
+                                      (option.value !== null &&
+                                        maxBudget === option.value &&
+                                        minBudget === null)
+                                        ? 'white'
+                                        : '$color'
+                                    }
+                                  >
+                                    {option.label}
+                                  </Text>
+                                </Button>
+                              ))}
+                            </XStack>
+                            <XStack gap="$2">
+                              {BUDGET_OPTIONS.slice(3, 6).map((option) => (
+                                <Button
+                                  key={option.label}
+                                  flex={1}
+                                  size="$2"
+                                  unstyled
+                                  bg={
+                                    (option.value === null &&
+                                      minBudget === null &&
+                                      maxBudget === null) ||
+                                    (option.value !== null &&
+                                      maxBudget === option.value &&
+                                      minBudget === null)
+                                      ? '$primary'
+                                      : '$backgroundSubtle'
+                                  }
+                                  py="$2"
+                                  borderRadius="$3"
+                                  onPress={() => {
+                                    if (option.value === null) {
+                                      setMinBudget(null)
+                                      setMaxBudget(null)
+                                    } else {
+                                      setMinBudget(null)
+                                      setMaxBudget(option.value)
+                                    }
+                                  }}
+                                  pressStyle={PressPresets.filter.pressStyle}
+                                  animation={PressPresets.filter.animation}
+                                >
+                                  <Text
+                                    fontSize="$2"
+                                    fontWeight="600"
+                                    textAlign="center"
                                     color={
                                       (option.value === null &&
                                         minBudget === null &&
