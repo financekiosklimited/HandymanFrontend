@@ -25,7 +25,9 @@ import {
   useHandymanPendingOffersCount,
   useHandymanApplications,
   useHandymanAssignedJobs,
+  useDiscounts,
 } from '@my/api'
+import type { Discount } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
 import { JobCard } from '@my/ui'
@@ -140,79 +142,18 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'halifax-ns': { lat: 44.648764, lng: -63.575239 },
 }
 
-// Budget filter options
-const BUDGET_OPTIONS = [
-  { value: null, label: 'All Budgets' },
-  { value: 500, label: 'Under $500' },
-  { value: 1000, label: 'Under $1,000' },
-  { value: 2500, label: 'Under $2,500' },
-  { value: 5000, label: 'Under $5,000' },
-  { value: -1, label: 'Over $5,000' },
-]
+// Budget filter presets
+const BUDGET_PRESETS = [100, 500, 1000, 2500]
 
-// Mock promo codes data for handyman users
-interface PromoCode {
-  code: string
-  discount: string
-  description: string
-  color: string
-  icon: 'sparkles' | 'gift' | 'wrench' | 'tag'
-  badge?: string
-  expiryText: string
-}
-
-const PROMO_CODES: PromoCode[] = [
-  {
-    code: 'FIRST20',
-    discount: '20% OFF',
-    description: 'First job discount',
-    color: '#0C9A5C',
-    icon: 'sparkles',
-    badge: 'POPULAR',
-    expiryText: 'Ends in 5 days',
-  },
-  {
-    code: 'WELCOME15',
-    discount: '$15 OFF',
-    description: 'Welcome bonus',
-    color: '#FF9500',
-    icon: 'gift',
-    expiryText: 'Ends in 7 days',
-  },
-  {
-    code: 'REPAIR10',
-    discount: '10% OFF',
-    description: 'Any repair service',
-    color: '#AF52DE',
-    icon: 'wrench',
-    expiryText: 'Ends in 3 days',
-  },
-  {
-    code: 'WINTERFIX',
-    discount: '$25 OFF',
-    description: 'Winter repairs',
-    color: '#007AFF',
-    icon: 'tag',
-    badge: 'NEW',
-    expiryText: 'Ends in 10 days',
-  },
-  {
-    code: 'QUICK50',
-    discount: '50% OFF',
-    description: 'Quick fixes',
-    color: '#FF2D55',
-    icon: 'sparkles',
-    badge: 'LIMITED',
-    expiryText: 'Ends in 2 days',
-  },
-]
-
-// Icon mapping for promo codes
+// Icon mapping for discount codes from API
 const promoIconMap: Record<string, any> = {
   sparkles: Sparkles,
   gift: Gift,
   wrench: Wrench,
   tag: Tag,
+  percent: Zap,
+  dollar_sign: DollarSign,
+  star: Star,
 }
 
 // Create animated components
@@ -356,9 +297,9 @@ export function HandymanHomeScreen() {
   const [maxBudget, setMaxBudget] = useState<number | null>(null)
   const [showCityDropdown, setShowCityDropdown] = useState(false)
   const [showBudgetDropdown, setShowBudgetDropdown] = useState(false)
-  const [budgetTab, setBudgetTab] = useState<'presets' | 'custom'>('presets')
   const [customMinInput, setCustomMinInput] = useState('')
   const [customMaxInput, setCustomMaxInput] = useState('')
+  const [budgetError, setBudgetError] = useState<string | null>(null)
 
   // Debounced category selection to prevent rapid-fire animations
   const [pendingCategory, setPendingCategory] = useState<string | null>(null)
@@ -416,6 +357,11 @@ export function HandymanHomeScreen() {
 
   // Fetch categories from API
   const { data: categories, isLoading: categoriesLoading } = useCategories()
+
+  // Fetch active discounts for handymen
+  const { data: discountsData, isLoading: discountsLoading } = useDiscounts({
+    role: 'handyman',
+  })
 
   // Fetch handyman's profile
   const { data: profile } = useHandymanProfile()
@@ -602,12 +548,12 @@ export function HandymanHomeScreen() {
       return `$${minBudget.toLocaleString()}+`
     }
     if (maxBudget !== null) {
-      if (maxBudget === 500) return 'Under $500'
-      if (maxBudget === 1000) return 'Under $1,000'
-      if (maxBudget === 2500) return 'Under $2,500'
-      if (maxBudget === 5000) return 'Under $5,000'
-      if (maxBudget === -1) return 'Over $5,000'
-      return `Under $${maxBudget.toLocaleString()}`
+      if (maxBudget === 500) return '< $500'
+      if (maxBudget === 1000) return '< $1,000'
+      if (maxBudget === 2500) return '< $2,500'
+      if (maxBudget === 5000) return '< $5,000'
+      if (maxBudget === -1) return '> $5,000'
+      return `< $${maxBudget.toLocaleString()}`
     }
     return null
   }, [minBudget, maxBudget])
@@ -1049,150 +995,166 @@ export function HandymanHomeScreen() {
                   contentContainerStyle={{ paddingRight: 24 }}
                 >
                   <XStack gap="$3">
-                    {PROMO_CODES.map((promo, index) => {
-                      const IconComponent = promoIconMap[promo.icon]
-                      return (
-                        <AnimatedCard
-                          key={promo.code}
-                          index={index}
-                          style={{
-                            backgroundColor: 'rgba(255,255,255,0.92)',
-                            borderRadius: 16,
-                            overflow: 'hidden',
-                            backdropFilter: 'blur(10px)',
-                            shadowColor: 'rgba(12,154,92,0.15)',
-                            shadowRadius: 15,
-                            shadowOpacity: 1,
-                            shadowOffset: { width: 0, height: 6 },
-                            elevation: 4,
-                            width: 180,
-                            borderWidth: 1,
-                            borderColor: 'rgba(255,255,255,0.8)',
-                          }}
-                        >
-                          {/* Gradient Header */}
-                          <LinearGradient
-                            colors={[promo.color, `${promo.color}DD`]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
+                    {discountsLoading ? (
+                      <>
+                        {[1, 2, 3].map((_, index) => (
+                          <View
+                            key={index}
                             style={{
-                              paddingHorizontal: 12,
-                              paddingVertical: 10,
-                              minHeight: 70,
+                              backgroundColor: 'rgba(255,255,255,0.5)',
+                              borderRadius: 16,
+                              width: 180,
+                              height: 200,
+                            }}
+                          />
+                        ))}
+                      </>
+                    ) : (
+                      discountsData?.map((promo: Discount, index: number) => {
+                        const IconComponent = promoIconMap[promo.icon] || Sparkles
+                        return (
+                          <AnimatedCard
+                            key={promo.code}
+                            index={index}
+                            style={{
+                              backgroundColor: 'rgba(255,255,255,0.92)',
+                              borderRadius: 16,
+                              overflow: 'hidden',
+                              backdropFilter: 'blur(10px)',
+                              shadowColor: 'rgba(12,154,92,0.15)',
+                              shadowRadius: 15,
+                              shadowOpacity: 1,
+                              shadowOffset: { width: 0, height: 6 },
+                              elevation: 4,
+                              width: 180,
+                              borderWidth: 1,
+                              borderColor: 'rgba(255,255,255,0.8)',
                             }}
                           >
-                            <XStack
-                              alignItems="flex-start"
-                              justifyContent="space-between"
-                            >
-                              <YStack>
-                                <Text
-                                  fontSize="$6"
-                                  fontWeight="bold"
-                                  color="white"
-                                >
-                                  {promo.discount}
-                                </Text>
-                                {promo.badge && (
-                                  <View
-                                    bg="rgba(255,255,255,0.25)"
-                                    px="$1.5"
-                                    py="$0.5"
-                                    borderRadius="$2"
-                                    mt="$1"
-                                    alignSelf="flex-start"
-                                  >
-                                    <Text
-                                      fontSize={9}
-                                      fontWeight="bold"
-                                      color="white"
-                                      textTransform="uppercase"
-                                      letterSpacing={0.5}
-                                    >
-                                      {promo.badge}
-                                    </Text>
-                                  </View>
-                                )}
-                              </YStack>
-                              <View
-                                bg="rgba(255,255,255,0.2)"
-                                p="$1.5"
-                                borderRadius="$3"
-                              >
-                                <IconComponent
-                                  size={18}
-                                  color="white"
-                                />
-                              </View>
-                            </XStack>
-                          </LinearGradient>
-
-                          {/* Card Body */}
-                          <YStack
-                            p="$3"
-                            gap="$1"
-                          >
-                            <Text
-                              fontSize="$4"
-                              fontWeight="bold"
-                              color="$color"
-                              letterSpacing={2}
-                            >
-                              {promo.code}
-                            </Text>
-                            <Text
-                              fontSize="$2"
-                              color="$colorSubtle"
-                              numberOfLines={1}
-                            >
-                              {promo.description}
-                            </Text>
-                            <XStack
-                              alignItems="center"
-                              gap="$1"
-                              mt="$1"
-                            >
-                              <Clock
-                                size={10}
-                                color="rgba(12,154,92,0.8)"
-                              />
-                              <Text
-                                fontSize={10}
-                                color="rgba(12,154,92,0.8)"
-                              >
-                                {promo.expiryText}
-                              </Text>
-                            </XStack>
-                          </YStack>
-
-                          {/* Apply Button */}
-                          <XStack
-                            px="$3"
-                            pb="$3"
-                          >
-                            <Button
-                              unstyled
-                              flex={1}
-                              borderRadius="$3"
-                              py="$2"
-                              px="$3"
-                              {...PressPresets.secondary}
+                            {/* Gradient Header */}
+                            <LinearGradient
+                              colors={[promo.color, `${promo.color}DD`]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
                               style={{
-                                backgroundColor: `${promo.color}20`,
+                                paddingHorizontal: 12,
+                                paddingVertical: 10,
+                                minHeight: 70,
                               }}
                             >
+                              <XStack
+                                alignItems="flex-start"
+                                justifyContent="space-between"
+                              >
+                                <YStack>
+                                  <Text
+                                    fontSize="$6"
+                                    fontWeight="bold"
+                                    color="white"
+                                  >
+                                    {promo.discount_display}
+                                  </Text>
+                                  {promo.badge_text && (
+                                    <View
+                                      bg="rgba(255,255,255,0.25)"
+                                      px="$1.5"
+                                      py="$0.5"
+                                      borderRadius="$2"
+                                      mt="$1"
+                                      alignSelf="flex-start"
+                                    >
+                                      <Text
+                                        fontSize={9}
+                                        fontWeight="bold"
+                                        color="white"
+                                        textTransform="uppercase"
+                                        letterSpacing={0.5}
+                                      >
+                                        {promo.badge_text}
+                                      </Text>
+                                    </View>
+                                  )}
+                                </YStack>
+                                <View
+                                  bg="rgba(255,255,255,0.2)"
+                                  p="$1.5"
+                                  borderRadius="$3"
+                                >
+                                  <IconComponent
+                                    size={18}
+                                    color="white"
+                                  />
+                                </View>
+                              </XStack>
+                            </LinearGradient>
+
+                            {/* Card Body */}
+                            <YStack
+                              p="$3"
+                              gap="$1"
+                            >
+                              <Text
+                                fontSize="$4"
+                                fontWeight="bold"
+                                color="$color"
+                                letterSpacing={2}
+                              >
+                                {promo.code}
+                              </Text>
                               <Text
                                 fontSize="$2"
-                                fontWeight="bold"
-                                style={{ color: promo.color }}
+                                color="$colorSubtle"
+                                numberOfLines={1}
                               >
-                                Apply Code
+                                {promo.description}
                               </Text>
-                            </Button>
-                          </XStack>
-                        </AnimatedCard>
-                      )
-                    })}
+                              <XStack
+                                alignItems="center"
+                                gap="$1"
+                                mt="$1"
+                              >
+                                <Clock
+                                  size={10}
+                                  color="rgba(12,154,92,0.8)"
+                                />
+                                <Text
+                                  fontSize={10}
+                                  color="rgba(12,154,92,0.8)"
+                                >
+                                  {promo.expiry_text}
+                                </Text>
+                              </XStack>
+                            </YStack>
+
+                            {/* Apply Button */}
+                            <XStack
+                              px="$3"
+                              pb="$3"
+                            >
+                              <Button
+                                unstyled
+                                flex={1}
+                                borderRadius="$3"
+                                py="$2"
+                                px="$3"
+                                {...PressPresets.secondary}
+                                style={{
+                                  backgroundColor: `${promo.color}20`,
+                                }}
+                              >
+                                <Text
+                                  fontSize="$2"
+                                  fontWeight="bold"
+                                  style={{ color: promo.color }}
+                                >
+                                  Apply Code
+                                </Text>
+                              </Button>
+                            </XStack>
+                          </AnimatedCard>
+                        )
+                      })
+                    )}
                   </XStack>
                 </Animated.ScrollView>
               </ScrollIndicator>
@@ -1441,7 +1403,10 @@ export function HandymanHomeScreen() {
                 </YStack>
 
                 {/* Budget Filter */}
-                <YStack gap="$2">
+                <YStack
+                  gap="$2"
+                  zIndex={showBudgetDropdown ? 100 : 1}
+                >
                   {/* Budget Filter Button */}
                   <Button
                     flex={1}
@@ -1460,9 +1425,6 @@ export function HandymanHomeScreen() {
                     px="$2"
                     onPress={() => {
                       setShowBudgetDropdown(!showBudgetDropdown)
-                      if (!showBudgetDropdown) {
-                        setBudgetTab('presets')
-                      }
                     }}
                     pressStyle={PressPresets.filter.pressStyle}
                     animation={PressPresets.filter.animation}
@@ -1471,6 +1433,19 @@ export function HandymanHomeScreen() {
                     {budgetLabel || 'Budget'}
                   </Button>
 
+                  {/* Backdrop for tap-outside-to-close */}
+                  {showBudgetDropdown && (
+                    <View
+                      position="absolute"
+                      top={0}
+                      left={-1000}
+                      right={-1000}
+                      bottom={-1000}
+                      zIndex={-1}
+                      onPress={() => setShowBudgetDropdown(false)}
+                    />
+                  )}
+
                   {/* Budget Dropdown Panel */}
                   {showBudgetDropdown && (
                     <YStack
@@ -1478,290 +1453,235 @@ export function HandymanHomeScreen() {
                       borderRadius="$4"
                       borderWidth={1}
                       borderColor="$borderColor"
-                      overflow="hidden"
+                      p="$3"
+                      gap="$3"
+                      zIndex={1}
                     >
-                      {/* Tab Header */}
-                      <XStack
-                        borderBottomWidth={1}
-                        borderColor="$borderColor"
-                      >
-                        <Button
-                          flex={1}
-                          unstyled
-                          py="$2"
-                          bg={budgetTab === 'presets' ? '$primary' : 'transparent'}
-                          onPress={() => setBudgetTab('presets')}
-                          pressStyle={PressPresets.filter.pressStyle}
-                          animation={PressPresets.filter.animation}
+                      {/* Min Budget Input */}
+                      <YStack gap="$2">
+                        <Text
+                          fontSize="$2"
+                          fontWeight="600"
+                          color="$colorSubtle"
+                        >
+                          Min Budget
+                        </Text>
+                        <XStack
+                          alignItems="center"
+                          gap="$2"
                         >
                           <Text
                             fontSize="$3"
                             fontWeight="bold"
-                            color={budgetTab === 'presets' ? 'white' : '$color'}
-                            textAlign="center"
+                            color="$color"
                           >
-                            Presets
+                            $
+                          </Text>
+                          <Input
+                            flex={1}
+                            value={customMinInput}
+                            onChangeText={setCustomMinInput}
+                            placeholder="0"
+                            keyboardType="numeric"
+                            borderRadius="$3"
+                            borderWidth={1}
+                            borderColor="$borderColor"
+                            px="$2"
+                            py="$1"
+                          />
+                        </XStack>
+                        {/* Min Budget Presets */}
+                        <YStack
+                          bg="$backgroundSubtle"
+                          borderRadius="$3"
+                          p="$2"
+                          gap="$1"
+                        >
+                          <Text
+                            fontSize="$1"
+                            color="$colorSubtle"
+                            fontWeight="600"
+                          >
+                            Quick select:
+                          </Text>
+                          <XStack
+                            flexWrap="wrap"
+                            gap="$2"
+                          >
+                            {BUDGET_PRESETS.map((preset) => (
+                              <Button
+                                key={preset}
+                                unstyled
+                                bg="white"
+                                borderWidth={1}
+                                borderColor="$borderColor"
+                                borderRadius="$2"
+                                px="$2"
+                                py="$1"
+                                onPress={() => {
+                                  setCustomMinInput(preset.toString())
+                                }}
+                                pressStyle={PressPresets.filter.pressStyle}
+                              >
+                                <Text
+                                  fontSize="$2"
+                                  color="$color"
+                                  fontWeight="500"
+                                >
+                                  ${preset}
+                                </Text>
+                              </Button>
+                            ))}
+                          </XStack>
+                        </YStack>
+                      </YStack>
+
+                      {/* Max Budget Input */}
+                      <YStack gap="$2">
+                        <Text
+                          fontSize="$2"
+                          fontWeight="600"
+                          color="$colorSubtle"
+                        >
+                          Max Budget
+                        </Text>
+                        <XStack
+                          alignItems="center"
+                          gap="$2"
+                        >
+                          <Text
+                            fontSize="$3"
+                            fontWeight="bold"
+                            color="$color"
+                          >
+                            $
+                          </Text>
+                          <Input
+                            flex={1}
+                            value={customMaxInput}
+                            onChangeText={setCustomMaxInput}
+                            placeholder="No limit"
+                            keyboardType="numeric"
+                            borderRadius="$3"
+                            borderWidth={1}
+                            borderColor="$borderColor"
+                            px="$2"
+                            py="$1"
+                          />
+                        </XStack>
+                        {/* Max Budget Presets */}
+                        <YStack
+                          bg="$backgroundSubtle"
+                          borderRadius="$3"
+                          p="$2"
+                          gap="$1"
+                        >
+                          <Text
+                            fontSize="$1"
+                            color="$colorSubtle"
+                            fontWeight="600"
+                          >
+                            Quick select:
+                          </Text>
+                          <XStack
+                            flexWrap="wrap"
+                            gap="$2"
+                          >
+                            {BUDGET_PRESETS.map((preset) => (
+                              <Button
+                                key={preset}
+                                unstyled
+                                bg="white"
+                                borderWidth={1}
+                                borderColor="$borderColor"
+                                borderRadius="$2"
+                                px="$2"
+                                py="$1"
+                                onPress={() => {
+                                  setCustomMaxInput(preset.toString())
+                                }}
+                                pressStyle={PressPresets.filter.pressStyle}
+                              >
+                                <Text
+                                  fontSize="$2"
+                                  color="$color"
+                                  fontWeight="500"
+                                >
+                                  ${preset}
+                                </Text>
+                              </Button>
+                            ))}
+                          </XStack>
+                        </YStack>
+                      </YStack>
+
+                      {/* Action Buttons */}
+                      <XStack
+                        gap="$2"
+                        mt="$1"
+                      >
+                        <Button
+                          flex={1}
+                          size="$2"
+                          bg="white"
+                          borderColor="$borderColor"
+                          borderWidth={1}
+                          onPress={() => {
+                            setMinBudget(null)
+                            setMaxBudget(null)
+                            setCustomMinInput('')
+                            setCustomMaxInput('')
+                            setBudgetError(null)
+                            setShowBudgetDropdown(false)
+                          }}
+                          pressStyle={PressPresets.secondary.pressStyle}
+                          animation={PressPresets.secondary.animation}
+                        >
+                          <Text
+                            fontSize="$2"
+                            color="$color"
+                          >
+                            Clear
                           </Text>
                         </Button>
                         <Button
                           flex={1}
-                          unstyled
-                          py="$2"
-                          bg={budgetTab === 'custom' ? '$primary' : 'transparent'}
-                          onPress={() => setBudgetTab('custom')}
-                          pressStyle={PressPresets.filter.pressStyle}
-                          animation={PressPresets.filter.animation}
+                          size="$2"
+                          bg="$primary"
+                          onPress={() => {
+                            const min = customMinInput ? Number.parseInt(customMinInput, 10) : null
+                            const max = customMaxInput ? Number.parseInt(customMaxInput, 10) : null
+                            if (min !== null && max !== null && min > max) {
+                              setBudgetError('Min budget must be less than or equal to max budget')
+                              return
+                            }
+                            setBudgetError(null)
+                            setMinBudget(min)
+                            setMaxBudget(max)
+                            setShowBudgetDropdown(false)
+                          }}
+                          pressStyle={PressPresets.primary.pressStyle}
+                          animation={PressPresets.primary.animation}
                         >
                           <Text
-                            fontSize="$3"
+                            fontSize="$2"
+                            color="white"
                             fontWeight="bold"
-                            color={budgetTab === 'custom' ? 'white' : '$color'}
-                            textAlign="center"
                           >
-                            Custom
+                            Apply
                           </Text>
                         </Button>
                       </XStack>
-
-                      {/* Tab Content */}
-                      <YStack
-                        p="$3"
-                        gap="$2"
-                      >
-                        {budgetTab === 'presets' ? (
-                          // Presets Tab - Grid Layout
-                          <YStack gap="$2">
-                            <XStack gap="$2">
-                              {BUDGET_OPTIONS.slice(0, 3).map((option) => (
-                                <Button
-                                  key={option.label}
-                                  flex={1}
-                                  size="$2"
-                                  unstyled
-                                  bg={
-                                    (option.value === null &&
-                                      minBudget === null &&
-                                      maxBudget === null) ||
-                                    (option.value !== null &&
-                                      maxBudget === option.value &&
-                                      minBudget === null)
-                                      ? '$primary'
-                                      : '$backgroundSubtle'
-                                  }
-                                  py="$2"
-                                  borderRadius="$3"
-                                  onPress={() => {
-                                    if (option.value === null) {
-                                      setMinBudget(null)
-                                      setMaxBudget(null)
-                                    } else {
-                                      setMinBudget(null)
-                                      setMaxBudget(option.value)
-                                    }
-                                  }}
-                                  pressStyle={PressPresets.filter.pressStyle}
-                                  animation={PressPresets.filter.animation}
-                                >
-                                  <Text
-                                    fontSize="$2"
-                                    fontWeight="600"
-                                    textAlign="center"
-                                    color={
-                                      (option.value === null &&
-                                        minBudget === null &&
-                                        maxBudget === null) ||
-                                      (option.value !== null &&
-                                        maxBudget === option.value &&
-                                        minBudget === null)
-                                        ? 'white'
-                                        : '$color'
-                                    }
-                                  >
-                                    {option.label}
-                                  </Text>
-                                </Button>
-                              ))}
-                            </XStack>
-                            <XStack gap="$2">
-                              {BUDGET_OPTIONS.slice(3, 6).map((option) => (
-                                <Button
-                                  key={option.label}
-                                  flex={1}
-                                  size="$2"
-                                  unstyled
-                                  bg={
-                                    (option.value === null &&
-                                      minBudget === null &&
-                                      maxBudget === null) ||
-                                    (option.value !== null &&
-                                      maxBudget === option.value &&
-                                      minBudget === null)
-                                      ? '$primary'
-                                      : '$backgroundSubtle'
-                                  }
-                                  py="$2"
-                                  borderRadius="$3"
-                                  onPress={() => {
-                                    if (option.value === null) {
-                                      setMinBudget(null)
-                                      setMaxBudget(null)
-                                    } else {
-                                      setMinBudget(null)
-                                      setMaxBudget(option.value)
-                                    }
-                                  }}
-                                  pressStyle={PressPresets.filter.pressStyle}
-                                  animation={PressPresets.filter.animation}
-                                >
-                                  <Text
-                                    fontSize="$2"
-                                    fontWeight="600"
-                                    textAlign="center"
-                                    color={
-                                      (option.value === null &&
-                                        minBudget === null &&
-                                        maxBudget === null) ||
-                                      (option.value !== null &&
-                                        maxBudget === option.value &&
-                                        minBudget === null)
-                                        ? 'white'
-                                        : '$color'
-                                    }
-                                  >
-                                    {option.label}
-                                  </Text>
-                                </Button>
-                              ))}
-                            </XStack>
-                          </YStack>
-                        ) : (
-                          // Custom Tab
-                          <YStack gap="$3">
-                            <YStack gap="$1">
-                              <Text
-                                fontSize="$2"
-                                fontWeight="600"
-                                color="$colorSubtle"
-                              >
-                                Min Budget
-                              </Text>
-                              <XStack
-                                alignItems="center"
-                                gap="$2"
-                              >
-                                <Text
-                                  fontSize="$3"
-                                  fontWeight="bold"
-                                  color="$color"
-                                >
-                                  $
-                                </Text>
-                                <Input
-                                  flex={1}
-                                  value={customMinInput}
-                                  onChangeText={setCustomMinInput}
-                                  placeholder="0"
-                                  keyboardType="numeric"
-                                  borderRadius="$3"
-                                  borderWidth={1}
-                                  borderColor="$borderColor"
-                                  px="$2"
-                                  py="$1"
-                                />
-                              </XStack>
-                            </YStack>
-
-                            <YStack gap="$1">
-                              <Text
-                                fontSize="$2"
-                                fontWeight="600"
-                                color="$colorSubtle"
-                              >
-                                Max Budget
-                              </Text>
-                              <XStack
-                                alignItems="center"
-                                gap="$2"
-                              >
-                                <Text
-                                  fontSize="$3"
-                                  fontWeight="bold"
-                                  color="$color"
-                                >
-                                  $
-                                </Text>
-                                <Input
-                                  flex={1}
-                                  value={customMaxInput}
-                                  onChangeText={setCustomMaxInput}
-                                  placeholder="No limit"
-                                  keyboardType="numeric"
-                                  borderRadius="$3"
-                                  borderWidth={1}
-                                  borderColor="$borderColor"
-                                  px="$2"
-                                  py="$1"
-                                />
-                              </XStack>
-                            </YStack>
-
-                            <XStack
-                              gap="$2"
-                              mt="$1"
-                            >
-                              <Button
-                                flex={1}
-                                size="$2"
-                                bg="white"
-                                borderColor="$borderColor"
-                                borderWidth={1}
-                                onPress={() => {
-                                  setMinBudget(null)
-                                  setMaxBudget(null)
-                                  setCustomMinInput('')
-                                  setCustomMaxInput('')
-                                  setShowBudgetDropdown(false)
-                                }}
-                                pressStyle={PressPresets.secondary.pressStyle}
-                                animation={PressPresets.secondary.animation}
-                              >
-                                <Text
-                                  fontSize="$2"
-                                  color="$color"
-                                >
-                                  Clear
-                                </Text>
-                              </Button>
-                              <Button
-                                flex={1}
-                                size="$2"
-                                bg="$primary"
-                                onPress={() => {
-                                  const min = customMinInput
-                                    ? Number.parseInt(customMinInput, 10)
-                                    : null
-                                  const max = customMaxInput
-                                    ? Number.parseInt(customMaxInput, 10)
-                                    : null
-                                  setMinBudget(min)
-                                  setMaxBudget(max)
-                                  setShowBudgetDropdown(false)
-                                }}
-                                pressStyle={PressPresets.primary.pressStyle}
-                                animation={PressPresets.primary.animation}
-                              >
-                                <Text
-                                  fontSize="$2"
-                                  color="white"
-                                  fontWeight="bold"
-                                >
-                                  Apply
-                                </Text>
-                              </Button>
-                            </XStack>
-                          </YStack>
-                        )}
-                      </YStack>
+                      {budgetError && (
+                        <Text
+                          fontSize="$2"
+                          color="red"
+                          fontWeight="500"
+                          textAlign="center"
+                        >
+                          {budgetError}
+                        </Text>
+                      )}
                     </YStack>
                   )}
                 </YStack>

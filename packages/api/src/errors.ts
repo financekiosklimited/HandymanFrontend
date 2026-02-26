@@ -40,18 +40,23 @@ export type ForbiddenReason =
  * Returns null if the error is not a 403.
  */
 export async function extractForbiddenReason(error: any): Promise<ForbiddenReason | null> {
-  const isHttpError = error instanceof HTTPError || (error && typeof error === 'object' && error.name === 'HTTPError' && error.response)
+  const isHttpError =
+    error instanceof HTTPError ||
+    (error && typeof error === 'object' && error.name === 'HTTPError' && error.response)
   if (!isHttpError) return null
   if (error.response?.status !== 403) return null
 
   try {
     // In React Native/Expo, sometimes clone() doesn't work perfectly with ky, or the response was already parsed.
     // Let's try to parse the JSON.
-    const body = await error.response.clone().json().catch(async () => {
-      // If clone().json() fails, try to just use .json() in case it wasn't consumed
-      return await error.response.json().catch(() => null)
-    })
-    
+    const body = await error.response
+      .clone()
+      .json()
+      .catch(async () => {
+        // If clone().json() fails, try to just use .json() in case it wasn't consumed
+        return await error.response.json().catch(() => null)
+      })
+
     if (!body) return 'unknown'
 
     const errors = body?.errors

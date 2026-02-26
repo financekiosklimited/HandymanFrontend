@@ -37,6 +37,7 @@ import {
   useCities,
 } from '@my/api'
 import type { HomeownerJobStatus } from '@my/api'
+import { useDiscounts, type Discount } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
 import { JobCard } from '@my/ui'
@@ -156,69 +157,15 @@ function AnimatedCard({
   )
 }
 
-// Mock promo codes data for homeowner users
-interface PromoCode {
-  code: string
-  discount: string
-  description: string
-  color: string
-  icon: 'sparkles' | 'gift' | 'wrench' | 'tag'
-  badge?: string
-  expiryText: string
-}
-
-const PROMO_CODES: PromoCode[] = [
-  {
-    code: 'FIRST20',
-    discount: '20% OFF',
-    description: 'First job discount',
-    color: '#0C9A5C',
-    icon: 'sparkles',
-    badge: 'POPULAR',
-    expiryText: 'Ends in 5 days',
-  },
-  {
-    code: 'WELCOME15',
-    discount: '$15 OFF',
-    description: 'Welcome bonus',
-    color: '#FF9500',
-    icon: 'gift',
-    expiryText: 'Ends in 7 days',
-  },
-  {
-    code: 'REPAIR10',
-    discount: '10% OFF',
-    description: 'Any repair service',
-    color: '#AF52DE',
-    icon: 'wrench',
-    expiryText: 'Ends in 3 days',
-  },
-  {
-    code: 'WINTERFIX',
-    discount: '$25 OFF',
-    description: 'Winter repairs',
-    color: '#007AFF',
-    icon: 'tag',
-    badge: 'NEW',
-    expiryText: 'Ends in 10 days',
-  },
-  {
-    code: 'QUICK50',
-    discount: '50% OFF',
-    description: 'Quick fixes',
-    color: '#FF2D55',
-    icon: 'sparkles',
-    badge: 'LIMITED',
-    expiryText: 'Ends in 2 days',
-  },
-]
-
-// Icon mapping for promo codes
+// Icon mapping for discount codes from API
 const promoIconMap: Record<string, any> = {
   sparkles: Sparkles,
   gift: Gift,
   wrench: Wrench,
   tag: Tag,
+  percent: Zap,
+  dollar_sign: Star,
+  star: Star,
 }
 
 const statusLabels: Record<HomeownerJobStatus, string> = {
@@ -438,6 +385,18 @@ export function HomeownerHomeScreen() {
 
   // Fetch direct offers for checking responses
   const { data: offersData, isLoading: offersLoading } = useHomeownerDirectOffers()
+
+  // Fetch active discounts for homeowners
+  const { data: discountsData, isLoading: discountsLoading, error: discountsError } = useDiscounts({
+    role: 'homeowner',
+  })
+  
+  // Debug logging for discounts
+  useEffect(() => {
+    console.log('[HomeownerHome] discountsData:', discountsData)
+    console.log('[HomeownerHome] discountsLoading:', discountsLoading)
+    console.log('[HomeownerHome] discountsError:', discountsError)
+  }, [discountsData, discountsLoading, discountsError])
 
   const offers = useMemo(() => {
     return offersData?.pages.flatMap((page) => page.results) || []
@@ -929,151 +888,171 @@ export function HomeownerHomeScreen() {
                   contentContainerStyle={{ paddingRight: 24 }}
                 >
                   <XStack gap="$3">
-                    {PROMO_CODES.map((promo, index) => {
-                      const IconComponent = promoIconMap[promo.icon]
-                      return (
-                        <AnimatedCard
-                          key={promo.code}
-                          index={index}
-                          style={{
-                            backgroundColor: 'rgba(255,255,255,0.92)',
-                            borderRadius: 16,
-                            overflow: 'hidden',
-                            backdropFilter: 'blur(10px)',
-                            shadowColor: 'rgba(12,154,92,0.15)',
-                            shadowRadius: 15,
-                            shadowOpacity: 1,
-                            shadowOffset: { width: 0, height: 6 },
-                            elevation: 4,
-                            width: 180,
-                            borderWidth: 1,
-                            borderColor: 'rgba(255,255,255,0.8)',
-                          }}
-                        >
-                          {/* Gradient Header */}
-                          <LinearGradient
-                            colors={[promo.color, `${promo.color}DD`]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
+                    {discountsLoading ? (
+                      // Loading skeleton
+                      <>
+                        {[1, 2, 3].map((_, index) => (
+                          <View
+                            key={index}
                             style={{
-                              paddingHorizontal: 12,
-                              paddingVertical: 10,
-                              minHeight: 70,
+                              backgroundColor: 'rgba(255,255,255,0.5)',
+                              borderRadius: 16,
+                              width: 180,
+                              height: 200,
+                            }}
+                          />
+                        ))}
+                      </>
+                    ) : (
+                      discountsData?.map((promo: Discount, index: number) => {
+                        const IconComponent = promoIconMap[promo.icon] || Sparkles
+                        return (
+                          <AnimatedCard
+                            key={promo.code}
+                            index={index}
+                            style={{
+                              backgroundColor: 'rgba(255,255,255,0.92)',
+                              borderRadius: 16,
+                              overflow: 'hidden',
+                              backdropFilter: 'blur(10px)',
+                              shadowColor: 'rgba(12,154,92,0.15)',
+                              shadowRadius: 15,
+                              shadowOpacity: 1,
+                              shadowOffset: { width: 0, height: 6 },
+                              elevation: 4,
+                              width: 180,
+                              borderWidth: 1,
+                              borderColor: 'rgba(255,255,255,0.8)',
                             }}
                           >
-                            <XStack
-                              alignItems="flex-start"
-                              justifyContent="space-between"
-                            >
-                              <YStack>
-                                <Text
-                                  fontSize="$6"
-                                  fontWeight="bold"
-                                  color="white"
-                                >
-                                  {promo.discount}
-                                </Text>
-                                {promo.badge && (
-                                  <View
-                                    bg="rgba(255,255,255,0.25)"
-                                    px="$1.5"
-                                    py="$0.5"
-                                    borderRadius="$2"
-                                    mt="$1"
-                                    alignSelf="flex-start"
-                                  >
-                                    <Text
-                                      fontSize={9}
-                                      fontWeight="bold"
-                                      color="white"
-                                      textTransform="uppercase"
-                                      letterSpacing={0.5}
-                                    >
-                                      {promo.badge}
-                                    </Text>
-                                  </View>
-                                )}
-                              </YStack>
-                              <View
-                                bg="rgba(255,255,255,0.2)"
-                                p="$1.5"
-                                borderRadius="$3"
-                              >
-                                <IconComponent
-                                  size={18}
-                                  color="white"
-                                />
-                              </View>
-                            </XStack>
-                          </LinearGradient>
-
-                          {/* Card Body */}
-                          <YStack
-                            p="$3"
-                            gap="$1"
-                          >
-                            <Text
-                              fontSize="$4"
-                              fontWeight="bold"
-                              color="$color"
-                              letterSpacing={2}
-                            >
-                              {promo.code}
-                            </Text>
-                            <Text
-                              fontSize="$2"
-                              color="$colorSubtle"
-                              numberOfLines={1}
-                            >
-                              {promo.description}
-                            </Text>
-                            <XStack
-                              alignItems="center"
-                              gap="$1"
-                              mt="$1"
-                            >
-                              <Clock
-                                size={10}
-                                color="rgba(12,154,92,0.8)"
-                              />
-                              <Text
-                                fontSize={10}
-                                color="rgba(12,154,92,0.8)"
-                              >
-                                {promo.expiryText}
-                              </Text>
-                            </XStack>
-                          </YStack>
-
-                          {/* Apply Button */}
-                          <XStack
-                            px="$3"
-                            pb="$3"
-                          >
-                            <Button
-                              unstyled
-                              flex={1}
-                              borderRadius="$3"
-                              py="$2"
-                              px="$3"
-                              pressStyle={PressPresets.secondary.pressStyle}
-                              animation={PressPresets.secondary.animation}
+                            {/* Gradient Header */}
+                            <LinearGradient
+                              colors={[promo.color, `${promo.color}DD`]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
                               style={{
-                                backgroundColor: `${promo.color}20`,
+                                paddingHorizontal: 12,
+                                paddingVertical: 10,
+                                minHeight: 70,
                               }}
                             >
+                              <XStack
+                                alignItems="flex-start"
+                                justifyContent="space-between"
+                              >
+                                <YStack>
+                                  <Text
+                                    fontSize="$6"
+                                    fontWeight="bold"
+                                    color="white"
+                                  >
+                                    {promo.discount_display}
+                                  </Text>
+                                  {promo.badge_text && (
+                                    <View
+                                      bg="rgba(255,255,255,0.25)"
+                                      px="$1.5"
+                                      py="$0.5"
+                                      borderRadius="$2"
+                                      mt="$1"
+                                      alignSelf="flex-start"
+                                    >
+                                      <Text
+                                        fontSize={9}
+                                        fontWeight="bold"
+                                        color="white"
+                                        textTransform="uppercase"
+                                        letterSpacing={0.5}
+                                      >
+                                        {promo.badge_text}
+                                      </Text>
+                                    </View>
+                                  )}
+                                </YStack>
+                                <View
+                                  bg="rgba(255,255,255,0.2)"
+                                  p="$1.5"
+                                  borderRadius="$3"
+                                >
+                                  <IconComponent
+                                    size={18}
+                                    color="white"
+                                  />
+                                </View>
+                              </XStack>
+                            </LinearGradient>
+
+                            {/* Card Body */}
+                            <YStack
+                              p="$3"
+                              gap="$1"
+                            >
+                              <Text
+                                fontSize="$4"
+                                fontWeight="bold"
+                                color="$color"
+                                letterSpacing={2}
+                              >
+                                {promo.code}
+                              </Text>
                               <Text
                                 fontSize="$2"
-                                fontWeight="bold"
-                                style={{ color: promo.color }}
+                                color="$colorSubtle"
+                                numberOfLines={1}
                               >
-                                Apply Code
+                                {promo.description}
                               </Text>
-                            </Button>
-                          </XStack>
-                        </AnimatedCard>
-                      )
-                    })}
+                              <XStack
+                                alignItems="center"
+                                gap="$1"
+                                mt="$1"
+                              >
+                                <Clock
+                                  size={10}
+                                  color="rgba(12,154,92,0.8)"
+                                />
+                                <Text
+                                  fontSize={10}
+                                  color="rgba(12,154,92,0.8)"
+                                >
+                                  {promo.expiry_text}
+                                </Text>
+                              </XStack>
+                            </YStack>
+
+                            {/* Apply Button */}
+                            <XStack
+                              px="$3"
+                              pb="$3"
+                            >
+                              <Button
+                                unstyled
+                                flex={1}
+                                borderRadius="$3"
+                                py="$2"
+                                px="$3"
+                                pressStyle={PressPresets.secondary.pressStyle}
+                                animation={PressPresets.secondary.animation}
+                                style={{
+                                  backgroundColor: `${promo.color}20`,
+                                }}
+                                onPress={() =>
+                                  router.push(`/homeowner/jobs/add?discount=${promo.code}`)
+                                }
+                              >
+                                <Text
+                                  fontSize="$2"
+                                  fontWeight="bold"
+                                  style={{ color: promo.color }}
+                                >
+                                  Apply Code
+                                </Text>
+                              </Button>
+                            </XStack>
+                          </AnimatedCard>
+                        )
+                      })
+                    )}
                   </XStack>
                 </Animated.ScrollView>
               </ScrollIndicator>

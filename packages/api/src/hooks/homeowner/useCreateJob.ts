@@ -21,6 +21,7 @@ export interface CreateJobRequest {
   status?: 'draft' | 'open'
   tasks?: JobTask[]
   attachments?: AttachmentUpload[]
+  discount_code?: string
 }
 
 export interface CreateJobValidationError {
@@ -66,6 +67,11 @@ export function useCreateJob() {
 
       if (data.status) {
         formData.append('status', data.status)
+      }
+
+      // Add discount code if provided
+      if (data.discount_code) {
+        formData.append('discount_code', data.discount_code.toUpperCase())
       }
 
       // Add tasks as JSON array

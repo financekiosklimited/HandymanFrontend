@@ -328,6 +328,10 @@ export function useApplyForJob() {
       if (data.materials && data.materials.length > 0) {
         formData.append('materials', JSON.stringify(data.materials))
       }
+      // Add discount code if provided
+      if (data.discount_code) {
+        formData.append('discount_code', data.discount_code.toUpperCase())
+      }
       // Add attachments using indexed format
       if (data.attachments && data.attachments.length > 0) {
         data.attachments.forEach((attachment, index) => {
