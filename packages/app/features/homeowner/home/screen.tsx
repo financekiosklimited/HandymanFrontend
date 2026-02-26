@@ -796,15 +796,14 @@ export function HomeownerHomeScreen() {
                   <Search
                     pointerEvents="none"
                     size={18}
-                    color="#666"
+                    color="$colorSubtle"
                   />
                   <Input
                     unstyled
                     flex={1}
                     placeholder="Search handyman or jobs here!"
-                    placeholderTextColor="#666"
+                    placeholderTextColor="$colorSubtle"
                     color="$color"
-                    fontSize="$3"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                   />
