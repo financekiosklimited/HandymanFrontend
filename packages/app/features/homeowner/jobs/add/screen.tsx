@@ -26,7 +26,7 @@ import type { Category } from '@my/api'
 import type { City } from '@my/api'
 import type { CreateJobRequest, CreateJobValidationError, LocalAttachment } from '@my/api'
 import { getFileTypeFromMime, ATTACHMENT_LIMITS, isUnsupportedImageFormat } from '@my/api'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import {
   ChevronDown,
   Plus,
@@ -38,6 +38,7 @@ import {
   FileText,
   Play,
   Camera,
+  Tag,
 } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
@@ -145,7 +146,12 @@ const labelStyles = {
 
 export function AddJobScreen() {
   const router = useRouter()
+  const searchParams = useLocalSearchParams()
   const insets = useSafeArea()
+
+  // Get discount code from URL params
+  const discountCode = searchParams.discount as string | undefined
+  const [appliedDiscount, setAppliedDiscount] = useState<string | null>(discountCode || null)
   const scrollViewRef = useRef<ScrollView>(null)
   const { data: categories, isLoading: categoriesLoading } = useCategories()
   const { data: cities, isLoading: citiesLoading } = useCities()
@@ -550,10 +556,11 @@ export function AddJobScreen() {
           categoryName: selectedCategory?.name,
           cityName: selectedCity?.name,
           cityProvince: selectedCity?.province,
+          discount_code: appliedDiscount,
         }),
       },
     })
-  }, [formData, selectedCategory, selectedCity, router])
+  }, [formData, selectedCategory, selectedCity, appliedDiscount, router])
 
   // Reset search when sheet opens/closes
   const handleCategorySheetChange = (open: boolean) => {
@@ -622,6 +629,39 @@ export function AddJobScreen() {
             title="Create Job"
             description={PAGE_DESCRIPTIONS['create-job']}
           />
+
+          {/* Discount Banner */}
+          {appliedDiscount && (
+            <XStack
+              bg="$successBackground"
+              px="$4"
+              py="$3"
+              alignItems="center"
+              gap="$2"
+            >
+              <Tag
+                size={16}
+                color="#0C9A5C"
+              />
+              <Text
+                fontSize="$3"
+                color="#0C9A5C"
+                fontWeight="600"
+              >
+                Discount code {appliedDiscount} applied!
+              </Text>
+              <Button
+                unstyled
+                onPress={() => setAppliedDiscount(null)}
+                pressStyle={{ opacity: 0.7 }}
+              >
+                <X
+                  size={16}
+                  color="#0C9A5C"
+                />
+              </Button>
+            </XStack>
+          )}
 
           {/* Content */}
           <ScrollView

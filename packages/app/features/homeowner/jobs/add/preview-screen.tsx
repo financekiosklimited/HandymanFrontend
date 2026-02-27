@@ -63,6 +63,7 @@ interface PreviewData {
   categoryName?: string
   cityName?: string
   cityProvince?: string
+  discount_code?: string
 }
 
 export function JobPreviewScreen() {
@@ -183,6 +184,7 @@ export function JobPreviewScreen() {
       status: 'open' as const,
       tasks: formData.tasks.map((t) => ({ title: t.title })),
       attachments,
+      discount_code: formData.discount_code,
     }
 
     // Debug: Log request payload

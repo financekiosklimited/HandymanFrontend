@@ -12,10 +12,21 @@ import { ArrowLeft, Bell, MoreHorizontal } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import type { Notification, NotificationType } from '@my/api'
-
+import { useState, useEffect } from 'react'
 export function HomeownerUpdatesScreen() {
   const router = useRouter()
   const insets = useSafeArea()
+
+  // Defer heavy rendering until after the purely native navigation slide-in animation is completely finished.
+  // The defaultScreenOptions animationDuration is 150ms, so we wait slightly longer to ensure 0 frame drops.
+  const [isTransitioning, setIsTransitioning] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsTransitioning(false)
+    }, 150)
+    return () => clearTimeout(timer)
+  }, [])
 
   const {
     data: notificationsData,
@@ -156,8 +167,19 @@ export function HomeownerUpdatesScreen() {
           pb="$xl"
           gap="$3"
         >
-          {/* Loading State */}
-          {isLoading ? (
+          {/* Deferred Mount State for Smooth Navigation */}
+          {isTransitioning ? (
+            <YStack
+              py="$xl"
+              alignItems="center"
+              gap="$md"
+            >
+              <Spinner
+                size="large"
+                color="$primary"
+              />
+            </YStack>
+          ) : isLoading ? (
             <YStack
               py="$xl"
               alignItems="center"

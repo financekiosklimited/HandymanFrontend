@@ -14,6 +14,7 @@ When you ask me to do something, I **MUST** follow this workflow:
    - Read relevant files to understand the current implementation
    - Find all related components, hooks, and services
    - Check for existing patterns in the codebase
+   - Always ask questions to clarify intent, cover edge cases, and address potential issues.
 
 2. **Analyze Root Cause**
    - Identify the underlying issue (for bugs)
@@ -34,7 +35,7 @@ When you ask me to do something, I **MUST** follow this workflow:
 
 5. **Present Multiple Approaches**
    - Approach 1: Minimal change (safest)
-   - Approach 2: Refactored solution (cleaner)
+   - Approach 2: Most performant solution (performance)
    - Approach 3: Full-featured solution (most comprehensive)
    - Pros/cons of each approach
 
@@ -85,7 +86,6 @@ yarn web               # Start Next.js dev server
 yarn native            # Start Expo dev server
 yarn ios               # Run iOS simulator
 yarn android           # Run Android emulator
-```
 
 ## Code Style Guidelines
 

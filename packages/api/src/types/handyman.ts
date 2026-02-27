@@ -242,6 +242,7 @@ export interface CreateJobApplicationRequest {
     description?: string
   }>
   attachments?: AttachmentUpload[]
+  discount_code?: string
 }
 
 // Request type for editing application

@@ -1,11 +1,11 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
-import { YStack, XStack, Text, Spinner, View, Image } from '@my/ui'
+import { useCallback, useRef, useState, useEffect } from 'react'
+import { YStack, XStack, Text, Spinner, View, Image, Button } from '@my/ui'
 import { GradientBackground } from '@my/ui'
-import { useConversationList, useTotalUnreadCount } from '@my/api'
-import type { GeneralConversationListItem } from '@my/api'
-import { MessageCircle, ChevronRight, Inbox } from '@tamagui/lucide-icons'
+import { useConversationList, useTotalUnreadCount, extractForbiddenReason } from '@my/api'
+import type { GeneralConversationListItem, ForbiddenReason } from '@my/api'
+import { MessageCircle, ChevronRight, Inbox, Phone } from '@tamagui/lucide-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { FlatList, Pressable, RefreshControl } from 'react-native'
@@ -295,6 +295,17 @@ export function ConversationListScreen({ chatRole }: ConversationListScreenProps
 
   const { data: totalUnread } = useTotalUnreadCount(chatRole)
 
+  // Detect specific 403 reason (phone not verified, etc.)
+  const [forbiddenReason, setForbiddenReason] = useState<ForbiddenReason | null>(null)
+
+  useEffect(() => {
+    if (error) {
+      extractForbiddenReason(error).then(setForbiddenReason)
+    } else {
+      setForbiddenReason(null)
+    }
+  }, [error])
+
   // Track if we've already refetched on this focus to prevent duplicate calls
   const hasFetchedOnFocus = useRef(false)
 
@@ -361,6 +372,8 @@ export function ConversationListScreen({ chatRole }: ConversationListScreenProps
 
   // Error state
   if (error) {
+    const isPhoneError = forbiddenReason === 'phone_not_verified'
+
     return (
       <GradientBackground>
         <YStack
@@ -375,14 +388,21 @@ export function ConversationListScreen({ chatRole }: ConversationListScreenProps
             width={70}
             height={70}
             borderRadius={35}
-            bg="$errorBackground"
+            bg={isPhoneError ? '$primaryBackground' : '$errorBackground'}
             alignItems="center"
             justifyContent="center"
           >
-            <MessageCircle
-              size={32}
-              color="$error"
-            />
+            {isPhoneError ? (
+              <Phone
+                size={32}
+                color="$primary"
+              />
+            ) : (
+              <MessageCircle
+                size={32}
+                color="$error"
+              />
+            )}
           </View>
           <Text
             fontSize={18}
@@ -390,15 +410,34 @@ export function ConversationListScreen({ chatRole }: ConversationListScreenProps
             color="$color"
             textAlign="center"
           >
-            Couldn't Load Messages
+            {isPhoneError ? 'Phone Verification Required' : "Couldn't Load Messages"}
           </Text>
           <Text
             fontSize={14}
             color="$colorSubtle"
             textAlign="center"
           >
-            Pull down to try again
+            {isPhoneError
+              ? 'Please verify your phone number to access messages.'
+              : 'Pull down to try again'}
           </Text>
+          {isPhoneError && (
+            <Button
+              mt="$sm"
+              bg="$primary"
+              color="white"
+              borderRadius="$lg"
+              px="$xl"
+              onPress={() => router.push('/user/phone/send')}
+            >
+              <Text
+                color="white"
+                fontWeight="600"
+              >
+                Verify Phone Number
+              </Text>
+            </Button>
+          )}
         </YStack>
       </GradientBackground>
     )

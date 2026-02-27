@@ -12,6 +12,8 @@ import {
   View,
   ScrollIndicator,
   PressPresets,
+  GradientBackground,
+  Input,
 } from '@my/ui'
 import {
   useHandymanJobsForYou,
@@ -23,8 +25,11 @@ import {
   useHandymanPendingOffersCount,
   useHandymanApplications,
   useHandymanAssignedJobs,
+  useDiscounts,
 } from '@my/api'
+import type { Discount } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Image } from 'expo-image'
 import { JobCard } from '@my/ui'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -32,6 +37,7 @@ import { useDebounce } from 'app/hooks'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedScrollHandler,
   withTiming,
   withSpring,
   withDelay,
@@ -58,6 +64,10 @@ import {
   Home,
   Layers,
   Settings,
+  Gift,
+  Tag,
+  SlidersHorizontal,
+  X,
 } from '@tamagui/lucide-icons'
 import { useToastController } from '@tamagui/toast'
 import { showNewDirectOfferToast } from 'app/utils/toast-messages'
@@ -65,6 +75,9 @@ import {
   hasNotificationToastBeenShown,
   markNotificationToastAsShown,
 } from 'app/utils/notification-toast-storage'
+
+// Hero Background Image
+const HERO_BACKGROUND_IMAGE = require('../../../../../apps/expo/assets/cta-handyman-bg.jpg')
 
 // Message button with unread badge
 function MessageBadgeButton({
@@ -79,10 +92,12 @@ function MessageBadgeButton({
       unstyled
       onPress={onPress}
       position="relative"
+      {...PressPresets.icon}
     >
       <MessageCircle
         size={20}
-        color="$color"
+        color="white"
+        fill="white"
       />
       {hasUnread && (
         <View
@@ -127,17 +142,25 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'halifax-ns': { lat: 44.648764, lng: -63.575239 },
 }
 
-// Budget filter options
-const BUDGET_OPTIONS = [
-  { value: null, label: 'All Budgets' },
-  { value: 500, label: 'Under $500' },
-  { value: 1000, label: 'Under $1,000' },
-  { value: 2500, label: 'Under $2,500' },
-  { value: 5000, label: 'Under $5,000' },
-]
+// Budget filter presets
+const BUDGET_PRESETS = [100, 500, 1000, 2500]
+
+// Icon mapping for discount codes from API
+const promoIconMap: Record<string, any> = {
+  sparkles: Sparkles,
+  gift: Gift,
+  wrench: Wrench,
+  tag: Tag,
+  percent: Zap,
+  dollar_sign: DollarSign,
+  star: Star,
+}
 
 // Create animated components
 const AnimatedView = Animated.createAnimatedComponent(View)
+const AnimatedYStack = Animated.createAnimatedComponent(YStack)
+const AnimatedXStack = Animated.createAnimatedComponent(XStack)
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView)
 
 // Icon mapping for API categories (Material Design names -> Lucide icons)
 const iconMap: Record<string, any> = {
@@ -171,6 +194,59 @@ const categoryColors: Record<string, string> = {
 const SPRING_CONFIG = {
   damping: 15,
   stiffness: 150,
+}
+
+// Animated card component with entrance animation for job cards
+function AnimatedCard({
+  children,
+  index,
+  onPress,
+  style,
+}: {
+  children: React.ReactNode
+  index: number
+  onPress?: () => void
+  style?: any
+}) {
+  const opacity = useSharedValue(0)
+  const translateY = useSharedValue(30)
+  const scale = useSharedValue(1)
+
+  useEffect(() => {
+    // Stagger entrance animation - only first 6 items animate
+    if (index < 6) {
+      const delay = index * 80
+      opacity.value = withDelay(delay, withTiming(1, { duration: 400 }))
+      translateY.value = withDelay(delay, withTiming(0, { duration: 400 }))
+    } else {
+      opacity.value = 1
+      translateY.value = 0
+    }
+  }, [index, opacity, translateY])
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
+  }))
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.97, SPRING_CONFIG)
+  }, [scale])
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, SPRING_CONFIG)
+  }, [scale])
+
+  return (
+    <AnimatedView
+      style={[animatedStyle, style]}
+      onTouchStart={handlePressIn}
+      onTouchEnd={handlePressOut}
+      onPress={onPress}
+    >
+      {children}
+    </AnimatedView>
+  )
 }
 
 // Animated category icon with spring feedback
@@ -217,9 +293,13 @@ export function HandymanHomeScreen() {
   // Filter states
   const [selectedCity, setSelectedCity] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [minBudget, setMinBudget] = useState<number | null>(null)
   const [maxBudget, setMaxBudget] = useState<number | null>(null)
   const [showCityDropdown, setShowCityDropdown] = useState(false)
   const [showBudgetDropdown, setShowBudgetDropdown] = useState(false)
+  const [customMinInput, setCustomMinInput] = useState('')
+  const [customMaxInput, setCustomMaxInput] = useState('')
+  const [budgetError, setBudgetError] = useState<string | null>(null)
 
   // Debounced category selection to prevent rapid-fire animations
   const [pendingCategory, setPendingCategory] = useState<string | null>(null)
@@ -277,6 +357,11 @@ export function HandymanHomeScreen() {
 
   // Fetch categories from API
   const { data: categories, isLoading: categoriesLoading } = useCategories()
+
+  // Fetch active discounts for handymen
+  const { data: discountsData, isLoading: discountsLoading } = useDiscounts({
+    role: 'handyman',
+  })
 
   // Fetch handyman's profile
   const { data: profile } = useHandymanProfile()
@@ -361,295 +446,435 @@ export function HandymanHomeScreen() {
     return jobsData?.pages.flatMap((page) => page.results) || []
   }, [jobsData])
 
+  // Entrance animation values for hero section
+  const heroOpacity = useSharedValue(0)
+  const heroTranslateY = useSharedValue(30)
+  const cardsOpacity = useSharedValue(0)
+  const cardsTranslateY = useSharedValue(20)
+  const statsOpacity = useSharedValue(0)
+  const statsTranslateY = useSharedValue(30)
+  const filtersOpacity = useSharedValue(0)
+  const filtersTranslateY = useSharedValue(30)
+  const jobsOpacity = useSharedValue(0)
+  const jobsTranslateY = useSharedValue(30)
+
+  // Scroll-responsive background
+  const scrollY = useSharedValue(0)
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+    },
+  })
+
+  useEffect(() => {
+    // Staggered entrance animations
+    heroOpacity.value = withTiming(1, { duration: 500 })
+    heroTranslateY.value = withTiming(0, { duration: 500 })
+
+    cardsOpacity.value = withDelay(150, withTiming(1, { duration: 500 }))
+    cardsTranslateY.value = withDelay(150, withTiming(0, { duration: 500 }))
+
+    statsOpacity.value = withDelay(300, withTiming(1, { duration: 500 }))
+    statsTranslateY.value = withDelay(300, withTiming(0, { duration: 500 }))
+
+    filtersOpacity.value = withDelay(450, withTiming(1, { duration: 500 }))
+    filtersTranslateY.value = withDelay(450, withTiming(0, { duration: 500 }))
+
+    jobsOpacity.value = withDelay(600, withTiming(1, { duration: 500 }))
+    jobsTranslateY.value = withDelay(600, withTiming(0, { duration: 500 }))
+  }, [
+    heroOpacity,
+    heroTranslateY,
+    cardsOpacity,
+    cardsTranslateY,
+    statsOpacity,
+    statsTranslateY,
+    filtersOpacity,
+    filtersTranslateY,
+    jobsOpacity,
+    jobsTranslateY,
+  ])
+
+  const heroAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: heroOpacity.value,
+    transform: [{ translateY: heroTranslateY.value }],
+  }))
+
+  const cardsAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: cardsOpacity.value,
+    transform: [{ translateY: cardsTranslateY.value }],
+  }))
+
+  const statsAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: statsOpacity.value,
+    transform: [{ translateY: statsTranslateY.value }],
+  }))
+
+  const filtersAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: filtersOpacity.value,
+    transform: [{ translateY: filtersTranslateY.value }],
+  }))
+
+  const jobsAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: jobsOpacity.value,
+    transform: [{ translateY: jobsTranslateY.value }],
+  }))
+
   // Filter jobs by budget (client-side)
   const filteredJobs = useMemo(() => {
-    if (!maxBudget) return jobs
-    return jobs.filter((job) => job.estimated_budget && job.estimated_budget <= maxBudget)
-  }, [jobs, maxBudget])
+    return jobs.filter((job) => {
+      if (!job.estimated_budget) return true
+      const aboveMin = minBudget === null || job.estimated_budget >= minBudget
+      // Handle "Over $5,000" case where maxBudget is -1
+      const belowMax =
+        maxBudget === null ||
+        (maxBudget === -1 ? job.estimated_budget > 5000 : job.estimated_budget <= maxBudget)
+      return aboveMin && belowMax
+    })
+  }, [jobs, minBudget, maxBudget])
 
   // Get display labels for filters
   const selectedCityName = selectedCity
     ? cities?.find((c) => c.public_id === selectedCity)?.name
     : null
-  const budgetLabel = maxBudget ? BUDGET_OPTIONS.find((b) => b.value === maxBudget)?.label : null
+
+  // Generate budget label based on min/max
+  const budgetLabel = useMemo(() => {
+    if (minBudget !== null && maxBudget !== null) {
+      return `$${minBudget.toLocaleString()} - $${maxBudget.toLocaleString()}`
+    }
+    if (minBudget !== null) {
+      return `$${minBudget.toLocaleString()}+`
+    }
+    if (maxBudget !== null) {
+      if (maxBudget === 500) return '< $500'
+      if (maxBudget === 1000) return '< $1,000'
+      if (maxBudget === 2500) return '< $2,500'
+      if (maxBudget === 5000) return '< $5,000'
+      if (maxBudget === -1) return '> $5,000'
+      return `< $${maxBudget.toLocaleString()}`
+    }
+    return null
+  }, [minBudget, maxBudget])
 
   return (
-    <View
-      flex={1}
-      backgroundColor="$background"
-    >
-      <YStack
-        flex={1}
-        pt={insets.top}
-      >
-        {/* Header */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-          gap="$3"
-          justifyContent="space-between"
-        >
-          {/* Search Input Placeholder */}
-          <XStack
-            flex={1}
-            bg="$backgroundSubtle"
-            borderColor="$borderColor"
-            borderWidth={1}
-            borderRadius="$4"
-            px="$3"
-            py="$2.5"
-            alignItems="center"
-            gap="$2"
-          >
-            <Search
-              pointerEvents="none"
-              size={18}
-              color="$colorSubtle"
-            />
-            <Text
-              color="$colorSubtle"
-              fontSize="$3"
-            >
-              Search jobs...
-            </Text>
-          </XStack>
-
-          <XStack
-            alignItems="center"
-            gap="$3"
-          >
-            <MessageBadgeButton
-              chatRole="handyman"
-              onPress={() => router.push('/(handyman)/messages')}
-            />
-          </XStack>
-        </XStack>
-
-        <ScrollView
+    <GradientBackground>
+      <YStack flex={1}>
+        <AnimatedScrollView
           flex={1}
           showsVerticalScrollIndicator={false}
-          onScroll={({ nativeEvent }) => {
-            const { layoutMeasurement, contentOffset, contentSize } = nativeEvent
-            const paddingToBottom = 100
-            const isCloseToBottom =
-              layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom
-
-            if (isCloseToBottom) {
-              debouncedFetchNext()
-            }
-          }}
-          scrollEventThrottle={400}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         >
-          {/* Welcome Message */}
-          <YStack
-            px="$4"
-            py="$3"
-          >
-            <Text
-              fontSize="$7"
-              fontWeight="bold"
-              color="$color"
-              lineHeight="$7"
-            >
-              Welcome, <Text color="$primary">{displayName}</Text>
-            </Text>
-            <Text
-              fontSize="$3"
-              color="$colorSubtle"
-              mt="$1"
-            >
-              Ready to find your next job?
-            </Text>
-          </YStack>
-
-          {/* Action Required Dashboard */}
-          <YStack
-            px="$4"
-            pb="$4"
+          {/* Hero Section - Photo Background with Actions Required */}
+          <AnimatedYStack
+            pb="$3"
+            style={heroAnimatedStyle}
           >
             <YStack
-              bg="white"
-              borderRadius="$6"
-              p="$4"
-              borderColor="$borderSubtle"
-              borderWidth={1}
-              shadowColor="$shadowColor"
-              shadowRadius={5}
-              shadowOpacity={0.05}
-              shadowOffset={{ width: 0, height: 2 }}
+              overflow="hidden"
+              height={380}
+              position="relative"
+              borderBottomLeftRadius="$6"
+              borderBottomRightRadius="$6"
             >
-              <Text
-                fontSize="$4"
-                fontWeight="bold"
-                color="$color"
-                mb="$3"
+              {/* Background Image - Full Width */}
+              <Image
+                source={HERO_BACKGROUND_IMAGE}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  width: '100%',
+                  height: '100%',
+                }}
+                contentFit="cover"
+              />
+
+              {/* Top Gradient - Subtle fade to half transparency */}
+              <LinearGradient
+                colors={['rgba(0,0,0,0.5)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0)']}
+                start={[0.5, 0]}
+                end={[0.5, 0.5]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 120, zIndex: 5 }}
+              />
+
+              {/* Subtle Orange/Gold Tint Overlay */}
+              <LinearGradient
+                colors={['rgba(255,159,0,0.15)', 'rgba(255,159,0,0.20)', 'rgba(255,159,0,0.25)']}
+                start={[0, 0]}
+                end={[1, 1]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+
+              {/* Subtle Dark Vignette for text readability */}
+              <LinearGradient
+                colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.3)']}
+                start={[0.5, 0]}
+                end={[0.5, 1]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+
+              {/* Decorative Accent Circle */}
+              <View
+                position="absolute"
+                top={-40}
+                right={-40}
+                width={120}
+                height={120}
+                bg="rgba(255,255,255,0.15)"
+                borderRadius={100}
+                pointerEvents="none"
+              />
+
+              {/* Search Bar & Header Actions - Integrated at top */}
+              <XStack
+                px="$4"
+                py="$3"
+                pt={insets.top + 12}
+                alignItems="center"
+                gap="$3"
+                justifyContent="space-between"
+                zIndex={20}
               >
-                Action Required
-              </Text>
-              <XStack gap="$2">
-                {/* Direct Offers - Red Theme */}
-                <Button
-                  unstyled
+                <XStack
                   flex={1}
-                  bg={pendingOffersCount > 0 ? 'rgba(239, 68, 68, 0.15)' : '$backgroundSubtle'}
-                  borderColor={pendingOffersCount > 0 ? 'rgb(239, 68, 68)' : '$borderColor'}
-                  borderWidth={2}
+                  bg="rgba(255,255,255,0.9)"
                   borderRadius="$4"
-                  p="$3"
-                  onPress={() => router.push('/(handyman)/jobs?tab=offers')}
-                  pressStyle={PressPresets.primary.pressStyle}
-                  animation={PressPresets.primary.animation}
+                  px="$3"
+                  py="$2.5"
+                  alignItems="center"
+                  gap="$2"
                 >
-                  <YStack
-                    alignItems="center"
-                    gap="$1"
+                  <Search
+                    pointerEvents="none"
+                    size={18}
+                    color="$colorSubtle"
+                  />
+                  <Input
+                    unstyled
+                    flex={1}
+                    placeholder="Search jobs..."
+                    placeholderTextColor="$colorSubtle"
+                    color="$color"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                  />
+                </XStack>
+
+                <MessageBadgeButton
+                  chatRole="handyman"
+                  onPress={() => router.push('/(handyman)/messages')}
+                />
+              </XStack>
+
+              {/* Content */}
+              <YStack
+                flex={1}
+                justifyContent="center"
+                px="$4"
+                pb="$6"
+                gap="$5"
+                zIndex={10}
+              >
+                {/* Headline */}
+                <YStack
+                  gap="$1"
+                  pt="$3"
+                >
+                  <Text
+                    fontSize="$9"
+                    fontWeight="bold"
+                    color="white"
+                    letterSpacing={-0.5}
                   >
-                    <View
-                      bg={pendingOffersCount > 0 ? 'rgb(239, 68, 68)' : '$colorMuted'}
-                      p="$2"
-                      borderRadius="$3"
-                    >
-                      <Target
-                        size={20}
-                        color="white"
-                      />
-                    </View>
-                    <Text
-                      fontSize="$6"
-                      fontWeight="bold"
-                      color={pendingOffersCount > 0 ? 'rgb(239, 68, 68)' : '$colorMuted'}
-                    >
-                      {pendingOffersCount}
-                    </Text>
-                    <Text
-                      fontSize="$1"
-                      color="$colorSubtle"
-                      textAlign="center"
-                    >
-                      Direct Offers
-                    </Text>
-                  </YStack>
-                  {pendingOffersCount > 0 && (
+                    Actions Required
+                  </Text>
+                </YStack>
+
+                {/* Action Cards - Horizontal Row */}
+                <AnimatedXStack
+                  gap="$3"
+                  justifyContent="center"
+                  style={cardsAnimatedStyle}
+                >
+                  {/* NEW Offers - Orange Theme */}
+                  <Button
+                    unstyled
+                    flex={1}
+                    height={130}
+                    bg={pendingOffersCount > 0 ? '#FF9500' : '#FFB84D'}
+                    borderRadius="$6"
+                    p="$4"
+                    onPress={() => router.push('/(handyman)/jobs?tab=offers')}
+                    pressStyle={PressPresets.card.pressStyle}
+                    animation={PressPresets.card.animation}
+                  >
+                    {/* Background Icon */}
                     <View
                       position="absolute"
-                      top={-4}
-                      right={-4}
-                      bg="rgb(239, 68, 68)"
-                      minWidth={18}
-                      height={18}
-                      borderRadius={9}
-                      alignItems="center"
-                      justifyContent="center"
-                      borderWidth={2}
-                      borderColor="white"
+                      bottom={-6}
+                      left={-6}
+                      opacity={0.15}
                     >
-                      <Text
-                        fontSize={10}
-                        fontWeight="700"
+                      <Target
+                        size={80}
                         color="white"
-                      >
-                        {pendingOffersCount > 9 ? '9+' : pendingOffersCount}
-                      </Text>
+                      />
                     </View>
-                  )}
-                </Button>
+                    <YStack>
+                      <Text
+                        fontSize="$4"
+                        fontWeight="900"
+                        color="rgba(255,255,255,0.9)"
+                        textTransform="uppercase"
+                        letterSpacing={1}
+                      >
+                        NEW Offers
+                      </Text>
+                      <Text
+                        fontSize="$10"
+                        fontWeight="bold"
+                        color="white"
+                        lineHeight={40}
+                        mt="$4"
+                        ml="$6"
+                      >
+                        {pendingOffersCount}
+                      </Text>
+                    </YStack>
+                    {pendingOffersCount > 0 && (
+                      <View
+                        position="absolute"
+                        top={-6}
+                        right={-6}
+                        bg="white"
+                        minWidth={20}
+                        height={20}
+                        borderRadius={10}
+                        alignItems="center"
+                        justifyContent="center"
+                        shadowColor="rgba(0,0,0,0.2)"
+                        shadowRadius={4}
+                        shadowOffset={{ width: 0, height: 2 }}
+                      >
+                        <Text
+                          fontSize={11}
+                          fontWeight="700"
+                          color="#FF9500"
+                        >
+                          {pendingOffersCount > 9 ? '9+' : pendingOffersCount}
+                        </Text>
+                      </View>
+                    )}
+                  </Button>
 
-                {/* Pending Bids - Green Theme with Send Icon */}
-                <Button
-                  unstyled
-                  flex={1}
-                  bg={pendingBidsCount > 0 ? 'rgba(12, 154, 92, 0.15)' : '$backgroundSubtle'}
-                  borderColor={pendingBidsCount > 0 ? 'rgb(12, 154, 92)' : '$borderColor'}
-                  borderWidth={2}
-                  borderRadius="$4"
-                  p="$3"
-                  onPress={() => router.push('/(handyman)/jobs?tab=applicants')}
-                  pressStyle={PressPresets.primary.pressStyle}
-                  animation={PressPresets.primary.animation}
-                >
-                  <YStack
-                    alignItems="center"
-                    gap="$1"
+                  {/* PENDING Bids - Green Theme */}
+                  <Button
+                    unstyled
+                    flex={1}
+                    height={130}
+                    bg={pendingBidsCount > 0 ? '#0C9A5C' : '#4DB87A'}
+                    borderRadius="$6"
+                    p="$4"
+                    onPress={() => router.push('/(handyman)/jobs?tab=applicants')}
+                    pressStyle={PressPresets.card.pressStyle}
+                    animation={PressPresets.card.animation}
                   >
+                    {/* Background Icon */}
                     <View
-                      bg={pendingBidsCount > 0 ? 'rgb(12, 154, 92)' : '$colorMuted'}
-                      p="$2"
-                      borderRadius="$3"
+                      position="absolute"
+                      bottom={-6}
+                      left={-6}
+                      opacity={0.15}
                     >
                       <Send
-                        size={20}
+                        size={80}
                         color="white"
                       />
                     </View>
-                    <Text
-                      fontSize="$6"
-                      fontWeight="bold"
-                      color={pendingBidsCount > 0 ? 'rgb(12, 154, 92)' : '$colorMuted'}
-                    >
-                      {pendingBidsCount}
-                    </Text>
-                    <Text
-                      fontSize="$1"
-                      color="$colorSubtle"
-                      textAlign="center"
-                    >
-                      Pending Bids
-                    </Text>
-                  </YStack>
-                </Button>
+                    <YStack>
+                      <Text
+                        fontSize="$3"
+                        fontWeight="900"
+                        color="rgba(255,255,255,0.9)"
+                        textTransform="uppercase"
+                        letterSpacing={1}
+                      >
+                        PENDING Bids
+                      </Text>
+                      <Text
+                        fontSize="$10"
+                        fontWeight="bold"
+                        color="white"
+                        lineHeight={40}
+                        mt="$4"
+                        ml="$6"
+                      >
+                        {pendingBidsCount}
+                      </Text>
+                    </YStack>
+                  </Button>
 
-                {/* Active Jobs - Blue Theme */}
-                <Button
-                  unstyled
-                  flex={1}
-                  bg={activeJobsCount > 0 ? 'rgba(59, 130, 246, 0.15)' : '$backgroundSubtle'}
-                  borderColor={activeJobsCount > 0 ? 'rgb(59, 130, 246)' : '$borderColor'}
-                  borderWidth={2}
-                  borderRadius="$4"
-                  p="$3"
-                  onPress={() => router.push('/(handyman)/jobs?tab=active')}
-                  pressStyle={PressPresets.primary.pressStyle}
-                  animation={PressPresets.primary.animation}
-                >
-                  <YStack
-                    alignItems="center"
-                    gap="$1"
+                  {/* ACTIVE Tasks - Blue Theme */}
+                  <Button
+                    unstyled
+                    flex={1}
+                    height={130}
+                    bg={activeJobsCount > 0 ? '#3B82F6' : '#6BA3F8'}
+                    borderRadius="$6"
+                    p="$4"
+                    onPress={() => router.push('/(handyman)/jobs?tab=active')}
+                    pressStyle={PressPresets.card.pressStyle}
+                    animation={PressPresets.card.animation}
                   >
+                    {/* Background Icon */}
                     <View
-                      bg={activeJobsCount > 0 ? 'rgb(59, 130, 246)' : '$colorMuted'}
-                      p="$2"
-                      borderRadius="$3"
+                      position="absolute"
+                      bottom={-6}
+                      left={-6}
+                      opacity={0.15}
                     >
                       <Clock
-                        size={20}
+                        size={80}
                         color="white"
                       />
                     </View>
-                    <Text
-                      fontSize="$6"
-                      fontWeight="bold"
-                      color={activeJobsCount > 0 ? 'rgb(59, 130, 246)' : '$colorMuted'}
-                    >
-                      {activeJobsCount}
-                    </Text>
-                    <Text
-                      fontSize="$1"
-                      color="$colorSubtle"
-                      textAlign="center"
-                    >
-                      Active
-                    </Text>
-                  </YStack>
-                </Button>
-              </XStack>
+                    <YStack>
+                      <Text
+                        fontSize="$4"
+                        fontWeight="900"
+                        color="rgba(255,255,255,0.9)"
+                        textTransform="uppercase"
+                        letterSpacing={1}
+                      >
+                        ACTIVE Tasks
+                      </Text>
+                      <Text
+                        fontSize="$10"
+                        fontWeight="bold"
+                        color="white"
+                        lineHeight={40}
+                        mt="$4"
+                        ml="$6"
+                      >
+                        {activeJobsCount}
+                      </Text>
+                    </YStack>
+                  </Button>
+                </AnimatedXStack>
+              </YStack>
             </YStack>
-          </YStack>
+          </AnimatedYStack>
 
-          {/* Concise Stats */}
-          <YStack
+          {/* Career Overview */}
+          <AnimatedYStack
             px="$4"
             pb="$4"
+            style={statsAnimatedStyle}
           >
             <YStack
               bg="white"
@@ -734,12 +959,213 @@ export function HandymanHomeScreen() {
                 </XStack>
               </XStack>
             </YStack>
-          </YStack>
+          </AnimatedYStack>
+
+          {/* Special Offers Section */}
+          <AnimatedYStack
+            px="$4"
+            pb="$4"
+            style={statsAnimatedStyle}
+          >
+            <YStack gap="$2">
+              <XStack
+                alignItems="center"
+                justifyContent="space-between"
+                mb="$1"
+              >
+                <Text
+                  fontSize="$5"
+                  fontWeight="bold"
+                  color="$color"
+                >
+                  Special Offers
+                </Text>
+                <Text
+                  fontSize="$2"
+                  color="$colorSubtle"
+                >
+                  Save on your first job
+                </Text>
+              </XStack>
+
+              <ScrollIndicator>
+                <Animated.ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingRight: 24 }}
+                >
+                  <XStack gap="$3">
+                    {discountsLoading ? (
+                      <>
+                        {[1, 2, 3].map((_, index) => (
+                          <View
+                            key={index}
+                            style={{
+                              backgroundColor: 'rgba(255,255,255,0.5)',
+                              borderRadius: 16,
+                              width: 180,
+                              height: 200,
+                            }}
+                          />
+                        ))}
+                      </>
+                    ) : (
+                      discountsData?.map((promo: Discount, index: number) => {
+                        const IconComponent = promoIconMap[promo.icon] || Sparkles
+                        return (
+                          <AnimatedCard
+                            key={promo.code}
+                            index={index}
+                            style={{
+                              backgroundColor: 'rgba(255,255,255,0.92)',
+                              borderRadius: 16,
+                              overflow: 'hidden',
+                              backdropFilter: 'blur(10px)',
+                              shadowColor: 'rgba(12,154,92,0.15)',
+                              shadowRadius: 15,
+                              shadowOpacity: 1,
+                              shadowOffset: { width: 0, height: 6 },
+                              elevation: 4,
+                              width: 180,
+                              borderWidth: 1,
+                              borderColor: 'rgba(255,255,255,0.8)',
+                            }}
+                          >
+                            {/* Gradient Header */}
+                            <LinearGradient
+                              colors={[promo.color, `${promo.color}DD`]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
+                              style={{
+                                paddingHorizontal: 12,
+                                paddingVertical: 10,
+                                minHeight: 70,
+                              }}
+                            >
+                              <XStack
+                                alignItems="flex-start"
+                                justifyContent="space-between"
+                              >
+                                <YStack>
+                                  <Text
+                                    fontSize="$6"
+                                    fontWeight="bold"
+                                    color="white"
+                                  >
+                                    {promo.discount_display}
+                                  </Text>
+                                  {promo.badge_text && (
+                                    <View
+                                      bg="rgba(255,255,255,0.25)"
+                                      px="$1.5"
+                                      py="$0.5"
+                                      borderRadius="$2"
+                                      mt="$1"
+                                      alignSelf="flex-start"
+                                    >
+                                      <Text
+                                        fontSize={9}
+                                        fontWeight="bold"
+                                        color="white"
+                                        textTransform="uppercase"
+                                        letterSpacing={0.5}
+                                      >
+                                        {promo.badge_text}
+                                      </Text>
+                                    </View>
+                                  )}
+                                </YStack>
+                                <View
+                                  bg="rgba(255,255,255,0.2)"
+                                  p="$1.5"
+                                  borderRadius="$3"
+                                >
+                                  <IconComponent
+                                    size={18}
+                                    color="white"
+                                  />
+                                </View>
+                              </XStack>
+                            </LinearGradient>
+
+                            {/* Card Body */}
+                            <YStack
+                              p="$3"
+                              gap="$1"
+                            >
+                              <Text
+                                fontSize="$4"
+                                fontWeight="bold"
+                                color="$color"
+                                letterSpacing={2}
+                              >
+                                {promo.code}
+                              </Text>
+                              <Text
+                                fontSize="$2"
+                                color="$colorSubtle"
+                                numberOfLines={1}
+                              >
+                                {promo.description}
+                              </Text>
+                              <XStack
+                                alignItems="center"
+                                gap="$1"
+                                mt="$1"
+                              >
+                                <Clock
+                                  size={10}
+                                  color="rgba(12,154,92,0.8)"
+                                />
+                                <Text
+                                  fontSize={10}
+                                  color="rgba(12,154,92,0.8)"
+                                >
+                                  {promo.expiry_text}
+                                </Text>
+                              </XStack>
+                            </YStack>
+
+                            {/* Apply Button */}
+                            <XStack
+                              px="$3"
+                              pb="$3"
+                            >
+                              <Button
+                                unstyled
+                                flex={1}
+                                borderRadius="$3"
+                                py="$2"
+                                px="$3"
+                                {...PressPresets.secondary}
+                                style={{
+                                  backgroundColor: `${promo.color}20`,
+                                }}
+                              >
+                                <Text
+                                  fontSize="$2"
+                                  fontWeight="bold"
+                                  style={{ color: promo.color }}
+                                >
+                                  Apply Code
+                                </Text>
+                              </Button>
+                            </XStack>
+                          </AnimatedCard>
+                        )
+                      })
+                    )}
+                  </XStack>
+                </Animated.ScrollView>
+              </ScrollIndicator>
+            </YStack>
+          </AnimatedYStack>
 
           {/* Job Filters Panel */}
-          <YStack
+          <AnimatedYStack
             px="$4"
             mb="$4"
+            style={filtersAnimatedStyle}
           >
             <YStack
               bg="white"
@@ -977,67 +1403,297 @@ export function HandymanHomeScreen() {
                 </YStack>
 
                 {/* Budget Filter */}
-                <YStack gap="$2">
+                <YStack
+                  gap="$2"
+                  zIndex={showBudgetDropdown ? 100 : 1}
+                >
                   {/* Budget Filter Button */}
                   <Button
                     flex={1}
                     size="$2"
-                    bg={maxBudget ? 'rgba(12, 154, 92, 0.1)' : 'white'}
-                    borderColor={maxBudget ? '$primary' : '$borderColor'}
+                    bg={
+                      minBudget !== null || maxBudget !== null ? 'rgba(12, 154, 92, 0.1)' : 'white'
+                    }
+                    borderColor={
+                      minBudget !== null || maxBudget !== null ? '$primary' : '$borderColor'
+                    }
                     borderWidth={1}
-                    color={maxBudget ? '$primary' : '$colorSubtle'}
+                    color={minBudget !== null || maxBudget !== null ? '$primary' : '$colorSubtle'}
                     borderRadius="$3"
                     fontSize="$1"
                     fontWeight="bold"
                     px="$2"
-                    onPress={() => setShowBudgetDropdown(!showBudgetDropdown)}
+                    onPress={() => {
+                      setShowBudgetDropdown(!showBudgetDropdown)
+                    }}
                     pressStyle={PressPresets.filter.pressStyle}
                     animation={PressPresets.filter.animation}
+                    icon={<SlidersHorizontal size={12} />}
                   >
-                    {budgetLabel || 'Budget'} <ChevronDown size={10} />
+                    {budgetLabel || 'Budget'}
                   </Button>
 
-                  {/* Budget Dropdown */}
+                  {/* Backdrop for tap-outside-to-close */}
+                  {showBudgetDropdown && (
+                    <View
+                      position="absolute"
+                      top={0}
+                      left={-1000}
+                      right={-1000}
+                      bottom={-1000}
+                      zIndex={-1}
+                      onPress={() => setShowBudgetDropdown(false)}
+                    />
+                  )}
+
+                  {/* Budget Dropdown Panel */}
                   {showBudgetDropdown && (
                     <YStack
                       bg="white"
                       borderRadius="$4"
                       borderWidth={1}
                       borderColor="$borderColor"
-                      p="$2"
-                      gap="$1"
+                      p="$3"
+                      gap="$3"
+                      zIndex={1}
                     >
-                      {BUDGET_OPTIONS.map((option) => (
-                        <Button
-                          key={option.label}
-                          size="$2"
-                          unstyled
-                          onPress={() => {
-                            setMaxBudget(option.value)
-                            setShowBudgetDropdown(false)
-                          }}
-                          px="$2"
-                          py="$1.5"
+                      {/* Min Budget Input */}
+                      <YStack gap="$2">
+                        <Text
+                          fontSize="$2"
+                          fontWeight="600"
+                          color="$colorSubtle"
+                        >
+                          Min Budget
+                        </Text>
+                        <XStack
+                          alignItems="center"
+                          gap="$2"
                         >
                           <Text
-                            color={maxBudget === option.value ? '$primary' : '$color'}
-                            fontWeight={maxBudget === option.value ? 'bold' : 'normal'}
+                            fontSize="$3"
+                            fontWeight="bold"
+                            color="$color"
                           >
-                            {option.label}
+                            $
+                          </Text>
+                          <Input
+                            flex={1}
+                            value={customMinInput}
+                            onChangeText={setCustomMinInput}
+                            placeholder="0"
+                            keyboardType="numeric"
+                            borderRadius="$3"
+                            borderWidth={1}
+                            borderColor="$borderColor"
+                            px="$2"
+                            py="$1"
+                          />
+                        </XStack>
+                        {/* Min Budget Presets */}
+                        <YStack
+                          bg="$backgroundSubtle"
+                          borderRadius="$3"
+                          p="$2"
+                          gap="$1"
+                        >
+                          <Text
+                            fontSize="$1"
+                            color="$colorSubtle"
+                            fontWeight="600"
+                          >
+                            Quick select:
+                          </Text>
+                          <XStack
+                            flexWrap="wrap"
+                            gap="$2"
+                          >
+                            {BUDGET_PRESETS.map((preset) => (
+                              <Button
+                                key={preset}
+                                unstyled
+                                bg="white"
+                                borderWidth={1}
+                                borderColor="$borderColor"
+                                borderRadius="$2"
+                                px="$2"
+                                py="$1"
+                                onPress={() => {
+                                  setCustomMinInput(preset.toString())
+                                }}
+                                pressStyle={PressPresets.filter.pressStyle}
+                              >
+                                <Text
+                                  fontSize="$2"
+                                  color="$color"
+                                  fontWeight="500"
+                                >
+                                  ${preset}
+                                </Text>
+                              </Button>
+                            ))}
+                          </XStack>
+                        </YStack>
+                      </YStack>
+
+                      {/* Max Budget Input */}
+                      <YStack gap="$2">
+                        <Text
+                          fontSize="$2"
+                          fontWeight="600"
+                          color="$colorSubtle"
+                        >
+                          Max Budget
+                        </Text>
+                        <XStack
+                          alignItems="center"
+                          gap="$2"
+                        >
+                          <Text
+                            fontSize="$3"
+                            fontWeight="bold"
+                            color="$color"
+                          >
+                            $
+                          </Text>
+                          <Input
+                            flex={1}
+                            value={customMaxInput}
+                            onChangeText={setCustomMaxInput}
+                            placeholder="No limit"
+                            keyboardType="numeric"
+                            borderRadius="$3"
+                            borderWidth={1}
+                            borderColor="$borderColor"
+                            px="$2"
+                            py="$1"
+                          />
+                        </XStack>
+                        {/* Max Budget Presets */}
+                        <YStack
+                          bg="$backgroundSubtle"
+                          borderRadius="$3"
+                          p="$2"
+                          gap="$1"
+                        >
+                          <Text
+                            fontSize="$1"
+                            color="$colorSubtle"
+                            fontWeight="600"
+                          >
+                            Quick select:
+                          </Text>
+                          <XStack
+                            flexWrap="wrap"
+                            gap="$2"
+                          >
+                            {BUDGET_PRESETS.map((preset) => (
+                              <Button
+                                key={preset}
+                                unstyled
+                                bg="white"
+                                borderWidth={1}
+                                borderColor="$borderColor"
+                                borderRadius="$2"
+                                px="$2"
+                                py="$1"
+                                onPress={() => {
+                                  setCustomMaxInput(preset.toString())
+                                }}
+                                pressStyle={PressPresets.filter.pressStyle}
+                              >
+                                <Text
+                                  fontSize="$2"
+                                  color="$color"
+                                  fontWeight="500"
+                                >
+                                  ${preset}
+                                </Text>
+                              </Button>
+                            ))}
+                          </XStack>
+                        </YStack>
+                      </YStack>
+
+                      {/* Action Buttons */}
+                      <XStack
+                        gap="$2"
+                        mt="$1"
+                      >
+                        <Button
+                          flex={1}
+                          size="$2"
+                          bg="white"
+                          borderColor="$borderColor"
+                          borderWidth={1}
+                          onPress={() => {
+                            setMinBudget(null)
+                            setMaxBudget(null)
+                            setCustomMinInput('')
+                            setCustomMaxInput('')
+                            setBudgetError(null)
+                            setShowBudgetDropdown(false)
+                          }}
+                          pressStyle={PressPresets.secondary.pressStyle}
+                          animation={PressPresets.secondary.animation}
+                        >
+                          <Text
+                            fontSize="$2"
+                            color="$color"
+                          >
+                            Clear
                           </Text>
                         </Button>
-                      ))}
+                        <Button
+                          flex={1}
+                          size="$2"
+                          bg="$primary"
+                          onPress={() => {
+                            const min = customMinInput ? Number.parseInt(customMinInput, 10) : null
+                            const max = customMaxInput ? Number.parseInt(customMaxInput, 10) : null
+                            if (min !== null && max !== null && min > max) {
+                              setBudgetError('Min budget must be less than or equal to max budget')
+                              return
+                            }
+                            setBudgetError(null)
+                            setMinBudget(min)
+                            setMaxBudget(max)
+                            setShowBudgetDropdown(false)
+                          }}
+                          pressStyle={PressPresets.primary.pressStyle}
+                          animation={PressPresets.primary.animation}
+                        >
+                          <Text
+                            fontSize="$2"
+                            color="white"
+                            fontWeight="bold"
+                          >
+                            Apply
+                          </Text>
+                        </Button>
+                      </XStack>
+                      {budgetError && (
+                        <Text
+                          fontSize="$2"
+                          color="red"
+                          fontWeight="500"
+                          textAlign="center"
+                        >
+                          {budgetError}
+                        </Text>
+                      )}
                     </YStack>
                   )}
                 </YStack>
               </YStack>
             </YStack>
-          </YStack>
+          </AnimatedYStack>
 
           {/* Jobs List */}
-          <YStack
+          <AnimatedYStack
             px="$4"
             pb="$8"
+            style={jobsAnimatedStyle}
           >
             <Text
               fontSize="$3"
@@ -1057,14 +1713,18 @@ export function HandymanHomeScreen() {
                   m="$4"
                 />
               ) : filteredJobs.length > 0 ? (
-                filteredJobs.map((job) => (
-                  <View key={job.public_id}>
+                filteredJobs.map((job, index) => (
+                  <AnimatedCard
+                    key={job.public_id}
+                    index={index}
+                    onPress={() => router.push(`/(handyman)/jobs/${job.public_id}`)}
+                    style={{ width: '100%' }}
+                  >
                     <JobCard
                       job={job}
                       showCategory
-                      onPress={() => router.push(`/(handyman)/jobs/${job.public_id}`)}
                     />
-                  </View>
+                  </AnimatedCard>
                 ))
               ) : (
                 <YStack
@@ -1101,9 +1761,9 @@ export function HandymanHomeScreen() {
                 </XStack>
               )}
             </YStack>
-          </YStack>
-        </ScrollView>
+          </AnimatedYStack>
+        </AnimatedScrollView>
       </YStack>
-    </View>
+    </GradientBackground>
   )
 }

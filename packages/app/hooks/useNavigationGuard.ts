@@ -41,7 +41,17 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
     (value: boolean) => {
       isNavigatingRef.current = value
       if (trackLoading) {
-        setIsNavigating(value)
+        if (value) {
+          // Delay turning ON the loading state slightly to let press animations start
+          setTimeout(() => {
+            if (isNavigatingRef.current) {
+              setIsNavigating(true)
+            }
+          }, 50)
+        } else {
+          // Turn OFF immediately
+          setIsNavigating(false)
+        }
       }
     },
     [trackLoading]
@@ -76,7 +86,9 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
       setNavigating(true)
 
       try {
+        console.time(`router.navigate -> ${href}`)
         router.navigate(href)
+        console.timeEnd(`router.navigate -> ${href}`)
         clearNavigationLock()
       } catch (error) {
         setNavigating(false)
@@ -99,7 +111,9 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
       setNavigating(true)
 
       try {
+        console.time(`router.push -> ${href}`)
         router.push(href)
+        console.timeEnd(`router.push -> ${href}`)
         clearNavigationLock()
       } catch (error) {
         setNavigating(false)
@@ -122,7 +136,9 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
       setNavigating(true)
 
       try {
+        console.time(`router.replace -> ${href}`)
         router.replace(href)
+        console.timeEnd(`router.replace -> ${href}`)
         clearNavigationLock()
       } catch (error) {
         setNavigating(false)

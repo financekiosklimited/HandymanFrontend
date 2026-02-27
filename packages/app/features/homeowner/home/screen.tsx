@@ -11,14 +11,19 @@ import {
   Spinner,
   View,
   ScrollIndicator,
+  Input,
   PressPresets,
+  GradientBackground,
 } from '@my/ui'
+import { useAnimatedScrollHandler } from 'react-native-reanimated'
 import { Animated as AnimatedRN, View as RNView, Easing as EasingRN } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
   withTiming,
+  withDelay,
+  withSpring,
   Easing,
   interpolate,
 } from 'react-native-reanimated'
@@ -32,12 +37,14 @@ import {
   useCities,
 } from '@my/api'
 import type { HomeownerJobStatus } from '@my/api'
+import { useDiscounts, type Discount } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Image } from 'expo-image'
 import { JobCard } from '@my/ui'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { Alert } from 'react-native'
-import { jobStatusColors, type JobStatus } from '@my/config'
+import { jobStatusColors, type JobStatus, colors } from '@my/config'
 import { useDebounce } from 'app/hooks'
 import { useToastController } from '@tamagui/toast'
 import {
@@ -76,7 +83,90 @@ import {
   Home,
   Layers,
   Settings,
+  Gift,
+  Tag,
+  Clock,
 } from '@tamagui/lucide-icons'
+
+// CTA Banner Background Image
+const CTA_BACKGROUND_IMAGE = require('../../../../../apps/expo/assets/cta-construction-bg.jpg')
+
+// Create animated components
+const AnimatedYStack = Animated.createAnimatedComponent(YStack)
+const AnimatedXStack = Animated.createAnimatedComponent(XStack)
+const AnimatedView = Animated.createAnimatedComponent(View)
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView)
+const AnimatedButton = Animated.createAnimatedComponent(Button)
+
+// Animation configuration
+const SPRING_CONFIG = {
+  damping: 15,
+  stiffness: 150,
+}
+
+// Animated card component with entrance animation for promo cards
+function AnimatedCard({
+  children,
+  index,
+  onPress,
+  style,
+}: {
+  children: React.ReactNode
+  index: number
+  onPress?: () => void
+  style?: any
+}) {
+  const opacity = useSharedValue(0)
+  const translateX = useSharedValue(50)
+  const scale = useSharedValue(1)
+
+  useEffect(() => {
+    // Stagger entrance animation - only first 6 items animate
+    if (index < 6) {
+      const delay = index * 80
+      opacity.value = withDelay(delay, withTiming(1, { duration: 400 }))
+      translateX.value = withDelay(delay, withTiming(0, { duration: 400 }))
+    } else {
+      opacity.value = 1
+      translateX.value = 0
+    }
+  }, [index, opacity, translateX])
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateX: translateX.value }, { scale: scale.value }],
+  }))
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.97, SPRING_CONFIG)
+  }, [scale])
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, SPRING_CONFIG)
+  }, [scale])
+
+  return (
+    <AnimatedView
+      style={[animatedStyle, style]}
+      onTouchStart={handlePressIn}
+      onTouchEnd={handlePressOut}
+      onPress={onPress}
+    >
+      {children}
+    </AnimatedView>
+  )
+}
+
+// Icon mapping for discount codes from API
+const promoIconMap: Record<string, any> = {
+  sparkles: Sparkles,
+  gift: Gift,
+  wrench: Wrench,
+  tag: Tag,
+  percent: Zap,
+  dollar_sign: Star,
+  star: Star,
+}
 
 const statusLabels: Record<HomeownerJobStatus, string> = {
   draft: 'Draft',
@@ -106,7 +196,8 @@ function MessageBadgeButton({
     >
       <MessageCircle
         size={20}
-        color="$color"
+        color="white"
+        fill="white"
       />
       {hasUnread && (
         <View
@@ -294,6 +385,18 @@ export function HomeownerHomeScreen() {
 
   // Fetch direct offers for checking responses
   const { data: offersData, isLoading: offersLoading } = useHomeownerDirectOffers()
+
+  // Fetch active discounts for homeowners
+  const { data: discountsData, isLoading: discountsLoading, error: discountsError } = useDiscounts({
+    role: 'homeowner',
+  })
+  
+  // Debug logging for discounts
+  useEffect(() => {
+    console.log('[HomeownerHome] discountsData:', discountsData)
+    console.log('[HomeownerHome] discountsLoading:', discountsLoading)
+    console.log('[HomeownerHome] discountsError:', discountsError)
+  }, [discountsData, discountsLoading, discountsError])
 
   const offers = useMemo(() => {
     return offersData?.pages.flatMap((page) => page.results) || []
@@ -507,204 +610,234 @@ export function HomeownerHomeScreen() {
     }
   })
 
+  // Entrance animation values for sections
+  const welcomeOpacity = useSharedValue(0)
+  const welcomeTranslateY = useSharedValue(30)
+  const ctaOpacity = useSharedValue(0)
+  const ctaTranslateY = useSharedValue(30)
+  const filtersOpacity = useSharedValue(0)
+  const filtersTranslateY = useSharedValue(30)
+
+  // Scroll-responsive background
+  const scrollY = useSharedValue(0)
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+    },
+  })
+
+  useEffect(() => {
+    // Staggered entrance animations
+    welcomeOpacity.value = withTiming(1, { duration: 500 })
+    welcomeTranslateY.value = withTiming(0, { duration: 500 })
+
+    ctaOpacity.value = withDelay(150, withTiming(1, { duration: 500 }))
+    ctaTranslateY.value = withDelay(150, withTiming(0, { duration: 500 }))
+
+    filtersOpacity.value = withDelay(300, withTiming(1, { duration: 500 }))
+    filtersTranslateY.value = withDelay(300, withTiming(0, { duration: 500 }))
+  }, [
+    welcomeOpacity,
+    welcomeTranslateY,
+    ctaOpacity,
+    ctaTranslateY,
+    filtersOpacity,
+    filtersTranslateY,
+  ])
+
+  const welcomeAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: welcomeOpacity.value,
+    transform: [{ translateY: welcomeTranslateY.value }],
+  }))
+
+  const ctaAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: ctaOpacity.value,
+    transform: [{ translateY: ctaTranslateY.value }],
+  }))
+
+  const filtersAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: filtersOpacity.value,
+    transform: [{ translateY: filtersTranslateY.value }],
+  }))
+
   return (
-    <View
-      flex={1}
-      backgroundColor="$background"
-    >
-      <YStack
-        flex={1}
-        pt={insets.top}
-      >
-        {/* Header */}
-        <XStack
-          px="$4"
-          py="$3"
-          alignItems="center"
-          gap="$3"
-          justifyContent="space-between"
-        >
-          {/* <Button
-            unstyled
-            onPress={() => {
-            }}
-          >
-            <Menu
-              size={26}
-              color="$color"
-            />
-          </Button> */}
-
-          {/* Search Input Placeholder */}
-          <XStack
-            flex={1}
-            bg="white"
-            borderColor="$borderColor"
-            borderWidth={1}
-            borderRadius="$4"
-            px="$3"
-            py="$2.5"
-            alignItems="center"
-            gap="$2"
-          >
-            <Search
-              pointerEvents="none"
-              size={18}
-              color="$colorSubtle"
-            />
-            <Text
-              color="$colorSubtle"
-              fontSize="$3"
-            >
-              Search HandymanKiosk
-            </Text>
-          </XStack>
-
-          <XStack
-            alignItems="center"
-            gap="$3"
-          >
-            {/* <Button unstyled>
-              <Bookmark
-                size={24}
-                color="$color"
-              />
-            </Button> */}
-            <MessageBadgeButton
-              chatRole="homeowner"
-              onPress={() => router.push('/(homeowner)/messages')}
-            />
-          </XStack>
-        </XStack>
-
-        <ScrollView
+    <GradientBackground>
+      <YStack flex={1}>
+        <AnimatedScrollView
           flex={1}
           showsVerticalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         >
-          {/* Welcome Message */}
-          <YStack
-            px="$4"
-            py="$4"
-          >
-            <Text
-              fontSize="$8"
-              fontWeight="bold"
-              color="$color"
-              lineHeight="$8"
-            >
-              Welcome, <Text color="$primary">{displayName}</Text>
-            </Text>
-            <Text
-              fontSize="$3"
-              color="$colorSubtle"
-              mt="$1"
-            >
-              Ready to improve your house?
-            </Text>
-          </YStack>
-
-          {/* Job Posting Panel - Minimalist CTA */}
-          <YStack
-            px="$4"
-            pb="$3"
-            pt="$2"
+          {/* Job Posting Panel - Image Background CTA matching Guest */}
+          <AnimatedYStack
+            style={welcomeAnimatedStyle}
+            mb="$5"
           >
             <YStack
               overflow="hidden"
-              borderRadius="$8"
-              p="$5"
-              shadowColor="$shadowColor"
-              shadowRadius={10}
-              shadowOffset={{ width: 0, height: 4 }}
-              shadowOpacity={0.1}
+              height={380}
               position="relative"
+              borderBottomLeftRadius="$6"
+              borderBottomRightRadius="$6"
             >
-              {/* Gradient Background */}
+              {/* Background Image - Full Width */}
+              <Image
+                source={CTA_BACKGROUND_IMAGE}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  width: '100%',
+                  height: '100%',
+                }}
+                contentFit="cover"
+              />
+
+              {/* Top Gradient - Subtle fade to half transparency */}
               <LinearGradient
-                colors={['#0C9A5C', '#34C759']}
+                colors={['rgba(0,0,0,0.5)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0)']}
+                start={[0.5, 0]}
+                end={[0.5, 0.5]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 120, zIndex: 5 }}
+              />
+
+              {/* Subtle Green Tint Overlay */}
+              <LinearGradient
+                colors={['rgba(12,154,92,0.20)', 'rgba(12,154,92,0.30)', 'rgba(12,154,92,0.40)']}
                 start={[0, 0]}
                 end={[1, 1]}
                 style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
               />
 
-              {/* Decorative Blurs (Simulated) */}
-              <View
-                position="absolute"
-                top={-32}
-                right={-32}
-                width={128}
-                height={128}
-                bg="rgba(255,255,255,0.2)"
-                borderRadius={100}
-                style={{ filter: 'blur(30px)' }}
-                pointerEvents="none"
+              {/* Subtle Dark Vignette for text readability */}
+              <LinearGradient
+                colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.3)']}
+                start={[0.5, 0]}
+                end={[0.5, 1]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
               />
+
+              {/* Decorative Accent Circle */}
               <View
                 position="absolute"
-                bottom={-32}
-                left={-32}
-                width={96}
-                height={96}
-                bg="rgba(0,0,0,0.1)"
+                top={-40}
+                right={-40}
+                width={120}
+                height={120}
+                bg="rgba(255,255,255,0.15)"
                 borderRadius={100}
-                style={{ filter: 'blur(20px)' }}
                 pointerEvents="none"
               />
 
-              <YStack
-                zIndex={10}
+              {/* Search Bar & Header Actions - Integrated at top */}
+              <XStack
+                px="$4"
+                py="$3"
+                pt={insets.top + 12}
                 alignItems="center"
                 gap="$3"
+                justifyContent="space-between"
+                zIndex={20}
               >
-                <Text
-                  fontSize="$6"
-                  fontWeight="bold"
-                  color="white"
-                  textAlign="center"
+                <XStack
+                  flex={1}
+                  bg="rgba(255,255,255,0.9)"
+                  borderRadius="$4"
+                  px="$3"
+                  py="$2.5"
+                  alignItems="center"
+                  gap="$2"
                 >
-                  What needs fixing?
-                </Text>
+                  <Search
+                    pointerEvents="none"
+                    size={18}
+                    color="$colorSubtle"
+                  />
+                  <Input
+                    unstyled
+                    flex={1}
+                    placeholder="Search handyman or jobs here!"
+                    placeholderTextColor="$colorSubtle"
+                    color="$color"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                  />
+                </XStack>
 
-                {/* Minimalist CTA Button with Pulse Animation */}
-                <Animated.View style={ctaPulseAnimatedStyle}>
-                  <Button
-                    size="$5"
-                    bg="white"
-                    color="#0C9A5C"
-                    borderRadius="$6"
+                <MessageBadgeButton
+                  chatRole="homeowner"
+                  onPress={() => router.push('/(homeowner)/messages')}
+                />
+              </XStack>
+
+              {/* Content */}
+              <YStack
+                flex={1}
+                justifyContent="center"
+                alignItems="center"
+                px="$5"
+                pb="$6"
+                gap="$5"
+                zIndex={10}
+              >
+                {/* Headline */}
+                <YStack
+                  alignItems="center"
+                  gap="$2"
+                  pt="$3"
+                >
+                  <Text
+                    fontSize="$9"
                     fontWeight="bold"
-                    px="$6"
-                    py="$3"
-                    pressStyle={PressPresets.primary.pressStyle}
-                    animation={PressPresets.primary.animation}
-                    onPress={() => router.push('/(homeowner)/jobs/add')}
-                    shadowColor="rgba(0,0,0,0.15)"
-                    shadowRadius={8}
-                    shadowOffset={{ width: 0, height: 2 }}
-                    icon={
-                      <Plus
-                        size={22}
-                        color="white"
-                        strokeWidth={2.5}
-                        bg="#0C9A5C"
-                        borderRadius={100}
-                      />
-                    }
+                    color="white"
+                    textAlign="center"
+                    letterSpacing={-0.5}
                   >
-                    Describe Your Task
-                  </Button>
-                </Animated.View>
+                    What needs fixing?
+                  </Text>
+                  <Text
+                    fontSize="$4"
+                    color="rgba(255,255,255,0.9)"
+                    textAlign="center"
+                  >
+                    Expert handymen ready to help
+                  </Text>
+                </YStack>
 
-                <Text
-                  fontSize="$2"
-                  color="rgba(255,255,255,0.8)"
-                  textAlign="center"
+                {/* CTA Button with Continuous Pulse Animation */}
+                <AnimatedButton
+                  size="$6"
+                  bg="white"
+                  color="#0C9A5C"
+                  borderRadius="$6"
+                  fontWeight="bold"
+                  px="$7"
+                  py="$3"
+                  fontSize="$5"
+                  style={ctaPulseAnimatedStyle}
+                  onPress={() => router.push('/(homeowner)/jobs/add')}
+                  shadowColor="rgba(0,0,0,0.25)"
+                  shadowRadius={12}
+                  shadowOffset={{ width: 0, height: 4 }}
+                  icon={
+                    <Plus
+                      size={24}
+                      color="white"
+                      strokeWidth={2.5}
+                      bg="#0C9A5C"
+                      borderRadius={100}
+                    />
+                  }
                 >
-                  Skilled handymen will fix everything for you.
-                </Text>
+                  Post a Job
+                </AnimatedButton>
               </YStack>
             </YStack>
-          </YStack>
+          </AnimatedYStack>
 
           {/* My Jobs Section */}
           {/* {jobs.length > 0 && (
@@ -721,12 +854,217 @@ export function HomeownerHomeScreen() {
             </YStack>
           )} */}
 
+          {/* Special Offers Section */}
+          <AnimatedYStack
+            px="$4"
+            pb="$4"
+            style={ctaAnimatedStyle}
+          >
+            <YStack gap="$2">
+              <XStack
+                alignItems="center"
+                justifyContent="space-between"
+                mb="$1"
+              >
+                <Text
+                  fontSize="$5"
+                  fontWeight="bold"
+                  color="$color"
+                >
+                  Special Offers
+                </Text>
+                <Text
+                  fontSize="$2"
+                  color="$colorSubtle"
+                >
+                  Save on your first job
+                </Text>
+              </XStack>
+
+              <ScrollIndicator>
+                <Animated.ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingRight: 24 }}
+                >
+                  <XStack gap="$3">
+                    {discountsLoading ? (
+                      // Loading skeleton
+                      <>
+                        {[1, 2, 3].map((_, index) => (
+                          <View
+                            key={index}
+                            style={{
+                              backgroundColor: 'rgba(255,255,255,0.5)',
+                              borderRadius: 16,
+                              width: 180,
+                              height: 200,
+                            }}
+                          />
+                        ))}
+                      </>
+                    ) : (
+                      discountsData?.map((promo: Discount, index: number) => {
+                        const IconComponent = promoIconMap[promo.icon] || Sparkles
+                        return (
+                          <AnimatedCard
+                            key={promo.code}
+                            index={index}
+                            style={{
+                              backgroundColor: 'rgba(255,255,255,0.92)',
+                              borderRadius: 16,
+                              overflow: 'hidden',
+                              backdropFilter: 'blur(10px)',
+                              shadowColor: 'rgba(12,154,92,0.15)',
+                              shadowRadius: 15,
+                              shadowOpacity: 1,
+                              shadowOffset: { width: 0, height: 6 },
+                              elevation: 4,
+                              width: 180,
+                              borderWidth: 1,
+                              borderColor: 'rgba(255,255,255,0.8)',
+                            }}
+                          >
+                            {/* Gradient Header */}
+                            <LinearGradient
+                              colors={[promo.color, `${promo.color}DD`]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
+                              style={{
+                                paddingHorizontal: 12,
+                                paddingVertical: 10,
+                                minHeight: 70,
+                              }}
+                            >
+                              <XStack
+                                alignItems="flex-start"
+                                justifyContent="space-between"
+                              >
+                                <YStack>
+                                  <Text
+                                    fontSize="$6"
+                                    fontWeight="bold"
+                                    color="white"
+                                  >
+                                    {promo.discount_display}
+                                  </Text>
+                                  {promo.badge_text && (
+                                    <View
+                                      bg="rgba(255,255,255,0.25)"
+                                      px="$1.5"
+                                      py="$0.5"
+                                      borderRadius="$2"
+                                      mt="$1"
+                                      alignSelf="flex-start"
+                                    >
+                                      <Text
+                                        fontSize={9}
+                                        fontWeight="bold"
+                                        color="white"
+                                        textTransform="uppercase"
+                                        letterSpacing={0.5}
+                                      >
+                                        {promo.badge_text}
+                                      </Text>
+                                    </View>
+                                  )}
+                                </YStack>
+                                <View
+                                  bg="rgba(255,255,255,0.2)"
+                                  p="$1.5"
+                                  borderRadius="$3"
+                                >
+                                  <IconComponent
+                                    size={18}
+                                    color="white"
+                                  />
+                                </View>
+                              </XStack>
+                            </LinearGradient>
+
+                            {/* Card Body */}
+                            <YStack
+                              p="$3"
+                              gap="$1"
+                            >
+                              <Text
+                                fontSize="$4"
+                                fontWeight="bold"
+                                color="$color"
+                                letterSpacing={2}
+                              >
+                                {promo.code}
+                              </Text>
+                              <Text
+                                fontSize="$2"
+                                color="$colorSubtle"
+                                numberOfLines={1}
+                              >
+                                {promo.description}
+                              </Text>
+                              <XStack
+                                alignItems="center"
+                                gap="$1"
+                                mt="$1"
+                              >
+                                <Clock
+                                  size={10}
+                                  color="rgba(12,154,92,0.8)"
+                                />
+                                <Text
+                                  fontSize={10}
+                                  color="rgba(12,154,92,0.8)"
+                                >
+                                  {promo.expiry_text}
+                                </Text>
+                              </XStack>
+                            </YStack>
+
+                            {/* Apply Button */}
+                            <XStack
+                              px="$3"
+                              pb="$3"
+                            >
+                              <Button
+                                unstyled
+                                flex={1}
+                                borderRadius="$3"
+                                py="$2"
+                                px="$3"
+                                pressStyle={PressPresets.secondary.pressStyle}
+                                animation={PressPresets.secondary.animation}
+                                style={{
+                                  backgroundColor: `${promo.color}20`,
+                                }}
+                                onPress={() =>
+                                  router.push(`/homeowner/jobs/add?discount=${promo.code}`)
+                                }
+                              >
+                                <Text
+                                  fontSize="$2"
+                                  fontWeight="bold"
+                                  style={{ color: promo.color }}
+                                >
+                                  Apply Code
+                                </Text>
+                              </Button>
+                            </XStack>
+                          </AnimatedCard>
+                        )
+                      })
+                    )}
+                  </XStack>
+                </Animated.ScrollView>
+              </ScrollIndicator>
+            </YStack>
+          </AnimatedYStack>
+
           {/* Direct Hire Section */}
           <YStack
             px="$4"
             mb="$4"
           >
-            <YStack
+            <AnimatedYStack
               bg="white"
               borderRadius="$6"
               p="$4"
@@ -736,6 +1074,7 @@ export function HomeownerHomeScreen() {
               shadowRadius={5}
               shadowOpacity={0.05}
               shadowOffset={{ width: 0, height: 2 }}
+              style={filtersAnimatedStyle}
             >
               <YStack>
                 <Text
@@ -1210,7 +1549,7 @@ export function HomeownerHomeScreen() {
                   </CollapsibleSection>
                 </YStack>
               </YStack>
-            </YStack>
+            </AnimatedYStack>
           </YStack>
 
           {/* Handyman List */}
@@ -1389,7 +1728,7 @@ export function HomeownerHomeScreen() {
                             <Star
                               size={10}
                               color="$accent"
-                              fill="$accent"
+                              fill={colors.accent}
                             />
                             <Text
                               fontSize={10}
@@ -1545,7 +1884,7 @@ export function HomeownerHomeScreen() {
                                 <Star
                                   size={10}
                                   color="$accent"
-                                  fill="$accent"
+                                  fill={colors.accent}
                                 />
                                 <Text
                                   fontSize={10}
@@ -1599,8 +1938,8 @@ export function HomeownerHomeScreen() {
               )}
             </YStack>
           </YStack>
-        </ScrollView>
+        </AnimatedScrollView>
       </YStack>
-    </View>
+    </GradientBackground>
   )
 }

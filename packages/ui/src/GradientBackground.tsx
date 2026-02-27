@@ -2,77 +2,27 @@
 
 import { LinearGradient } from 'expo-linear-gradient'
 import { YStack, View } from 'tamagui'
-import { Animated, Easing } from 'react-native'
-import { useRef, useEffect } from 'react'
 
 export interface GradientBackgroundProps {
   children: React.ReactNode
 }
 
-// Color palette for all blobs (cycling through these)
-const COLOR_PALETTE = [
-  'rgba(140, 210, 160, 0.40)', // Mint
-  'rgba(160, 200, 170, 0.40)', // Soft Green
-  'rgba(180, 210, 180, 0.40)', // Sage
-  'rgba(200, 190, 160, 0.40)', // Warm Beige
-  'rgba(240, 220, 180, 0.40)', // Cream
-  'rgba(220, 200, 160, 0.40)', // Gold
-  'rgba(200, 180, 140, 0.40)', // Amber
-  'rgba(180, 200, 180, 0.40)', // Teal-Sage
-  'rgba(160, 190, 220, 0.40)', // Soft Blue
-  'rgba(180, 200, 230, 0.40)', // Light Blue
-  'rgba(220, 180, 180, 0.40)', // Soft Coral
-  'rgba(230, 170, 170, 0.40)', // Light Red
-  'rgba(200, 180, 200, 0.40)', // Soft Purple
-  'rgba(140, 210, 160, 0.40)', // Back to Mint
-]
-
-// Animated blob with slow color shifting
-function ColorShiftingBlob({
+// Static blob
+function StaticBlob({
   size,
   top,
   left,
   blur = 60,
-  delay = 0,
+  color,
 }: {
   size: number
   top: number
   left: number
   blur?: number
-  delay?: number
+  color: string
 }) {
-  const colorAnim = useRef(new Animated.Value(0)).current
-
-  useEffect(() => {
-    // Start animation with staggered delay
-    const startAnimation = () => {
-      Animated.loop(
-        Animated.timing(colorAnim, {
-          toValue: 1,
-          duration: 20000, // 20 seconds per cycle
-          easing: Easing.linear,
-          useNativeDriver: false, // Colors need native driver false
-        })
-      ).start()
-    }
-
-    // Apply staggered delay
-    if (delay > 0) {
-      const timer = setTimeout(startAnimation, delay)
-      return () => clearTimeout(timer)
-    }
-    startAnimation()
-    return undefined
-  }, [colorAnim, delay])
-
-  // Interpolate color based on animation value
-  const backgroundColor = colorAnim.interpolate({
-    inputRange: COLOR_PALETTE.map((_, index) => index / (COLOR_PALETTE.length - 1)),
-    outputRange: COLOR_PALETTE,
-  })
-
   return (
-    <Animated.View
+    <View
       style={{
         position: 'absolute',
         top,
@@ -81,7 +31,7 @@ function ColorShiftingBlob({
         height: size,
         borderRadius: size / 2,
         filter: `blur(${blur}px)`,
-        backgroundColor,
+        backgroundColor: color,
       }}
     />
   )
@@ -110,7 +60,7 @@ export function GradientBackground({ children }: GradientBackgroundProps) {
         }}
       />
 
-      {/* Color-shifting blobs with staggered animation */}
+      {/* Color-shifting blobs -> now Static abstract blobs */}
       <View
         position="absolute"
         top={0}
@@ -120,76 +70,76 @@ export function GradientBackground({ children }: GradientBackgroundProps) {
         zIndex={0}
         overflow="hidden"
       >
-        {/* Large mint blob - top right - heavy blur, starts immediately */}
-        <ColorShiftingBlob
+        {/* Large mint blob - top right - heavy blur */}
+        <StaticBlob
           size={400}
           top={-80}
           left={200}
           blur={80}
-          delay={0}
+          color="rgba(140, 210, 160, 0.40)"
         />
 
-        {/* Large soft sage blob - top center-left - medium blur, 3s delay */}
-        <ColorShiftingBlob
+        {/* Large soft sage blob - top center-left - medium blur */}
+        <StaticBlob
           size={350}
           top={20}
           left={-100}
           blur={70}
-          delay={3000}
+          color="rgba(180, 210, 180, 0.40)"
         />
 
-        {/* Medium warm gold blob - center right - soft blur, 6s delay */}
-        <ColorShiftingBlob
+        {/* Medium warm gold blob - center right - soft blur */}
+        <StaticBlob
           size={280}
           top={250}
           left={260}
           blur={55}
-          delay={6000}
+          color="rgba(220, 200, 160, 0.40)"
         />
 
-        {/* Large cream blob - bottom left - heavy blur, 9s delay */}
-        <ColorShiftingBlob
+        {/* Large cream blob - bottom left - heavy blur */}
+        <StaticBlob
           size={380}
           top={480}
           left={-80}
           blur={75}
-          delay={9000}
+          color="rgba(240, 220, 180, 0.40)"
         />
 
-        {/* Medium soft teal blob - bottom right - medium blur, 12s delay */}
-        <ColorShiftingBlob
+        {/* Medium soft teal blob - bottom right - medium blur */}
+        <StaticBlob
           size={240}
           top={580}
           left={280}
           blur={60}
-          delay={12000}
+          color="rgba(160, 190, 220, 0.40)"
         />
 
-        {/* Small lavender blob - center - soft blur, 15s delay */}
-        <ColorShiftingBlob
+        {/* Small lavender blob - center - soft blur */}
+        <StaticBlob
           size={220}
           top={380}
           left={100}
           blur={50}
-          delay={15000}
+          color="rgba(200, 180, 200, 0.40)"
         />
 
-        {/* Soft pink blob - upper center - medium blur, 5s delay */}
-        <ColorShiftingBlob
+        {/* Soft pink blob - upper center - medium blur */}
+        <StaticBlob
           size={200}
           top={100}
           left={140}
           blur={65}
-          delay={5000}
+          color="rgba(220, 180, 180, 0.40)"
         />
 
-        {/* Extra accent blob - soft blue - bottom center, 8s delay */}
-        <ColorShiftingBlob
+        {/* Extra accent blob - soft blue - bottom center */}
+        <StaticBlob
           size={180}
           top={700}
           left={180}
           blur={70}
-          delay={8000}
+          color="rgba(180, 200, 230, 0.40)"
         />
 
         {/* Top fade overlay for content readability */}
