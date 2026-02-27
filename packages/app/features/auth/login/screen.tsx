@@ -8,7 +8,7 @@ import { useLogin, useActivateRole, formatErrorMessage } from '@my/api'
 import { Eye, EyeOff } from '@tamagui/lucide-icons'
 import type { Role } from '@my/api'
 import { HTTPError, TimeoutError } from 'ky'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 
@@ -89,11 +89,15 @@ async function getHumanReadableError(error: unknown): Promise<string> {
 export function LoginScreen() {
   const router = useRouter()
   const insets = useSafeArea()
+  const params = useLocalSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Get role from URL query parameter
+  const preselectedRole = params.role as Role | undefined
 
   const loginMutation = useLogin()
   const activateRoleMutation = useActivateRole()
@@ -319,95 +323,99 @@ export function LoginScreen() {
           pt="$2xl"
           gap="$3"
         >
-          {/* Sign in as Homeowner */}
-          <Button
-            bg="$primary"
-            borderRadius="$4"
-            py="$3"
-            px="$4"
-            minHeight={54}
-            onPress={() => handleLogin('homeowner')}
-            disabled={isLoading}
-            pressStyle={PressPresets.primary.pressStyle}
-            animation={PressPresets.primary.animation}
-          >
-            {isLoading && selectedRole === 'homeowner' ? (
-              <XStack
-                gap="$2"
-                alignItems="center"
-              >
-                <Spinner
-                  size="small"
-                  color="white"
-                />
+          {/* Sign in as Homeowner - shown when no role or homeowner role */}
+          {(!preselectedRole || preselectedRole === 'homeowner') && (
+            <Button
+              bg="$primary"
+              borderRadius="$4"
+              py="$3"
+              px="$4"
+              minHeight={54}
+              onPress={() => handleLogin('homeowner')}
+              disabled={isLoading}
+              pressStyle={PressPresets.primary.pressStyle}
+              animation={PressPresets.primary.animation}
+            >
+              {isLoading && selectedRole === 'homeowner' ? (
+                <XStack
+                  gap="$2"
+                  alignItems="center"
+                >
+                  <Spinner
+                    size="small"
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontSize="$4"
+                    fontWeight="600"
+                  >
+                    Signing in...
+                  </Text>
+                </XStack>
+              ) : (
                 <Text
                   color="white"
                   fontSize="$4"
-                  fontWeight="600"
+                  fontWeight={preselectedRole === 'homeowner' ? '700' : '600'}
                 >
-                  Signing in...
+                  Sign in as Homeowner
                 </Text>
-              </XStack>
-            ) : (
-              <Text
-                color="white"
-                fontSize="$4"
-                fontWeight="600"
-              >
-                Sign in as Homeowner
-              </Text>
-            )}
-          </Button>
+              )}
+            </Button>
+          )}
 
-          {/* Sign in as Handyman */}
-          <Button
-            bg="white"
-            borderColor="$primary"
-            borderWidth={1.5}
-            borderRadius="$4"
-            py="$3"
-            px="$4"
-            minHeight={54}
-            onPress={() => handleLogin('handyman')}
-            disabled={isLoading}
-            pressStyle={PressPresets.secondary.pressStyle}
-            animation={PressPresets.secondary.animation}
-          >
-            {isLoading && selectedRole === 'handyman' ? (
-              <XStack
-                gap="$2"
-                alignItems="center"
-              >
-                <Spinner
-                  size="small"
-                  color="$primary"
-                />
-                <Text
-                  color="$primary"
-                  fontSize="$4"
-                  fontWeight="600"
+          {/* Sign in as Handyman - shown when no role or handyman role */}
+          {(!preselectedRole || preselectedRole === 'handyman') && (
+            <Button
+              bg={preselectedRole === 'handyman' ? '$primary' : 'white'}
+              borderColor={!preselectedRole ? '$primary' : undefined}
+              borderWidth={!preselectedRole ? 1.5 : undefined}
+              borderRadius="$4"
+              py="$3"
+              px="$4"
+              minHeight={54}
+              onPress={() => handleLogin('handyman')}
+              disabled={isLoading}
+              pressStyle={PressPresets.secondary.pressStyle}
+              animation={PressPresets.secondary.animation}
+            >
+              {isLoading && selectedRole === 'handyman' ? (
+                <XStack
+                  gap="$2"
+                  alignItems="center"
                 >
-                  Signing in...
+                  <Spinner
+                    size="small"
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontSize="$4"
+                    fontWeight="600"
+                  >
+                    Signing in...
+                  </Text>
+                </XStack>
+              ) : (
+                <Text
+                  color={preselectedRole === 'handyman' ? 'white' : '$primary'}
+                  fontSize="$4"
+                  fontWeight={preselectedRole === 'handyman' ? '700' : '600'}
+                >
+                  Sign in as Handyman
                 </Text>
-              </XStack>
-            ) : (
-              <Text
-                color="$primary"
-                fontSize="$4"
-                fontWeight="600"
-              >
-                Sign in as Handyman
-              </Text>
-            )}
-          </Button>
+              )}
+            </Button>
+          )}
 
           {/* Register link */}
           <XStack
             justifyContent="center"
-            mt="$2"
+            mt="$3"
           >
             <Text
-              fontSize="$3"
+              fontSize="$4"
               color="$colorSubtle"
             >
               Don't have an account?{' '}
@@ -419,7 +427,7 @@ export function LoginScreen() {
               animation={PressPresets.icon.animation}
             >
               <Text
-                fontSize="$3"
+                fontSize="$4"
                 fontWeight="700"
                 color="$primary"
               >

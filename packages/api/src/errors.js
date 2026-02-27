@@ -1,6 +1,7 @@
 System.register(['ky'], (exports_1, context_1) => {
-  var ky_1, ERROR_MESSAGES
-  var __moduleName = context_1 && context_1.id
+  let ky_1
+  let ERROR_MESSAGES
+  const __moduleName = context_1 && context_1.id
   /**
    * Formats error into human-readable message for display to users.
    * Strips URLs, technical details, and provides user-friendly messages.

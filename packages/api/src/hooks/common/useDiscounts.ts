@@ -25,12 +25,9 @@ export function useDiscounts(options: UseDiscountsOptions = {}) {
       }
 
       const url = `discounts/?${searchParams.toString()}`
-      console.log('[useDiscounts] Fetching from URL:', url)
-      
+
       try {
         const response = await apiClient.get(url).json<ApiResponse<Discount[]>>()
-        console.log('[useDiscounts] Full API response:', response)
-        console.log('[useDiscounts] Data:', response.data)
         return response.data
       } catch (error) {
         console.error('[useDiscounts] Error fetching discounts:', error)

@@ -399,19 +399,25 @@ export function HomeownerHandymanDetailScreen({ handymanId }: HomeownerHandymanD
                 justifyContent="center"
                 gap="$xs"
                 mb="$xs"
+                px="$lg"
               >
                 <Zap
                   size={14}
-                  color="yellow"
-                  fill="yellow"
+                  color="#FFB800"
+                  fill="#FFB800"
                 />
                 <Text
                   fontSize="$2"
-                  color="yellow"
+                  color="green"
                   textAlign="center"
                 >
                   Skip the wait! Send a direct job offer and get a faster response.
                 </Text>
+                <Zap
+                  size={14}
+                  color="#FFB800"
+                  fill="#FFB800"
+                />
               </XStack>
 
               {/* Chat Button */}

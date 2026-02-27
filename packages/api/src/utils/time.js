@@ -2,7 +2,7 @@
  * Time formatting utilities for direct offers and other time-sensitive features.
  */
 System.register([], (exports_1, context_1) => {
-  var __moduleName = context_1 && context_1.id
+  const __moduleName = context_1 && context_1.id
   /**
    * Calculate time remaining from an expiry date.
    */

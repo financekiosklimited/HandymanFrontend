@@ -1,6 +1,12 @@
 System.register(['ky', './store/auth'], (exports_1, context_1) => {
-  var ky_1, auth_1, API_BASE_URL, API_TIMEOUT_MS, isRefreshing, refreshPromise, apiClient
-  var __moduleName = context_1 && context_1.id
+  let ky_1
+  let auth_1
+  let API_BASE_URL
+  let API_TIMEOUT_MS
+  let isRefreshing
+  let refreshPromise
+  let apiClient
+  const __moduleName = context_1 && context_1.id
   async function refreshTokens() {
     const { refreshToken, setTokens, setActiveRole, setNextAction, setEmailVerified, logout } =
       auth_1.getAuthStore.getState()

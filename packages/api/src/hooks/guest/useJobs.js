@@ -1,6 +1,7 @@
 System.register(['@tanstack/react-query', '../../client'], (exports_1, context_1) => {
-  var react_query_1, client_1
-  var __moduleName = context_1 && context_1.id
+  let react_query_1
+  let client_1
+  const __moduleName = context_1 && context_1.id
   function useGuestJobs(params) {
     return react_query_1.useInfiniteQuery({
       queryKey: ['guest', 'jobs', params],

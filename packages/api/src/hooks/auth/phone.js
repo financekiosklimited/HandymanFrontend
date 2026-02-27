@@ -1,8 +1,10 @@
 System.register(
   ['@tanstack/react-query', '../../client', '../../store/auth'],
   (exports_1, context_1) => {
-    var react_query_1, client_1, auth_1
-    var __moduleName = context_1 && context_1.id
+    let react_query_1
+    let client_1
+    let auth_1
+    const __moduleName = context_1 && context_1.id
     /**
      * Hook to fetch country phone codes for phone number input.
      * No authentication required.

@@ -1,8 +1,9 @@
 System.register(
   ['@tanstack/react-query', '../../client', './useDirectOffers'],
   (exports_1, context_1) => {
-    var react_query_1, client_1
-    var __moduleName = context_1 && context_1.id
+    let react_query_1
+    let client_1
+    const __moduleName = context_1 && context_1.id
     /**
      * Hook to fetch jobs for handymen to browse and apply to.
      * Jobs are sorted by distance (if coordinates provided) and recency.

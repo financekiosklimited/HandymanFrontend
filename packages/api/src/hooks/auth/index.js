@@ -1,8 +1,10 @@
 System.register(
   ['@tanstack/react-query', '../../client', '../../store/auth', './phone'],
   (exports_1, context_1) => {
-    var react_query_1, client_1, auth_1
-    var __moduleName = context_1 && context_1.id
+    let react_query_1
+    let client_1
+    let auth_1
+    const __moduleName = context_1 && context_1.id
     function useLogin() {
       const { setTokens, setActiveRole, setNextAction, setEmailVerified } =
         auth_1.getAuthStore.getState()
@@ -184,7 +186,7 @@ System.register(
       return auth_1.getAuthStore((state) => state.activeRole)
     }
     exports_1('useAuthRole', useAuthRole)
-    var exportedNames_1 = {
+    const exportedNames_1 = {
       useLogin: true,
       useActivateRole: true,
       useRefreshToken: true,
@@ -198,8 +200,8 @@ System.register(
       useAuthRole: true,
     }
     function exportStar_1(m) {
-      var exports = {}
-      for (var n in m) {
+      const exports = {}
+      for (const n in m) {
         if (n !== 'default' && !exportedNames_1.hasOwnProperty(n)) exports[n] = m[n]
       }
       exports_1(exports)

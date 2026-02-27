@@ -321,9 +321,13 @@ export function GuestHomeScreen() {
   } | null>(null)
 
   // Navigation Helper - define early for use in callbacks
-  const redirectToLogin = useCallback(() => {
-    router.push('/auth/login')
-  }, [router])
+  const redirectToLogin = useCallback(
+    (role?: 'homeowner' | 'handyman') => {
+      const path = role ? `/auth/login?role=${role}` : '/auth/login'
+      router.push(path)
+    },
+    [router]
+  )
 
   //TODO : move typerwriter animation to reanimated-based
   // Typewriter animation state
@@ -771,7 +775,7 @@ export function GuestHomeScreen() {
 
                 <Button
                   unstyled
-                  onPress={redirectToLogin}
+                  onPress={() => redirectToLogin()}
                   position="relative"
                 >
                   <MessageCircle
@@ -827,7 +831,7 @@ export function GuestHomeScreen() {
                   py="$3"
                   fontSize="$5"
                   style={ctaPulseAnimatedStyle}
-                  onPress={redirectToLogin}
+                  onPress={() => redirectToLogin('homeowner')}
                   shadowColor="rgba(0,0,0,0.25)"
                   shadowRadius={12}
                   shadowOffset={{ width: 0, height: 4 }}
@@ -1025,7 +1029,7 @@ export function GuestHomeScreen() {
                                 py="$2"
                                 px="$3"
                                 {...PressPresets.secondary}
-                                onPress={redirectToLogin}
+                                onPress={() => redirectToLogin('homeowner')}
                                 style={{
                                   backgroundColor: `${promo.color}20`,
                                 }}
@@ -1530,7 +1534,7 @@ export function GuestHomeScreen() {
                         shadowRadius={5}
                         shadowOpacity={1}
                         gap="$3"
-                        onPress={redirectToLogin}
+                        onPress={() => router.push(`/(guest)/handymen/${pro.public_id}`)}
                       >
                         <View position="relative">
                           <View
@@ -1672,9 +1676,9 @@ export function GuestHomeScreen() {
                             mt="$2"
                             fontWeight="bold"
                             {...PressPresets.primary}
-                            onPress={redirectToLogin}
+                            onPress={() => router.push(`/(guest)/handymen/${pro.public_id}`)}
                           >
-                            Invite to Job
+                            View Profile
                           </Button>
                         </YStack>
                       </XStack>
@@ -1694,7 +1698,7 @@ export function GuestHomeScreen() {
                           <AnimatedCard
                             key={pro.public_id}
                             index={index}
-                            onPress={redirectToLogin}
+                            onPress={() => router.push(`/(guest)/handymen/${pro.public_id}`)}
                             style={{
                               backgroundColor: 'white',
                               borderRadius: 12,
@@ -1828,7 +1832,7 @@ export function GuestHomeScreen() {
               p="$4"
               alignItems="center"
               gap="$3"
-              onPress={() => router.push('/auth/login')}
+              onPress={() => redirectToLogin('handyman')}
               {...PressPresets.card}
               bg="#FFB800"
               shadowColor="rgba(0,0,0,0.1)"
@@ -1941,7 +1945,7 @@ export function GuestHomeScreen() {
                         shadowColor="rgba(0,0,0,0.03)"
                         shadowRadius={5}
                         shadowOpacity={1}
-                        onPress={redirectToLogin}
+                        onPress={() => redirectToLogin('handyman')}
                       >
                         <XStack
                           justifyContent="space-between"
@@ -2039,7 +2043,7 @@ export function GuestHomeScreen() {
                           <AnimatedCard
                             key={job.public_id}
                             index={index}
-                            onPress={redirectToLogin}
+                            onPress={() => redirectToLogin('handyman')}
                             style={{
                               backgroundColor: 'white',
                               borderRadius: 12,
