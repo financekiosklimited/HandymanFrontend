@@ -16,7 +16,7 @@ import {
   GradientBackground,
 } from '@my/ui'
 import { useAnimatedScrollHandler } from 'react-native-reanimated'
-import { Animated as AnimatedRN, View as RNView, Easing as EasingRN } from 'react-native'
+import { Pressable, Animated as AnimatedRN, View as RNView, Easing as EasingRN } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -146,14 +146,15 @@ function AnimatedCard({
   }, [scale])
 
   return (
-    <AnimatedView
-      style={[animatedStyle, style]}
-      onTouchStart={handlePressIn}
-      onTouchEnd={handlePressOut}
-      onPress={onPress}
-    >
-      {children}
-    </AnimatedView>
+    <Pressable onPress={onPress}>
+      <AnimatedView
+        style={[animatedStyle, style]}
+        onTouchStart={handlePressIn}
+        onTouchEnd={handlePressOut}
+      >
+        {children}
+      </AnimatedView>
+    </Pressable>
   )
 }
 

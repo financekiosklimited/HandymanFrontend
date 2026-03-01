@@ -43,6 +43,7 @@ import Animated, {
   withDelay,
   withSequence,
 } from 'react-native-reanimated'
+import { Pressable } from 'react-native'
 import {
   Search,
   MessageCircle,
@@ -238,14 +239,15 @@ function AnimatedCard({
   }, [scale])
 
   return (
-    <AnimatedView
-      style={[animatedStyle, style]}
-      onTouchStart={handlePressIn}
-      onTouchEnd={handlePressOut}
-      onPress={onPress}
-    >
-      {children}
-    </AnimatedView>
+    <Pressable onPress={onPress}>
+      <AnimatedView
+        style={[animatedStyle, style]}
+        onTouchStart={handlePressIn}
+        onTouchEnd={handlePressOut}
+      >
+        {children}
+      </AnimatedView>
+    </Pressable>
   )
 }
 
@@ -309,8 +311,8 @@ export function HandymanHomeScreen() {
     setSelectedCategory(debouncedCategorySelection)
   }, [debouncedCategorySelection])
 
-  const handleCategoryPress = useCallback((slug: string) => {
-    setPendingCategory((prev) => (prev === slug ? null : slug))
+  const handleCategoryPress = useCallback((publicId: string) => {
+    setPendingCategory((prev) => (prev === publicId ? null : publicId))
   }, [])
 
   // Request location permission and get current location
@@ -1350,7 +1352,7 @@ export function HandymanHomeScreen() {
                         <XStack gap="$3">
                           {categories?.map((cat) => {
                             const IconComponent = iconMap[cat.icon] || Wrench
-                            const isSelected = selectedCategory === cat.slug
+                            const isSelected = selectedCategory === cat.public_id
 
                             return (
                               <YStack
@@ -1361,7 +1363,7 @@ export function HandymanHomeScreen() {
                               >
                                 <AnimatedCategoryIcon
                                   isSelected={isSelected}
-                                  onPress={() => handleCategoryPress(cat.slug)}
+                                  onPress={() => handleCategoryPress(cat.public_id)}
                                 >
                                   <View
                                     width={56}
@@ -1717,12 +1719,12 @@ export function HandymanHomeScreen() {
                   <AnimatedCard
                     key={job.public_id}
                     index={index}
-                    onPress={() => router.push(`/(handyman)/jobs/${job.public_id}`)}
                     style={{ width: '100%' }}
                   >
                     <JobCard
                       job={job}
                       showCategory
+                      onPress={() => router.push(`/(handyman)/jobs/${job.public_id}`)}
                     />
                   </AnimatedCard>
                 ))

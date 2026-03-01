@@ -131,9 +131,14 @@ export function LoginScreen() {
       await loginMutation.mutateAsync({ email: email.trim(), password })
 
       // Step 2: Activate role
-      // Note: Navigation is handled by the route file (apps/expo/app/auth/login.tsx)
-      // which watches auth state and redirects automatically
       await activateRoleMutation.mutateAsync({ role })
+
+      // Step 3: Navigate to appropriate homepage after both succeed
+      if (role === 'handyman') {
+        router.replace('/(handyman)/')
+      } else {
+        router.replace('/(homeowner)/')
+      }
     } catch (err) {
       const humanReadableError = await getHumanReadableError(err)
       setError(humanReadableError)

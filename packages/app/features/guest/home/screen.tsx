@@ -190,14 +190,15 @@ function AnimatedCard({
   }, [scale])
 
   return (
-    <AnimatedView
-      style={[animatedStyle, style]}
-      onTouchStart={handlePressIn}
-      onTouchEnd={handlePressOut}
-      onPress={onPress}
-    >
-      {children}
-    </AnimatedView>
+    <Pressable onPress={onPress}>
+      <AnimatedView
+        style={[animatedStyle, style]}
+        onTouchStart={handlePressIn}
+        onTouchEnd={handlePressOut}
+      >
+        {children}
+      </AnimatedView>
+    </Pressable>
   )
 }
 
@@ -1945,7 +1946,7 @@ export function GuestHomeScreen() {
                         shadowColor="rgba(0,0,0,0.03)"
                         shadowRadius={5}
                         shadowOpacity={1}
-                        onPress={() => redirectToLogin('handyman')}
+                        onPress={() => router.push(`/(guest)/jobs/${job.public_id}`)}
                       >
                         <XStack
                           justifyContent="space-between"
@@ -2043,7 +2044,7 @@ export function GuestHomeScreen() {
                           <AnimatedCard
                             key={job.public_id}
                             index={index}
-                            onPress={() => redirectToLogin('handyman')}
+                            onPress={() => router.push(`/(guest)/jobs/${job.public_id}`)}
                             style={{
                               backgroundColor: 'white',
                               borderRadius: 12,
