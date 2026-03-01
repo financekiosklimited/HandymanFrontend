@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import * as Location from 'expo-location'
 import {
   YStack,
@@ -27,7 +27,7 @@ import {
   useHandymanAssignedJobs,
   useDiscounts,
 } from '@my/api'
-import type { Discount } from '@my/api'
+import type { Discount, HandymanJobForYou } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
 import { JobCard } from '@my/ui'
@@ -43,7 +43,7 @@ import Animated, {
   withDelay,
   withSequence,
 } from 'react-native-reanimated'
-import { Pressable } from 'react-native'
+import { Pressable, FlatList } from 'react-native'
 import {
   Search,
   MessageCircle,
@@ -196,6 +196,32 @@ const SPRING_CONFIG = {
   damping: 15,
   stiffness: 150,
 }
+
+// Memoized job list item for FlatList virtualization
+const JobListItem = React.memo(
+  ({
+    item,
+    index,
+    onPress,
+  }: {
+    item: HandymanJobForYou
+    index: number
+    onPress: () => void
+  }) => (
+    <AnimatedCard
+      index={index}
+      style={{ width: '100%' }}
+      onPress={onPress}
+    >
+      <JobCard
+        job={item}
+        showCategory
+        onPress={onPress}
+      />
+    </AnimatedCard>
+  ),
+  (prev, next) => prev.item.public_id === next.item.public_id && prev.index === next.index
+)
 
 // Animated card component with entrance animation for job cards
 function AnimatedCard({
@@ -1715,19 +1741,49 @@ export function HandymanHomeScreen() {
                   m="$4"
                 />
               ) : filteredJobs.length > 0 ? (
-                filteredJobs.map((job, index) => (
-                  <AnimatedCard
-                    key={job.public_id}
-                    index={index}
-                    style={{ width: '100%' }}
-                  >
-                    <JobCard
-                      job={job}
-                      showCategory
-                      onPress={() => router.push(`/(handyman)/jobs/${job.public_id}`)}
+                <FlatList
+                  data={filteredJobs}
+                  keyExtractor={(item) => item.public_id}
+                  renderItem={({ item, index }: { item: HandymanJobForYou; index: number }) => (
+                    <JobListItem
+                      item={item}
+                      index={index}
+                      onPress={() => router.push(`/(handyman)/jobs/${item.public_id}`)}
                     />
-                  </AnimatedCard>
-                ))
+                  )}
+                  ItemSeparatorComponent={() => <View height={12} />}
+                  getItemLayout={(data, index) => ({
+                    length: 180,
+                    offset: 180 * index,
+                    index,
+                  })}
+                  initialNumToRender={6}
+                  maxToRenderPerBatch={6}
+                  windowSize={5}
+                  removeClippedSubviews={true}
+                  scrollEnabled={false}
+                  ListFooterComponent={
+                    isFetchingMoreJobs ? (
+                      <XStack
+                        alignItems="center"
+                        justifyContent="center"
+                        gap="$sm"
+                        py="$4"
+                      >
+                        <Spinner
+                          size="small"
+                          color="$primary"
+                        />
+                        <Text
+                          color="$colorSubtle"
+                          fontSize="$3"
+                        >
+                          Loading more jobs...
+                        </Text>
+                      </XStack>
+                    ) : null
+                  }
+                />
               ) : (
                 <YStack
                   py="$8"
@@ -1740,27 +1796,6 @@ export function HandymanHomeScreen() {
                 >
                   <Text color="$colorMuted">No jobs found.</Text>
                 </YStack>
-              )}
-
-              {/* Loading indicator for infinite scroll */}
-              {isFetchingMoreJobs && (
-                <XStack
-                  alignItems="center"
-                  justifyContent="center"
-                  gap="$sm"
-                  py="$4"
-                >
-                  <Spinner
-                    size="small"
-                    color="$primary"
-                  />
-                  <Text
-                    color="$colorSubtle"
-                    fontSize="$3"
-                  >
-                    Loading more jobs...
-                  </Text>
-                </XStack>
               )}
             </YStack>
           </AnimatedYStack>

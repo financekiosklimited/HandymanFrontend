@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import * as Location from 'expo-location'
 import {
   YStack,
@@ -16,7 +16,13 @@ import {
   GradientBackground,
 } from '@my/ui'
 import { useAnimatedScrollHandler } from 'react-native-reanimated'
-import { Pressable, Animated as AnimatedRN, View as RNView, Easing as EasingRN } from 'react-native'
+import {
+  Pressable,
+  FlatList,
+  Animated as AnimatedRN,
+  View as RNView,
+  Easing as EasingRN,
+} from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -270,6 +276,188 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'winnipeg-mb': { lat: 49.895136, lng: -97.138374 },
   'halifax-ns': { lat: 44.648764, lng: -63.575239 },
 }
+
+// Memoized list item components for FlatList virtualization
+interface HandymanItem {
+  public_id: string
+  display_name: string
+  hourly_rate?: number | null
+  rating?: number | null
+  review_count?: number | null
+}
+
+const HandymanListItem = React.memo(
+  ({
+    item,
+    onPress,
+  }: {
+    item: HandymanItem
+    onPress: (id: string) => void
+  }) => (
+    <XStack
+      bg="white"
+      borderRadius="$6"
+      p="$3"
+      borderColor="$borderSubtle"
+      borderWidth={1}
+      shadowColor="rgba(0,0,0,0.03)"
+      shadowRadius={5}
+      shadowOpacity={1}
+      gap="$3"
+      onPress={() => onPress(item.public_id)}
+      mb="$3"
+      pressStyle={PressPresets.card.pressStyle}
+      animation={PressPresets.card.animation}
+    >
+      <View position="relative">
+        <View
+          width={56}
+          height={56}
+          borderRadius="$4"
+          bg="$backgroundSubtle"
+          alignItems="center"
+          justifyContent="center"
+          borderWidth={2}
+          borderColor="white"
+          shadowColor="rgba(0,0,0,0.1)"
+          shadowRadius={3}
+        >
+          <Text
+            fontSize="$5"
+            fontWeight="bold"
+            color="$colorSubtle"
+          >
+            {item.display_name.charAt(0)}
+          </Text>
+        </View>
+        <View
+          position="absolute"
+          bottom={-4}
+          right={-4}
+          bg="$primary"
+          p={2}
+          borderRadius={100}
+          borderWidth={2}
+          borderColor="white"
+        >
+          <ShieldCheck
+            size={10}
+            color="white"
+          />
+        </View>
+      </View>
+
+      <YStack
+        flex={1}
+        justifyContent="space-between"
+      >
+        <XStack
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
+          <YStack flex={1}>
+            <Text
+              fontSize="$3"
+              fontWeight="bold"
+              color="$color"
+              numberOfLines={1}
+            >
+              {item.display_name}
+            </Text>
+            <Text
+              fontSize={10}
+              color="$colorSubtle"
+            >
+              Specialist
+            </Text>
+          </YStack>
+          <YStack alignItems="flex-end">
+            <Text
+              fontSize="$3"
+              fontWeight="bold"
+              color="$color"
+            >
+              ${item.hourly_rate || 'N/A'}
+            </Text>
+            <Text
+              fontSize={9}
+              color="$colorSubtle"
+              fontWeight="500"
+            >
+              /hr
+            </Text>
+          </YStack>
+        </XStack>
+
+        <XStack
+          gap="$3"
+          mt="$1"
+          alignItems="center"
+        >
+          <XStack
+            bg="$warningBackground"
+            px="$1.5"
+            py="$0.5"
+            borderRadius="$2"
+            borderColor="$warningBackground"
+            borderWidth={1}
+            alignItems="center"
+            gap="$1"
+          >
+            <Star
+              size={10}
+              color="$accent"
+              fill={colors.accent}
+            />
+            <Text
+              fontSize={10}
+              fontWeight="bold"
+              color="$accent"
+            >
+              {item.rating || 0}
+            </Text>
+            <Text
+              fontSize={10}
+              color="$accent"
+              opacity={0.7}
+            >
+              ({item.review_count || 0})
+            </Text>
+          </XStack>
+          <XStack
+            alignItems="center"
+            gap="$1"
+          >
+            <Briefcase
+              size={10}
+              color="$colorSubtle"
+            />
+            <Text
+              fontSize={10}
+              color="$colorSubtle"
+            >
+              34 jobs
+            </Text>
+          </XStack>
+        </XStack>
+
+        <Button
+          size="$2"
+          bg="$color"
+          color="white"
+          borderRadius="$4"
+          mt="$2"
+          fontWeight="bold"
+          {...PressPresets.primary}
+          onPress={() => onPress(item.public_id)}
+        >
+          View Profile
+        </Button>
+      </YStack>
+    </XStack>
+  ),
+  (prev, next) => prev.item.public_id === next.item.public_id
+)
 
 // Collapsible Section using JS-driven Layout Animation for proper sibling reflow
 function CollapsibleSection({
@@ -1766,162 +1954,29 @@ export function HomeownerHomeScreen() {
                     </XStack>
                   ))}
 
-                  {/* Collapsible section for remaining handymen */}
+                  {/* Collapsible section for remaining handymen with FlatList virtualization */}
                   <CollapsibleSection expanded={expandHandymen}>
-                    <YStack>
-                      {handymen.slice(3).map((pro) => (
-                        <XStack
-                          key={pro.public_id}
-                          bg="white"
-                          borderRadius="$6"
-                          p="$3"
-                          borderColor="$borderSubtle"
-                          borderWidth={1}
-                          shadowColor="rgba(0,0,0,0.03)"
-                          shadowRadius={5}
-                          shadowOpacity={1}
-                          gap="$3"
-                          onPress={() => router.push(`/(homeowner)/handymen/${pro.public_id}`)}
-                          mb="$3"
-                          pressStyle={PressPresets.card.pressStyle}
-                          animation={PressPresets.card.animation}
-                        >
-                          <View position="relative">
-                            {/* Placeholder for now since API might not return image yet, or use Avatar if available */}
-                            <View
-                              width={56}
-                              height={56}
-                              borderRadius="$4"
-                              bg="$backgroundSubtle"
-                              alignItems="center"
-                              justifyContent="center"
-                              borderWidth={2}
-                              borderColor="white"
-                              shadowColor="rgba(0,0,0,0.1)"
-                              shadowRadius={3}
-                            >
-                              <Text
-                                fontSize="$5"
-                                fontWeight="bold"
-                                color="$colorSubtle"
-                              >
-                                {pro.display_name.charAt(0)}
-                              </Text>
-                            </View>
-                            <View
-                              position="absolute"
-                              bottom={-4}
-                              right={-4}
-                              bg="$primary"
-                              p={2}
-                              borderRadius={100}
-                              borderWidth={2}
-                              borderColor="white"
-                            >
-                              <ShieldCheck
-                                size={10}
-                                color="white"
-                              />
-                            </View>
-                          </View>
-
-                          <YStack
-                            flex={1}
-                            justifyContent="space-between"
-                          >
-                            <XStack
-                              justifyContent="space-between"
-                              alignItems="flex-start"
-                            >
-                              <YStack flex={1}>
-                                <Text
-                                  fontSize="$3"
-                                  fontWeight="bold"
-                                  color="$color"
-                                  numberOfLines={1}
-                                >
-                                  {pro.display_name}
-                                </Text>
-                                <Text
-                                  fontSize={10}
-                                  color="$colorSubtle"
-                                >
-                                  Specialist
-                                </Text>
-                              </YStack>
-                              <YStack alignItems="flex-end">
-                                <Text
-                                  fontSize="$3"
-                                  fontWeight="bold"
-                                  color="$color"
-                                >
-                                  ${pro.hourly_rate || 'N/A'}
-                                </Text>
-                                <Text
-                                  fontSize={9}
-                                  color="$colorSubtle"
-                                  fontWeight="500"
-                                >
-                                  /hr
-                                </Text>
-                              </YStack>
-                            </XStack>
-
-                            <XStack
-                              gap="$3"
-                              mt="$1"
-                              alignItems="center"
-                            >
-                              <XStack
-                                bg="$warningBackground"
-                                px="$1.5"
-                                py="$0.5"
-                                borderRadius="$2"
-                                borderColor="$warningBackground"
-                                borderWidth={1}
-                                alignItems="center"
-                                gap="$1"
-                              >
-                                <Star
-                                  size={10}
-                                  color="$accent"
-                                  fill={colors.accent}
-                                />
-                                <Text
-                                  fontSize={10}
-                                  fontWeight="bold"
-                                  color="$accent"
-                                >
-                                  {pro.rating || 0}
-                                </Text>
-                                <Text
-                                  fontSize={10}
-                                  color="$accent"
-                                  opacity={0.7}
-                                >
-                                  ({pro.review_count || 0})
-                                </Text>
-                              </XStack>
-                              <XStack
-                                alignItems="center"
-                                gap="$1"
-                              >
-                                <Briefcase
-                                  size={10}
-                                  color="$colorSubtle"
-                                />
-                                <Text
-                                  fontSize={10}
-                                  color="$colorSubtle"
-                                >
-                                  34 jobs
-                                </Text>
-                              </XStack>
-                            </XStack>
-                          </YStack>
-                        </XStack>
-                      ))}
-                    </YStack>
+                    <FlatList
+                      data={handymen.slice(3)}
+                      keyExtractor={(item) => item.public_id}
+                      renderItem={({ item }: { item: HandymanItem }) => (
+                        <HandymanListItem
+                          item={item}
+                          onPress={(id) => router.push(`/(homeowner)/handymen/${id}`)}
+                        />
+                      )}
+                      ItemSeparatorComponent={() => <View height={12} />}
+                      getItemLayout={(data, index) => ({
+                        length: 140,
+                        offset: 140 * index,
+                        index,
+                      })}
+                      initialNumToRender={4}
+                      maxToRenderPerBatch={4}
+                      windowSize={5}
+                      removeClippedSubviews={true}
+                      scrollEnabled={false}
+                    />
                   </CollapsibleSection>
                 </YStack>
               ) : (
