@@ -24,7 +24,7 @@ export default function HandymanLayout() {
   useEffect(() => {
     // Redirect to login if not authenticated
     if (!isAuthenticated) {
-      replace('/auth/login')
+      replace('/auth/login/?role=homeowner' as any)
       return
     }
 

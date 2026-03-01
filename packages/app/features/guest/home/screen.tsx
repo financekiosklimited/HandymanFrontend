@@ -614,7 +614,7 @@ export function GuestHomeScreen() {
   // Navigation Helper - define early for use in callbacks
   const redirectToLogin = useCallback(
     (role?: 'homeowner' | 'handyman') => {
-      const path = role ? `/auth/login?role=${role}` : '/auth/login'
+      const path = role ? `/auth/login?role=${role}` : '/auth/login/?role=homeowner'
       router.push(path)
     },
     [router]

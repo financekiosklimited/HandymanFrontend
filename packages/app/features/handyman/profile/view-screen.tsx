@@ -85,7 +85,7 @@ export function HandymanProfileViewScreen() {
   const handleLogout = async () => {
     try {
       await logoutMutation.mutateAsync()
-      router.replace('/auth/login')
+      router.replace('/auth/login/?role=handyman')
     } catch (error) {
       console.error('Failed to logout:', error)
     }
