@@ -1,6 +1,9 @@
 System.register(['@tanstack/react-query', '../../client'], (exports_1, context_1) => {
-  var react_query_1, client_1, CHAT_TIMEOUT_MS, chatQueryKeys
-  var __moduleName = context_1 && context_1.id
+  let react_query_1
+  let client_1
+  let CHAT_TIMEOUT_MS
+  let chatQueryKeys
+  const __moduleName = context_1 && context_1.id
   // ========== Job Chat Hooks ==========
   /**
    * Hook to open/create job chat conversation.

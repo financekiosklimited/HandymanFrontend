@@ -256,7 +256,7 @@ export function DirectOfferCard({ offer, onPress, variant }: DirectOfferCardProp
                   fontSize={10}
                   color="$colorSubtle"
                 >
-                  {person.rating.toFixed(1)} ({person.review_count} reviews)
+                  {Number(person.rating).toFixed(1)} ({person.review_count} reviews)
                 </Text>
               </XStack>
             )}

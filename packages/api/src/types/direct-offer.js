@@ -1,7 +1,9 @@
 // Direct Job Offer types
 System.register([], (exports_1, context_1) => {
-  var QUICK_REJECTION_REASONS, OFFER_EXPIRY_OPTIONS, DEFAULT_OFFER_EXPIRY_DAYS
-  var __moduleName = context_1 && context_1.id
+  let QUICK_REJECTION_REASONS
+  let OFFER_EXPIRY_OPTIONS
+  let DEFAULT_OFFER_EXPIRY_DAYS
+  const __moduleName = context_1 && context_1.id
   return {
     setters: [],
     execute: () => {

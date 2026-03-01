@@ -1,17 +1,17 @@
 System.register(
   ['zustand', 'zustand/middleware', 'react-native', 'app/provider/query-client'],
   (exports_1, context_1) => {
-    var zustand_1,
-      middleware_1,
-      react_native_1,
-      query_client_1,
-      createStorage,
-      getAuthStore,
-      useAuthStore,
-      useIsAuthenticated,
-      useActiveRole,
-      useAccessToken
-    var __moduleName = context_1 && context_1.id
+    let zustand_1
+    let middleware_1
+    let react_native_1
+    let query_client_1
+    let createStorage
+    let getAuthStore
+    let useAuthStore
+    let useIsAuthenticated
+    let useActiveRole
+    let useAccessToken
+    const __moduleName = context_1 && context_1.id
     return {
       setters: [
         (zustand_1_1) => {

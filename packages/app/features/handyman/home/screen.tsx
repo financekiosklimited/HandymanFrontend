@@ -392,7 +392,7 @@ export function HandymanHomeScreen() {
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Handyman'
   const totalEarnings = profile?.total_earnings || 0
   const completedJobs = profile?.completed_jobs_count || 0
-  const rating = profile?.rating || 0
+  const rating = Number(profile?.rating) || 0
 
   // Infinite scroll state with debouncing
   const isFetchingRef = useRef(false)

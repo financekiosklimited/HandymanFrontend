@@ -13,7 +13,7 @@ import {
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { colors } from '@my/config'
-import { useHandymanProfile, useActivateRole, useLogout } from '@my/api'
+import { useHandymanProfile, useActivateRole, useLogout, useKycStatus } from '@my/api'
 import { useRouter, useNavigation } from 'expo-router'
 import {
   CheckCircle,
@@ -33,6 +33,9 @@ import {
   DollarSign,
   Settings,
   RotateCcw,
+  Shield,
+  Wallet,
+  ChevronRight,
 } from '@tamagui/lucide-icons'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { PageHeader } from '@my/ui'
@@ -49,6 +52,7 @@ export function HandymanProfileViewScreen() {
   const { data: profile, isLoading, error } = useHandymanProfile()
   const activateRoleMutation = useActivateRole()
   const logoutMutation = useLogout()
+  const { data: kycStatus } = useKycStatus()
 
   // Format date for display
   const formatDate = (dateString: string | null) => {
@@ -261,9 +265,7 @@ export function HandymanProfileViewScreen() {
                       color="$color"
                       fontWeight="600"
                     >
-                      {typeof profile.rating === 'number'
-                        ? profile.rating.toFixed(1)
-                        : profile.rating}
+                      {Number(profile.rating) ? Number(profile.rating).toFixed(1) : profile.rating}
                     </Text>
                   </XStack>
                 )}
@@ -468,7 +470,7 @@ export function HandymanProfileViewScreen() {
                         fontWeight="bold"
                         color="rgb(12, 154, 92)"
                       >
-                        {profile.rating ? profile.rating.toFixed(1) : '4.8'}
+                        {profile.rating ? Number(profile.rating).toFixed(1) : '4.8'}
                       </Text>
                       <Text
                         fontSize="$2"
@@ -915,6 +917,137 @@ export function HandymanProfileViewScreen() {
                     {profile.address || '-'}
                   </Text>
                 </XStack>
+              </YStack>
+
+              {/* Verification & Wallet Section */}
+              <YStack
+                bg="$backgroundStrong"
+                borderRadius={12}
+                borderWidth={1}
+                borderColor="$backgroundHover"
+                overflow="hidden"
+              >
+                {/* Section Header */}
+                <XStack
+                  px="$4"
+                  py="$3.5"
+                  alignItems="center"
+                  gap="$2.5"
+                  borderBottomWidth={1}
+                  borderBottomColor="$borderColor"
+                >
+                  <Shield
+                    size={18}
+                    color="$primary"
+                  />
+                  <Text
+                    fontSize={15}
+                    fontWeight="700"
+                    color="$color"
+                  >
+                    Verification & Payments
+                  </Text>
+                </XStack>
+
+                {/* KYC Status Row */}
+                <Button
+                  unstyled
+                  px="$4"
+                  py="$3.5"
+                  flexDirection="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  borderBottomWidth={1}
+                  borderBottomColor="$borderColor"
+                  onPress={() => router.push('/(handyman)/kyc')}
+                  {...PressPresets.listItem}
+                >
+                  <YStack gap="$1">
+                    <Text
+                      fontSize={14}
+                      color="$color"
+                      fontWeight="500"
+                    >
+                      Verification Status
+                    </Text>
+                    <Text
+                      fontSize={12}
+                      color="$placeholderColor"
+                    >
+                      {kycStatus?.is_eligible
+                        ? 'Fully verified'
+                        : kycStatus
+                          ? 'Action required'
+                          : 'Check your status'}
+                    </Text>
+                  </YStack>
+                  <XStack
+                    alignItems="center"
+                    gap="$2"
+                  >
+                    {kycStatus && (
+                      <View
+                        bg={kycStatus.is_eligible ? '$successBackground' : '$warningBackground'}
+                        px="$2"
+                        py="$0.5"
+                        borderRadius={8}
+                      >
+                        <Text
+                          fontSize={11}
+                          fontWeight="600"
+                          color={kycStatus.is_eligible ? '$success' : '$warning'}
+                        >
+                          {kycStatus.is_eligible ? 'Eligible' : 'Incomplete'}
+                        </Text>
+                      </View>
+                    )}
+                    <ChevronRight
+                      size={16}
+                      color="$placeholderColor"
+                    />
+                  </XStack>
+                </Button>
+
+                {/* Wallet Row */}
+                <Button
+                  unstyled
+                  px="$4"
+                  py="$3.5"
+                  flexDirection="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  onPress={() => router.push('/(handyman)/wallet')}
+                  {...PressPresets.listItem}
+                >
+                  <YStack gap="$1">
+                    <Text
+                      fontSize={14}
+                      color="$color"
+                      fontWeight="500"
+                    >
+                      My Wallet
+                    </Text>
+                    <Text
+                      fontSize={12}
+                      color="$placeholderColor"
+                    >
+                      View balance & withdraw earnings
+                    </Text>
+                  </YStack>
+                  <XStack
+                    alignItems="center"
+                    gap="$2"
+                  >
+                    <Wallet
+                      size={16}
+                      color="$placeholderColor"
+                    />
+                    <ChevronRight
+                      size={16}
+                      color="$placeholderColor"
+                    />
+                  </XStack>
+                </Button>
               </YStack>
 
               {/* Action Buttons */}

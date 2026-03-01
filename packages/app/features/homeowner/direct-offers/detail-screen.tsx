@@ -21,7 +21,9 @@ import {
   useHomeownerDirectOffer,
   useCancelDirectOffer,
   useConvertToPublicJob,
+  useAuthorizeDirectOfferPayment,
   formatOfferDate,
+  formatErrorMessage,
 } from '@my/api'
 import {
   MapPin,
@@ -39,12 +41,14 @@ import {
   AlertCircle,
   MessageCircle,
   CheckCircle2,
+  CreditCard,
 } from '@tamagui/lucide-icons'
 import { PageHeader } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
+import { useStripe } from '@stripe/stripe-react-native'
 import { showOfferAcceptedToast, showOfferDeclinedToast } from 'app/utils/toast-messages'
 import {
   hasNotificationToastBeenShown,
@@ -68,6 +72,9 @@ export function HomeownerDirectOfferDetailScreen({
   const { data: offer, isLoading, error, refetch } = useHomeownerDirectOffer(offerId)
   const cancelMutation = useCancelDirectOffer()
   const convertMutation = useConvertToPublicJob()
+  const authorizePayment = useAuthorizeDirectOfferPayment()
+  const { initPaymentSheet, presentPaymentSheet } = useStripe()
+  const [isAuthorizing, setIsAuthorizing] = useState(false)
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [imageViewerVisible, setImageViewerVisible] = useState(false)
@@ -143,6 +150,9 @@ export function HomeownerDirectOfferDetailScreen({
   // Check if offer can be converted (only rejected or expired)
   const canConvert = offer?.offer_status === 'rejected' || offer?.offer_status === 'expired'
 
+  // Check if payment can be authorized (only accepted)
+  const canAuthorizePayment = offer?.offer_status === 'accepted'
+
   // Handle cancel
   const handleCancel = useCallback(() => {
     if (!offer) return
@@ -212,6 +222,75 @@ export function HomeownerDirectOfferDetailScreen({
       },
     })
   }, [offer, convertMutation, router])
+
+  // Handle authorize payment for accepted offer
+  const handleAuthorizePayment = useCallback(() => {
+    if (!offer) return
+
+    showConfirm({
+      title: 'Authorize Payment',
+      description: `Authorize a payment hold of $${offer.offered_price || '0'} for this job? The payment will only be captured when the job is completed.`,
+      type: 'success',
+      confirmText: 'Authorize Payment',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        setIsAuthorizing(true)
+        try {
+          // Step 1: Get payment authorization (client_secret) from backend
+          const paymentAuth = await authorizePayment.mutateAsync(offer.public_id)
+
+          // Step 2: Initialize PaymentSheet with the client_secret
+          const { error: initError } = await initPaymentSheet({
+            paymentIntentClientSecret: paymentAuth.client_secret,
+            merchantDisplayName: 'HandymanKiosk',
+          })
+
+          if (initError) {
+            showConfirm({
+              title: 'Payment Error',
+              description: initError.message || 'Failed to initialize payment',
+              type: 'confirm',
+              confirmText: 'OK',
+              onConfirm: () => {},
+            })
+            return
+          }
+
+          // Step 3: Present PaymentSheet to the user
+          const { error: presentError } = await presentPaymentSheet()
+
+          if (presentError) {
+            if (presentError.code !== 'Canceled') {
+              showConfirm({
+                title: 'Payment Failed',
+                description: presentError.message || 'Payment authorization failed',
+                type: 'confirm',
+                confirmText: 'OK',
+                onConfirm: () => {},
+              })
+            }
+            return
+          }
+
+          // Step 4: Payment authorized — navigate to jobs
+          router.replace({
+            pathname: '/(homeowner)/jobs',
+            params: { toast: 'payment-authorized' },
+          })
+        } catch (err) {
+          showConfirm({
+            title: 'Error',
+            description: formatErrorMessage(err),
+            type: 'confirm',
+            confirmText: 'OK',
+            onConfirm: () => {},
+          })
+        } finally {
+          setIsAuthorizing(false)
+        }
+      },
+    })
+  }, [offer, authorizePayment, initPaymentSheet, presentPaymentSheet, router])
 
   if (isLoading) {
     return (
@@ -480,8 +559,9 @@ export function HomeownerDirectOfferDetailScreen({
                   fontSize="$3"
                   color="$colorSubtle"
                 >
-                  Great news! {offer.target_handyman.display_name} has accepted your offer. Use the
-                  chat button above to coordinate details and get started.
+                  Great news! {offer.target_handyman.display_name} has accepted your offer.
+                  Authorize a payment hold below to get started, then use the chat button to
+                  coordinate details.
                 </Text>
               </YStack>
             )}
@@ -594,7 +674,7 @@ export function HomeownerDirectOfferDetailScreen({
                           fontSize="$2"
                           color="$colorSubtle"
                         >
-                          {offer.target_handyman.rating.toFixed(1)} (
+                          {Number(offer.target_handyman.rating).toFixed(1)} (
                           {offer.target_handyman.review_count} reviews)
                         </Text>
                       </XStack>
@@ -1201,7 +1281,7 @@ export function HomeownerDirectOfferDetailScreen({
         </ScrollView>
 
         {/* Bottom Actions */}
-        {(canCancel || canConvert) && (
+        {(canCancel || canConvert || canAuthorizePayment) && (
           <YStack
             px="$4"
             pb={insets.bottom}
@@ -1211,6 +1291,42 @@ export function HomeownerDirectOfferDetailScreen({
             bg="$background"
             gap="$3"
           >
+            {canAuthorizePayment && (
+              <Button
+                bg="$primary"
+                borderRadius="$4"
+                py="$3"
+                minHeight={54}
+                onPress={handleAuthorizePayment}
+                disabled={isAuthorizing}
+                {...PressPresets.primary}
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                >
+                  {isAuthorizing ? (
+                    <Spinner
+                      size="small"
+                      color="white"
+                    />
+                  ) : (
+                    <CreditCard
+                      size={18}
+                      color="white"
+                    />
+                  )}
+                  <Text
+                    color="white"
+                    fontSize="$4"
+                    fontWeight="600"
+                  >
+                    {isAuthorizing ? 'Authorizing...' : 'Authorize Payment'}
+                  </Text>
+                </XStack>
+              </Button>
+            )}
+
             {canConvert && (
               <Button
                 bg="$primary"

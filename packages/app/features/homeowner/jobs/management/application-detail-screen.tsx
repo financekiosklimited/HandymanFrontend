@@ -17,7 +17,13 @@ import {
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
-import { useHomeownerApplicationDetail, useApproveApplication, useRejectApplication } from '@my/api'
+import {
+  useHomeownerApplicationDetail,
+  useApproveApplication,
+  useRejectApplication,
+  useAuthorizeApplicationPayment,
+  formatErrorMessage,
+} from '@my/api'
 import type { HomeownerApplicationStatus } from '@my/api'
 import {
   Star,
@@ -36,6 +42,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { applicationStatusColors, type ApplicationStatus, colors } from '@my/config'
 import { useToastController } from '@tamagui/toast'
+import { useStripe } from '@stripe/stripe-react-native'
 import {
   showApplicationApprovedHomeownerToast,
   showApplicationRejectedHomeownerToast,
@@ -68,17 +75,48 @@ export function ApplicationDetailScreen() {
   // Mutations
   const approveApplication = useApproveApplication()
   const rejectApplication = useRejectApplication()
+  const authorizePayment = useAuthorizeApplicationPayment()
+  const { initPaymentSheet, presentPaymentSheet } = useStripe()
 
   const handleApprove = () => {
     showConfirm({
-      title: 'Approve Application',
-      description: `Are you sure you want to approve ${application?.handyman_profile.display_name}'s application? This will assign the job to them and reject all other pending applications.`,
+      title: 'Approve & Authorize Payment',
+      description: `Approve ${application?.handyman_profile.display_name}'s application? You will be asked to authorize a payment hold for $${application?.estimated_total_price || '0'}. The payment will only be captured when the job is completed.`,
       type: 'success',
-      confirmText: 'Approve',
+      confirmText: 'Approve & Pay',
       cancelText: 'Cancel',
       onConfirm: async () => {
         setIsApproving(true)
         try {
+          // Step 1: Get payment authorization (client_secret) from backend
+          const paymentAuth = await authorizePayment.mutateAsync(applicationId)
+
+          // Step 2: Initialize PaymentSheet with the client_secret
+          const { error: initError } = await initPaymentSheet({
+            paymentIntentClientSecret: paymentAuth.client_secret,
+            merchantDisplayName: 'HandymanKiosk',
+          })
+
+          if (initError) {
+            showSubmissionErrorToast(toast, initError.message || 'Failed to initialize payment')
+            return
+          }
+
+          // Step 3: Present PaymentSheet to the user
+          const { error: presentError } = await presentPaymentSheet()
+
+          if (presentError) {
+            // User cancelled or payment failed
+            if (presentError.code !== 'Canceled') {
+              showSubmissionErrorToast(
+                toast,
+                presentError.message || 'Payment authorization failed'
+              )
+            }
+            return
+          }
+
+          // Step 4: Payment authorized successfully — approve the application
           await approveApplication.mutateAsync(applicationId)
           router.replace({
             pathname: '/(homeowner)/jobs',
@@ -86,7 +124,11 @@ export function ApplicationDetailScreen() {
           })
         } catch (err) {
           console.error('Error approving application:', err)
-          showSubmissionErrorToast(toast, 'Failed to approve application')
+          if (err instanceof Error && 'response' in err) {
+            const body = await (err as any).response.json().catch(() => null)
+            console.error('Response body:', JSON.stringify(body, null, 2))
+          }
+          showSubmissionErrorToast(toast, formatErrorMessage(err))
         } finally {
           setIsApproving(false)
         }

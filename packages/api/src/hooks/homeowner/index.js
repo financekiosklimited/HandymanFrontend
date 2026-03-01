@@ -8,8 +8,9 @@ System.register(
     './useDirectOffers',
   ],
   (exports_1, context_1) => {
-    var react_query_1, client_1
-    var __moduleName = context_1 && context_1.id
+    let react_query_1
+    let client_1
+    const __moduleName = context_1 && context_1.id
     /**
      * Hook to fetch homeowner's own job listings.
      */
@@ -628,7 +629,7 @@ System.register(
       })
     }
     exports_1('useReviewReimbursement', useReviewReimbursement)
-    var exportedNames_1 = {
+    const exportedNames_1 = {
       useHomeownerJobs: true,
       useHomeownerJob: true,
       useNearbyHandymen: true,
@@ -660,8 +661,8 @@ System.register(
       useReviewReimbursement: true,
     }
     function exportStar_1(m) {
-      var exports = {}
-      for (var n in m) {
+      const exports = {}
+      for (const n in m) {
         if (n !== 'default' && !exportedNames_1.hasOwnProperty(n)) exports[n] = m[n]
       }
       exports_1(exports)

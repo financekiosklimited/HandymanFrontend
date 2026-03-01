@@ -271,7 +271,7 @@ function ProfessionalReviewDisplay({ review }: { review: HomeownerReview | null 
             fontWeight="800"
             color="#F59E0B"
           >
-            {review.rating.toFixed(1)}
+            {Number(review.rating).toFixed(1)}
           </Text>
         </XStack>
       </XStack>
@@ -383,7 +383,7 @@ function HomeownerReviewDisplay({ review }: { review: HomeownerReview | null }) 
             fontWeight="800"
             color="$primary"
           >
-            {review.rating.toFixed(1)}
+            {Number(review.rating).toFixed(1)}
           </Text>
         </XStack>
       </XStack>

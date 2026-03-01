@@ -1,12 +1,12 @@
 // Unified attachment types for multi-type file support (images, videos, documents)
 System.register([], (exports_1, context_1) => {
-  var IMAGE_MIME_TYPES,
-    VIDEO_MIME_TYPES,
-    DOCUMENT_MIME_TYPES,
-    UNSUPPORTED_IMAGE_EXTENSIONS,
-    UNSUPPORTED_IMAGE_MIME_TYPES,
-    ATTACHMENT_LIMITS
-  var __moduleName = context_1 && context_1.id
+  let IMAGE_MIME_TYPES
+  let VIDEO_MIME_TYPES
+  let DOCUMENT_MIME_TYPES
+  let UNSUPPORTED_IMAGE_EXTENSIONS
+  let UNSUPPORTED_IMAGE_MIME_TYPES
+  let ATTACHMENT_LIMITS
+  const __moduleName = context_1 && context_1.id
   /**
    * Check if a file is an unsupported RAW image format
    */

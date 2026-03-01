@@ -37,6 +37,20 @@ export {
   useHandymanPendingOffersCount,
 } from './useDirectOffers'
 
+// Re-export KYC hooks
+export {
+  useKycStatus,
+  useCreateConnectOnboardingLink,
+  useCreateIdentitySession,
+} from './useKyc'
+
+// Re-export wallet hooks
+export {
+  useWalletBalance,
+  useWithdrawals,
+  useCreateWithdrawal,
+} from './useWallet'
+
 interface HandymanJobsForYouParams {
   category?: string
   city?: string

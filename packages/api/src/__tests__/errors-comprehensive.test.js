@@ -1,6 +1,7 @@
 System.register(['vitest', '../errors'], (exports_1, context_1) => {
-  var vitest_1, errors_1
-  var __moduleName = context_1 && context_1.id
+  let vitest_1
+  let errors_1
+  const __moduleName = context_1 && context_1.id
   return {
     setters: [
       (vitest_1_1) => {

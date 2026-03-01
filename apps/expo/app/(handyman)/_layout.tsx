@@ -65,6 +65,8 @@ export default function HandymanLayout() {
     if (pathname.startsWith('/direct-offers')) return false
     if (pathname.startsWith('/bookmarks')) return false
     if (pathname.startsWith('/messages')) return false
+    if (pathname.startsWith('/kyc')) return false
+    if (pathname.startsWith('/wallet')) return false
     return true
   }, [pathname])
 

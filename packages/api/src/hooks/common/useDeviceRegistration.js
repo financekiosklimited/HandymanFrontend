@@ -1,8 +1,10 @@
 System.register(
   ['@tanstack/react-query', '../../client', 'react-native'],
   (exports_1, context_1) => {
-    var react_query_1, client_1, react_native_1
-    var __moduleName = context_1 && context_1.id
+    let react_query_1
+    let client_1
+    let react_native_1
+    const __moduleName = context_1 && context_1.id
     /**
      * Hook to register a device for push notifications.
      */

@@ -387,16 +387,16 @@ export function HomeownerHomeScreen() {
   const { data: offersData, isLoading: offersLoading } = useHomeownerDirectOffers()
 
   // Fetch active discounts for homeowners
-  const { data: discountsData, isLoading: discountsLoading, error: discountsError } = useDiscounts({
+  const {
+    data: discountsData,
+    isLoading: discountsLoading,
+    error: discountsError,
+  } = useDiscounts({
     role: 'homeowner',
   })
-  
+
   // Debug logging for discounts
-  useEffect(() => {
-    console.log('[HomeownerHome] discountsData:', discountsData)
-    console.log('[HomeownerHome] discountsLoading:', discountsLoading)
-    console.log('[HomeownerHome] discountsError:', discountsError)
-  }, [discountsData, discountsLoading, discountsError])
+  useEffect(() => {}, [discountsData, discountsLoading, discountsError])
 
   const offers = useMemo(() => {
     return offersData?.pages.flatMap((page) => page.results) || []
