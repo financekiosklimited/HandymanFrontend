@@ -411,8 +411,18 @@ export function HandymanHomeScreen() {
     }
     checkNewOffers()
   }, [pendingOffersCount, toast])
-  const { data: applicationsData } = useHandymanApplications({ status: 'pending' })
-  const { data: activeJobsData } = useHandymanAssignedJobs({ status: 'in_progress' })
+
+  // Only fetch applications and jobs when phone is verified
+  const isPhoneVerified = useAuthStore((state) => state.isPhoneVerified)
+
+  const { data: applicationsData } = useHandymanApplications(
+    { status: 'pending' },
+    { enabled: isPhoneVerified }
+  )
+  const { data: activeJobsData } = useHandymanAssignedJobs(
+    { status: 'in_progress' },
+    { enabled: isPhoneVerified }
+  )
 
   const pendingBidsCount = applicationsData?.pages[0]?.totalCount ?? 0
   const activeJobsCount = activeJobsData?.pages[0]?.totalCount ?? 0
