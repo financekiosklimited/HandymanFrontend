@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- White background -->
+  <rect width="1024" height="1024" fill="white"/>
+  
+  <defs>
+    <!-- House shape -->
+    <path id="house" d="M 512 320 L 352 450 L 352 750 L 450 750 L 450 600 L 574 600 L 574 750 L 672 750 L 672 450 Z" 
+          fill="none" stroke="#0C9A5C" stroke-width="48" stroke-linejoin="round" stroke-linecap="round"/>
+  </defs>
+  
+  <!-- Green House -->
+  <use href="#house" />
+  
+  <!-- Yellow Wrench (positioned overlapping the house roof) -->
+  <g transform="translate(420, 340) rotate(-35)">
+    <!-- Wrench handle -->
+    <rect x="-18" y="0" width="36" height="140" fill="#FFB800" rx="18"/>
+    <!-- Wrench head (circle with opening) -->
+    <circle cx="0" cy="-25" r="45" fill="#FFB800"/>
+    <!-- Wrench opening (white cutout) -->
+    <path d="M -25 -25 L 0 -5 L 25 -25 L 25 -50 L 0 -30 L -25 -50 Z" fill="white"/>
+  </g>
+</svg>
