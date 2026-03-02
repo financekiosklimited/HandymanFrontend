@@ -18,12 +18,14 @@ import { useAnimatedScrollHandler } from 'react-native-reanimated'
 import { Pressable, FlatList, type ListRenderItem } from 'react-native'
 import { colors } from '@my/config'
 import { useGuestJobs, useGuestHandymen, useCategories, useCities, useDiscounts } from '@my/api'
-import type { Discount } from '@my/api'
+import type { Discount, City } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import { useDebounce } from 'app/hooks'
+import { useDebounce, useReverseGeocode } from 'app/hooks'
+import { findNearestCity, findCityByName } from 'app/utils/location'
+import { useToastController } from '@tamagui/toast'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -720,6 +722,7 @@ export function GuestHomeScreen() {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [locationError, setLocationError] = useState<string | null>(null)
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false)
 
   // Debounce search query for handymen API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 400)
@@ -881,6 +884,89 @@ export function GuestHomeScreen() {
 
   // Fetch cities from API
   const { data: cities, isLoading: citiesLoading } = useCities()
+
+  // Reverse geocoding hook for location detection
+  const { reverseGeocode } = useReverseGeocode()
+
+  // Toast controller for location detection
+  const toast = useToastController()
+
+  /**
+   * Handle location button press - detect current location and set nearest city
+   */
+  const handleLocationPress = useCallback(async () => {
+    if (isDetectingLocation) return
+
+    setIsDetectingLocation(true)
+    setShowCityDropdown(true)
+
+    try {
+      // Check if location services are enabled
+      const enabled = await Location.hasServicesEnabledAsync()
+      if (!enabled) {
+        toast.show('Location services are disabled. Please enable them in settings.', {
+          type: 'error',
+        })
+        return
+      }
+
+      // Request permission
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        toast.show('Location permission required to auto-detect city.', {
+          type: 'error',
+        })
+        return
+      }
+
+      // Get current location
+      const currentLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      })
+
+      const { latitude, longitude } = currentLocation.coords
+
+      // Reverse geocode to get city name
+      const result = await reverseGeocode(latitude, longitude)
+
+      if (!result) {
+        toast.show('Could not detect your location. Please select a city manually.', {
+          type: 'error',
+        })
+        return
+      }
+
+      // Try to find city by name first
+      let matchedCity: City | null = null
+      if (cities && cities.length > 0) {
+        matchedCity = findCityByName(result.city, cities)
+
+        // If no name match, find nearest by coordinates
+        if (!matchedCity) {
+          matchedCity = findNearestCity(latitude, longitude, cities)
+        }
+      }
+
+      if (matchedCity) {
+        setSelectedCity(matchedCity.public_id)
+        setShowCityDropdown(false)
+        toast.show(`Location set to ${matchedCity.name}`, {
+          type: 'success',
+        })
+      } else {
+        toast.show('No nearby cities available. Please select manually.', {
+          type: 'warning',
+        })
+      }
+    } catch (error) {
+      console.error('Error detecting location:', error)
+      toast.show('Failed to detect location. Please try again.', {
+        type: 'error',
+      })
+    } finally {
+      setIsDetectingLocation(false)
+    }
+  }, [isDetectingLocation, cities, reverseGeocode, toast])
 
   // Get coordinates for selected city
   const selectedCitySlug = selectedCity
@@ -1395,7 +1481,8 @@ export function GuestHomeScreen() {
                     p="$2.5"
                     borderRadius="$4"
                     {...PressPresets.listItem}
-                    onPress={() => setShowCityDropdown(!showCityDropdown)}
+                    onPress={handleLocationPress}
+                    opacity={isDetectingLocation ? 0.7 : 1}
                   >
                     <View
                       bg="white"
@@ -1404,10 +1491,17 @@ export function GuestHomeScreen() {
                       shadowColor="rgba(0,0,0,0.05)"
                       shadowRadius={2}
                     >
-                      <MapPin
-                        size={14}
-                        color="$primary"
-                      />
+                      {isDetectingLocation ? (
+                        <Spinner
+                          size="small"
+                          color="$primary"
+                        />
+                      ) : (
+                        <MapPin
+                          size={14}
+                          color="$primary"
+                        />
+                      )}
                     </View>
                     <YStack flex={1}>
                       <Text
@@ -1430,11 +1524,19 @@ export function GuestHomeScreen() {
                         >
                           {selectedCityName || 'Select Location'}
                         </Text>
-                        <ChevronDown
-                          size={14}
-                          color="$colorSubtle"
-                          rotate={showCityDropdown ? '180deg' : '0deg'}
-                        />
+                        <Button
+                          unstyled
+                          p="$1"
+                          pressStyle={PressPresets.icon.pressStyle}
+                          animation={PressPresets.icon.animation}
+                          onPress={() => setShowCityDropdown(!showCityDropdown)}
+                        >
+                          <ChevronDown
+                            size={14}
+                            color="$colorSubtle"
+                            rotate={showCityDropdown ? '180deg' : '0deg'}
+                          />
+                        </Button>
                       </XStack>
                     </YStack>
                   </XStack>
