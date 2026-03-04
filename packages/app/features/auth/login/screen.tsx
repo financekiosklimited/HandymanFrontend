@@ -427,7 +427,7 @@ export function LoginScreen() {
             </Text>
             <Button
               unstyled
-              onPress={() => router.push('/auth/register')}
+              onPress={() => router.push(`/auth/register${preselectedRole ? `?role=${preselectedRole}` : ''}`)}
               pressStyle={PressPresets.icon.pressStyle}
               animation={PressPresets.icon.animation}
             >

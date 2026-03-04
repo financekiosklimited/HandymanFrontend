@@ -4,15 +4,23 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "base": {
+      "env": {
+        "YARN_ENABLE_IMMUTABLE_INSTALLS": "false"
+      }
+    },
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "extends": "base"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "extends": "base"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "extends": "base"
     }
   },
   "submit": {

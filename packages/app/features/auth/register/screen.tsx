@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { YStack, XStack, Text, Button, Input, Spinner } from '@my/ui'
 import { GradientBackground, PageHeader, PressPresets } from '@my/ui'
 import { useRegister, useActivateRole, formatErrorMessage } from '@my/api'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { Eye, EyeOff } from '@tamagui/lucide-icons'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import type { Role } from '@my/api'
@@ -73,11 +73,15 @@ async function getHumanReadableError(error: unknown): Promise<string> {
 export function RegisterScreen() {
   const router = useRouter()
   const insets = useSafeArea()
+  const params = useLocalSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Get role from URL query parameter
+  const preselectedRole = params.role as Role | undefined
 
   const registerMutation = useRegister()
   const activateRoleMutation = useActivateRole()
@@ -141,6 +145,7 @@ export function RegisterScreen() {
         <PageHeader
           title="Create account"
           description={PAGE_DESCRIPTIONS['register']}
+          onBack={() => router.replace(`/auth/login${preselectedRole ? `?role=${preselectedRole}` : ''}`)}
         />
 
         {/* Main content */}
@@ -279,87 +284,91 @@ export function RegisterScreen() {
           pt="$2xl"
           gap="$3"
         >
-          {/* Register as Homeowner */}
-          <Button
-            bg="$primary"
-            borderRadius="$4"
-            py="$3"
-            px="$4"
-            minHeight={54}
-            onPress={() => handleRegister('homeowner')}
-            disabled={isLoading}
-            pressStyle={PressPresets.primary.pressStyle}
-            animation={PressPresets.primary.animation}
-          >
-            {isLoading && selectedRole === 'homeowner' ? (
-              <XStack
-                gap="$2"
-                alignItems="center"
-              >
-                <Spinner
-                  size="small"
-                  color="white"
-                />
+          {/* Register as Homeowner - shown when no role or homeowner role */}
+          {(!preselectedRole || preselectedRole === 'homeowner') && (
+            <Button
+              bg="$primary"
+              borderRadius="$4"
+              py="$3"
+              px="$4"
+              minHeight={54}
+              onPress={() => handleRegister('homeowner')}
+              disabled={isLoading}
+              pressStyle={PressPresets.primary.pressStyle}
+              animation={PressPresets.primary.animation}
+            >
+              {isLoading && selectedRole === 'homeowner' ? (
+                <XStack
+                  gap="$2"
+                  alignItems="center"
+                >
+                  <Spinner
+                    size="small"
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontSize="$4"
+                    fontWeight="600"
+                  >
+                    Creating account...
+                  </Text>
+                </XStack>
+              ) : (
                 <Text
                   color="white"
                   fontSize="$4"
-                  fontWeight="600"
+                  fontWeight={preselectedRole === 'homeowner' ? '700' : '600'}
                 >
-                  Creating account...
+                  Register as Homeowner
                 </Text>
-              </XStack>
-            ) : (
-              <Text
-                color="white"
-                fontSize="$4"
-                fontWeight="600"
-              >
-                Register as Homeowner
-              </Text>
-            )}
-          </Button>
+              )}
+            </Button>
+          )}
 
-          {/* Register as Handyman */}
-          <Button
-            bg="white"
-            borderColor="$primary"
-            borderWidth={1.5}
-            borderRadius="$4"
-            py="$3"
-            px="$4"
-            minHeight={54}
-            onPress={() => handleRegister('handyman')}
-            disabled={isLoading}
-            pressStyle={PressPresets.secondary.pressStyle}
-            animation={PressPresets.secondary.animation}
-          >
-            {isLoading && selectedRole === 'handyman' ? (
-              <XStack
-                gap="$2"
-                alignItems="center"
-              >
-                <Spinner
-                  size="small"
-                  color="$primary"
-                />
-                <Text
-                  color="$primary"
-                  fontSize="$4"
-                  fontWeight="600"
+          {/* Register as Handyman - shown when no role or handyman role */}
+          {(!preselectedRole || preselectedRole === 'handyman') && (
+            <Button
+              bg={preselectedRole === 'handyman' ? '$primary' : 'white'}
+              borderColor={!preselectedRole ? '$primary' : undefined}
+              borderWidth={!preselectedRole ? 1.5 : undefined}
+              borderRadius="$4"
+              py="$3"
+              px="$4"
+              minHeight={54}
+              onPress={() => handleRegister('handyman')}
+              disabled={isLoading}
+              pressStyle={PressPresets.secondary.pressStyle}
+              animation={PressPresets.secondary.animation}
+            >
+              {isLoading && selectedRole === 'handyman' ? (
+                <XStack
+                  gap="$2"
+                  alignItems="center"
                 >
-                  Creating account...
+                  <Spinner
+                    size="small"
+                    color={preselectedRole === 'handyman' ? 'white' : '$primary'}
+                  />
+                  <Text
+                    color={preselectedRole === 'handyman' ? 'white' : '$primary'}
+                    fontSize="$4"
+                    fontWeight="600"
+                  >
+                    Creating account...
+                  </Text>
+                </XStack>
+              ) : (
+                <Text
+                  color={preselectedRole === 'handyman' ? 'white' : '$primary'}
+                  fontSize="$4"
+                  fontWeight={preselectedRole === 'handyman' ? '700' : '600'}
+                >
+                  Register as Handyman
                 </Text>
-              </XStack>
-            ) : (
-              <Text
-                color="$primary"
-                fontSize="$4"
-                fontWeight="600"
-              >
-                Register as Handyman
-              </Text>
-            )}
-          </Button>
+              )}
+            </Button>
+          )}
 
           {/* Login link */}
           <XStack
@@ -374,7 +383,7 @@ export function RegisterScreen() {
             </Text>
             <Button
               unstyled
-              onPress={() => router.push('/auth/login')}
+              onPress={() => router.push(`/auth/login${preselectedRole ? `?role=${preselectedRole}` : ''}`)}
               pressStyle={PressPresets.icon.pressStyle}
               animation={PressPresets.icon.animation}
             >
