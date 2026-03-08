@@ -118,7 +118,7 @@ function BottomNavComponent({
         requestAnimationFrame(() => {
           // If guest tries to access protected route, redirect to login
           if (variant === 'guest' && item.requiresAuth) {
-            onNavigate('/auth/login')
+            onNavigate('/auth/login?role=homeowner')
           } else {
             onNavigate(item.route)
           }

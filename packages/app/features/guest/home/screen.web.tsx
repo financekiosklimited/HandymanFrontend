@@ -367,7 +367,7 @@ export function GuestHomeScreen() {
                           alignItems="center"
                           justifyContent="center"
                           bg="rgba(12,154,92,0.1)"
-                          onPress={() => router.push('/auth/login')}
+                          onPress={() => router.push('/auth/login/homeowner')}
                           pressStyle={{ scale: 0.98, opacity: 0.9 }}
                           animation="quick"
                         >

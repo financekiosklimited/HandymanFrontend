@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import * as Location from 'expo-location'
 import {
   YStack,
@@ -27,13 +27,14 @@ import {
   useHandymanAssignedJobs,
   useDiscounts,
 } from '@my/api'
-import type { Discount } from '@my/api'
+import type { Discount, HandymanJobForYou, City } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
 import { JobCard } from '@my/ui'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import { useDebounce } from 'app/hooks'
+import { useDebounce, useReverseGeocode } from 'app/hooks'
+import { findNearestCity, findCityByName } from 'app/utils/location'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -43,6 +44,7 @@ import Animated, {
   withDelay,
   withSequence,
 } from 'react-native-reanimated'
+import { Pressable, FlatList } from 'react-native'
 import {
   Search,
   MessageCircle,
@@ -196,6 +198,32 @@ const SPRING_CONFIG = {
   stiffness: 150,
 }
 
+// Memoized job list item for FlatList virtualization
+const JobListItem = React.memo(
+  ({
+    item,
+    index,
+    onPress,
+  }: {
+    item: HandymanJobForYou
+    index: number
+    onPress: () => void
+  }) => (
+    <AnimatedCard
+      index={index}
+      style={{ width: '100%' }}
+      onPress={onPress}
+    >
+      <JobCard
+        job={item}
+        showCategory
+        onPress={onPress}
+      />
+    </AnimatedCard>
+  ),
+  (prev, next) => prev.item.public_id === next.item.public_id && prev.index === next.index
+)
+
 // Animated card component with entrance animation for job cards
 function AnimatedCard({
   children,
@@ -238,14 +266,15 @@ function AnimatedCard({
   }, [scale])
 
   return (
-    <AnimatedView
-      style={[animatedStyle, style]}
-      onTouchStart={handlePressIn}
-      onTouchEnd={handlePressOut}
-      onPress={onPress}
-    >
-      {children}
-    </AnimatedView>
+    <Pressable onPress={onPress}>
+      <AnimatedView
+        style={[animatedStyle, style]}
+        onTouchStart={handlePressIn}
+        onTouchEnd={handlePressOut}
+      >
+        {children}
+      </AnimatedView>
+    </Pressable>
   )
 }
 
@@ -289,6 +318,7 @@ export function HandymanHomeScreen() {
     longitude: number
   } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false)
 
   // Filter states
   const [selectedCity, setSelectedCity] = useState<string | null>(null)
@@ -309,8 +339,8 @@ export function HandymanHomeScreen() {
     setSelectedCategory(debouncedCategorySelection)
   }, [debouncedCategorySelection])
 
-  const handleCategoryPress = useCallback((slug: string) => {
-    setPendingCategory((prev) => (prev === slug ? null : slug))
+  const handleCategoryPress = useCallback((publicId: string) => {
+    setPendingCategory((prev) => (prev === publicId ? null : publicId))
   }, [])
 
   // Request location permission and get current location
@@ -349,6 +379,9 @@ export function HandymanHomeScreen() {
   // Fetch cities from API (needed before jobs hook)
   const { data: cities, isLoading: citiesLoading } = useCities()
 
+  // Reverse geocoding hook for location detection
+  const { reverseGeocode } = useReverseGeocode()
+
   // Get coordinates for selected city
   const selectedCitySlug = selectedCity
     ? cities?.find((c) => c.public_id === selectedCity)?.slug
@@ -367,6 +400,83 @@ export function HandymanHomeScreen() {
   const { data: profile } = useHandymanProfile()
   const toast = useToastController()
 
+  /**
+   * Handle location button press - detect current location and set nearest city
+   */
+  const handleLocationPress = useCallback(async () => {
+    if (isDetectingLocation) return
+
+    setIsDetectingLocation(true)
+    setShowCityDropdown(true)
+
+    try {
+      // Check if location services are enabled
+      const enabled = await Location.hasServicesEnabledAsync()
+      if (!enabled) {
+        toast.show('Location services are disabled. Please enable them in settings.', {
+          type: 'error',
+        })
+        return
+      }
+
+      // Request permission
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        toast.show('Location permission required to auto-detect city.', {
+          type: 'error',
+        })
+        return
+      }
+
+      // Get current location
+      const currentLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      })
+
+      const { latitude, longitude } = currentLocation.coords
+
+      // Reverse geocode to get city name
+      const result = await reverseGeocode(latitude, longitude)
+
+      if (!result) {
+        toast.show('Could not detect your location. Please select a city manually.', {
+          type: 'error',
+        })
+        return
+      }
+
+      // Try to find city by name first
+      let matchedCity: City | null = null
+      if (cities && cities.length > 0) {
+        matchedCity = findCityByName(result.city, cities)
+
+        // If no name match, find nearest by coordinates
+        if (!matchedCity) {
+          matchedCity = findNearestCity(latitude, longitude, cities)
+        }
+      }
+
+      if (matchedCity) {
+        setSelectedCity(matchedCity.public_id)
+        setShowCityDropdown(false)
+        toast.show(`Location set to ${matchedCity.name}`, {
+          type: 'success',
+        })
+      } else {
+        toast.show('No nearby cities available. Please select manually.', {
+          type: 'warning',
+        })
+      }
+    } catch (error) {
+      console.error('Error detecting location:', error)
+      toast.show('Failed to detect location. Please try again.', {
+        type: 'error',
+      })
+    } finally {
+      setIsDetectingLocation(false)
+    }
+  }, [isDetectingLocation, cities, reverseGeocode, toast])
+
   // Fetch action required data
   const { data: pendingOffersCount = 0 } = useHandymanPendingOffersCount()
 
@@ -383,8 +493,18 @@ export function HandymanHomeScreen() {
     }
     checkNewOffers()
   }, [pendingOffersCount, toast])
-  const { data: applicationsData } = useHandymanApplications({ status: 'pending' })
-  const { data: activeJobsData } = useHandymanAssignedJobs({ status: 'in_progress' })
+
+  // Only fetch applications and jobs when phone is verified
+  const isPhoneVerified = useAuthStore((state) => state.isPhoneVerified)
+
+  const { data: applicationsData } = useHandymanApplications(
+    { status: 'pending' },
+    { enabled: isPhoneVerified }
+  )
+  const { data: activeJobsData } = useHandymanAssignedJobs(
+    { status: 'in_progress' },
+    { enabled: isPhoneVerified }
+  )
 
   const pendingBidsCount = applicationsData?.pages[0]?.totalCount ?? 0
   const activeJobsCount = activeJobsData?.pages[0]?.totalCount ?? 0
@@ -1216,7 +1336,8 @@ export function HandymanHomeScreen() {
                     borderRadius="$4"
                     pressStyle={PressPresets.listItem.pressStyle}
                     animation={PressPresets.listItem.animation}
-                    onPress={() => setShowCityDropdown(!showCityDropdown)}
+                    onPress={handleLocationPress}
+                    opacity={isDetectingLocation ? 0.7 : 1}
                   >
                     <View
                       bg="white"
@@ -1225,10 +1346,17 @@ export function HandymanHomeScreen() {
                       shadowColor="rgba(0,0,0,0.05)"
                       shadowRadius={2}
                     >
-                      <MapPin
-                        size={14}
-                        color="$primary"
-                      />
+                      {isDetectingLocation ? (
+                        <Spinner
+                          size="small"
+                          color="$primary"
+                        />
+                      ) : (
+                        <MapPin
+                          size={14}
+                          color="$primary"
+                        />
+                      )}
                     </View>
                     <YStack flex={1}>
                       <Text
@@ -1251,11 +1379,19 @@ export function HandymanHomeScreen() {
                         >
                           {selectedCityName || 'Select Location'}
                         </Text>
-                        <ChevronDown
-                          size={14}
-                          color="$colorSubtle"
-                          rotate={showCityDropdown ? '180deg' : '0deg'}
-                        />
+                        <Button
+                          unstyled
+                          p="$1"
+                          pressStyle={PressPresets.icon.pressStyle}
+                          animation={PressPresets.icon.animation}
+                          onPress={() => setShowCityDropdown(!showCityDropdown)}
+                        >
+                          <ChevronDown
+                            size={14}
+                            color="$colorSubtle"
+                            rotate={showCityDropdown ? '180deg' : '0deg'}
+                          />
+                        </Button>
                       </XStack>
                     </YStack>
                   </XStack>
@@ -1350,7 +1486,7 @@ export function HandymanHomeScreen() {
                         <XStack gap="$3">
                           {categories?.map((cat) => {
                             const IconComponent = iconMap[cat.icon] || Wrench
-                            const isSelected = selectedCategory === cat.slug
+                            const isSelected = selectedCategory === cat.public_id
 
                             return (
                               <YStack
@@ -1361,7 +1497,7 @@ export function HandymanHomeScreen() {
                               >
                                 <AnimatedCategoryIcon
                                   isSelected={isSelected}
-                                  onPress={() => handleCategoryPress(cat.slug)}
+                                  onPress={() => handleCategoryPress(cat.public_id)}
                                 >
                                   <View
                                     width={56}
@@ -1713,19 +1849,49 @@ export function HandymanHomeScreen() {
                   m="$4"
                 />
               ) : filteredJobs.length > 0 ? (
-                filteredJobs.map((job, index) => (
-                  <AnimatedCard
-                    key={job.public_id}
-                    index={index}
-                    onPress={() => router.push(`/(handyman)/jobs/${job.public_id}`)}
-                    style={{ width: '100%' }}
-                  >
-                    <JobCard
-                      job={job}
-                      showCategory
+                <FlatList
+                  data={filteredJobs}
+                  keyExtractor={(item) => item.public_id}
+                  renderItem={({ item, index }: { item: HandymanJobForYou; index: number }) => (
+                    <JobListItem
+                      item={item}
+                      index={index}
+                      onPress={() => router.push(`/(handyman)/jobs/${item.public_id}`)}
                     />
-                  </AnimatedCard>
-                ))
+                  )}
+                  ItemSeparatorComponent={() => <View height={12} />}
+                  getItemLayout={(data, index) => ({
+                    length: 180,
+                    offset: 180 * index,
+                    index,
+                  })}
+                  initialNumToRender={6}
+                  maxToRenderPerBatch={6}
+                  windowSize={5}
+                  removeClippedSubviews={true}
+                  scrollEnabled={false}
+                  ListFooterComponent={
+                    isFetchingMoreJobs ? (
+                      <XStack
+                        alignItems="center"
+                        justifyContent="center"
+                        gap="$sm"
+                        py="$4"
+                      >
+                        <Spinner
+                          size="small"
+                          color="$primary"
+                        />
+                        <Text
+                          color="$colorSubtle"
+                          fontSize="$3"
+                        >
+                          Loading more jobs...
+                        </Text>
+                      </XStack>
+                    ) : null
+                  }
+                />
               ) : (
                 <YStack
                   py="$8"
@@ -1738,27 +1904,6 @@ export function HandymanHomeScreen() {
                 >
                   <Text color="$colorMuted">No jobs found.</Text>
                 </YStack>
-              )}
-
-              {/* Loading indicator for infinite scroll */}
-              {isFetchingMoreJobs && (
-                <XStack
-                  alignItems="center"
-                  justifyContent="center"
-                  gap="$sm"
-                  py="$4"
-                >
-                  <Spinner
-                    size="small"
-                    color="$primary"
-                  />
-                  <Text
-                    color="$colorSubtle"
-                    fontSize="$3"
-                  >
-                    Loading more jobs...
-                  </Text>
-                </XStack>
               )}
             </YStack>
           </AnimatedYStack>

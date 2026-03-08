@@ -207,29 +207,22 @@ export function useHandymanAssignedJobs(
   return useInfiniteQuery({
     queryKey: ['handyman', 'assigned-jobs', params],
     queryFn: async ({ pageParam = 1 }) => {
-      try {
-        const searchParams = new URLSearchParams()
-        if (params?.status) searchParams.set('status', params.status)
-        if (params?.date_from) searchParams.set('date_from', params.date_from)
-        if (params?.date_to) searchParams.set('date_to', params.date_to)
-        if (params?.search) searchParams.set('search', params.search)
-        if (params?.page_size) searchParams.set('page_size', params.page_size.toString())
-        searchParams.set('page', pageParam.toString())
+      const searchParams = new URLSearchParams()
+      if (params?.status) searchParams.set('status', params.status)
+      if (params?.date_from) searchParams.set('date_from', params.date_from)
+      if (params?.date_to) searchParams.set('date_to', params.date_to)
+      if (params?.search) searchParams.set('search', params.search)
+      if (params?.page_size) searchParams.set('page_size', params.page_size.toString())
+      searchParams.set('page', pageParam.toString())
 
-        const url = `handyman/jobs/?${searchParams.toString()}`
-        const response = await apiClient
-          .get(url)
-          .json<PaginatedArrayResponse<HandymanAssignedJob>>()
+      const url = `handyman/jobs/?${searchParams.toString()}`
+      const response = await apiClient.get(url).json<PaginatedArrayResponse<HandymanAssignedJob>>()
 
-        return {
-          results: response.data || [],
-          page: response.meta?.pagination?.page || 1,
-          hasNext: response.meta?.pagination?.has_next || false,
-          totalCount: response.meta?.pagination?.total_count || 0,
-        }
-      } catch (error) {
-        console.error('Error fetching assigned jobs:', error)
-        throw error
+      return {
+        results: response.data || [],
+        page: response.meta?.pagination?.page || 1,
+        hasNext: response.meta?.pagination?.has_next || false,
+        totalCount: response.meta?.pagination?.total_count || 0,
       }
     },
     initialPageParam: 1,
@@ -292,23 +285,18 @@ export function useHandymanApplications(
   return useInfiniteQuery({
     queryKey: ['handyman', 'applications', params],
     queryFn: async ({ pageParam = 1 }) => {
-      try {
-        const searchParams = new URLSearchParams()
-        if (params?.status) searchParams.set('status', params.status)
-        searchParams.set('page', pageParam.toString())
+      const searchParams = new URLSearchParams()
+      if (params?.status) searchParams.set('status', params.status)
+      searchParams.set('page', pageParam.toString())
 
-        const url = `handyman/applications/?${searchParams.toString()}`
-        const response = await apiClient.get(url).json<PaginatedArrayResponse<JobApplication>>()
+      const url = `handyman/applications/?${searchParams.toString()}`
+      const response = await apiClient.get(url).json<PaginatedArrayResponse<JobApplication>>()
 
-        return {
-          results: response.data || [],
-          page: response.meta?.pagination?.page || 1,
-          hasNext: response.meta?.pagination?.has_next || false,
-          totalCount: response.meta?.pagination?.total_count || 0,
-        }
-      } catch (error) {
-        console.error('Error fetching applications:', error)
-        throw error
+      return {
+        results: response.data || [],
+        page: response.meta?.pagination?.page || 1,
+        hasNext: response.meta?.pagination?.has_next || false,
+        totalCount: response.meta?.pagination?.total_count || 0,
       }
     },
     initialPageParam: 1,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import * as Location from 'expo-location'
 import {
   YStack,
@@ -16,7 +16,13 @@ import {
   GradientBackground,
 } from '@my/ui'
 import { useAnimatedScrollHandler } from 'react-native-reanimated'
-import { Animated as AnimatedRN, View as RNView, Easing as EasingRN } from 'react-native'
+import {
+  Pressable,
+  FlatList,
+  Animated as AnimatedRN,
+  View as RNView,
+  Easing as EasingRN,
+} from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -36,7 +42,7 @@ import {
   useCategories,
   useCities,
 } from '@my/api'
-import type { HomeownerJobStatus } from '@my/api'
+import type { HomeownerJobStatus, City } from '@my/api'
 import { useDiscounts, type Discount } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
@@ -45,7 +51,8 @@ import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { Alert } from 'react-native'
 import { jobStatusColors, type JobStatus, colors } from '@my/config'
-import { useDebounce } from 'app/hooks'
+import { useDebounce, useReverseGeocode } from 'app/hooks'
+import { findNearestCity, findCityByName } from 'app/utils/location'
 import { useToastController } from '@tamagui/toast'
 import {
   showWelcomeOnboardingToast,
@@ -146,14 +153,15 @@ function AnimatedCard({
   }, [scale])
 
   return (
-    <AnimatedView
-      style={[animatedStyle, style]}
-      onTouchStart={handlePressIn}
-      onTouchEnd={handlePressOut}
-      onPress={onPress}
-    >
-      {children}
-    </AnimatedView>
+    <Pressable onPress={onPress}>
+      <AnimatedView
+        style={[animatedStyle, style]}
+        onTouchStart={handlePressIn}
+        onTouchEnd={handlePressOut}
+      >
+        {children}
+      </AnimatedView>
+    </Pressable>
   )
 }
 
@@ -270,6 +278,188 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'halifax-ns': { lat: 44.648764, lng: -63.575239 },
 }
 
+// Memoized list item components for FlatList virtualization
+interface HandymanItem {
+  public_id: string
+  display_name: string
+  hourly_rate?: number | null
+  rating?: number | null
+  review_count?: number | null
+}
+
+const HandymanListItem = React.memo(
+  ({
+    item,
+    onPress,
+  }: {
+    item: HandymanItem
+    onPress: (id: string) => void
+  }) => (
+    <XStack
+      bg="white"
+      borderRadius="$6"
+      p="$3"
+      borderColor="$borderSubtle"
+      borderWidth={1}
+      shadowColor="rgba(0,0,0,0.03)"
+      shadowRadius={5}
+      shadowOpacity={1}
+      gap="$3"
+      onPress={() => onPress(item.public_id)}
+      mb="$3"
+      pressStyle={PressPresets.card.pressStyle}
+      animation={PressPresets.card.animation}
+    >
+      <View position="relative">
+        <View
+          width={56}
+          height={56}
+          borderRadius="$4"
+          bg="$backgroundSubtle"
+          alignItems="center"
+          justifyContent="center"
+          borderWidth={2}
+          borderColor="white"
+          shadowColor="rgba(0,0,0,0.1)"
+          shadowRadius={3}
+        >
+          <Text
+            fontSize="$5"
+            fontWeight="bold"
+            color="$colorSubtle"
+          >
+            {item.display_name.charAt(0)}
+          </Text>
+        </View>
+        <View
+          position="absolute"
+          bottom={-4}
+          right={-4}
+          bg="$primary"
+          p={2}
+          borderRadius={100}
+          borderWidth={2}
+          borderColor="white"
+        >
+          <ShieldCheck
+            size={10}
+            color="white"
+          />
+        </View>
+      </View>
+
+      <YStack
+        flex={1}
+        justifyContent="space-between"
+      >
+        <XStack
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
+          <YStack flex={1}>
+            <Text
+              fontSize="$3"
+              fontWeight="bold"
+              color="$color"
+              numberOfLines={1}
+            >
+              {item.display_name}
+            </Text>
+            <Text
+              fontSize={10}
+              color="$colorSubtle"
+            >
+              Specialist
+            </Text>
+          </YStack>
+          <YStack alignItems="flex-end">
+            <Text
+              fontSize="$3"
+              fontWeight="bold"
+              color="$color"
+            >
+              ${item.hourly_rate || 'N/A'}
+            </Text>
+            <Text
+              fontSize={9}
+              color="$colorSubtle"
+              fontWeight="500"
+            >
+              /hr
+            </Text>
+          </YStack>
+        </XStack>
+
+        <XStack
+          gap="$3"
+          mt="$1"
+          alignItems="center"
+        >
+          <XStack
+            bg="$warningBackground"
+            px="$1.5"
+            py="$0.5"
+            borderRadius="$2"
+            borderColor="$warningBackground"
+            borderWidth={1}
+            alignItems="center"
+            gap="$1"
+          >
+            <Star
+              size={10}
+              color="$accent"
+              fill={colors.accent}
+            />
+            <Text
+              fontSize={10}
+              fontWeight="bold"
+              color="$accent"
+            >
+              {item.rating || 0}
+            </Text>
+            <Text
+              fontSize={10}
+              color="$accent"
+              opacity={0.7}
+            >
+              ({item.review_count || 0})
+            </Text>
+          </XStack>
+          <XStack
+            alignItems="center"
+            gap="$1"
+          >
+            <Briefcase
+              size={10}
+              color="$colorSubtle"
+            />
+            <Text
+              fontSize={10}
+              color="$colorSubtle"
+            >
+              34 jobs
+            </Text>
+          </XStack>
+        </XStack>
+
+        <Button
+          size="$2"
+          bg="$color"
+          color="white"
+          borderRadius="$4"
+          mt="$2"
+          fontWeight="bold"
+          {...PressPresets.primary}
+          onPress={() => onPress(item.public_id)}
+        >
+          View Profile
+        </Button>
+      </YStack>
+    </XStack>
+  ),
+  (prev, next) => prev.item.public_id === next.item.public_id
+)
+
 // Collapsible Section using JS-driven Layout Animation for proper sibling reflow
 function CollapsibleSection({
   children,
@@ -319,6 +509,7 @@ export function HomeownerHomeScreen() {
     longitude: number
   } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false)
 
   // Debounce search query for handymen API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 400)
@@ -461,6 +652,9 @@ export function HomeownerHomeScreen() {
   // Fetch cities from API (needed before handymen hook)
   const { data: cities, isLoading: citiesLoading } = useCities()
 
+  // Reverse geocoding hook for location detection
+  const { reverseGeocode } = useReverseGeocode()
+
   // Get coordinates for selected city
   const selectedCitySlug = selectedCity
     ? cities?.find((c) => c.public_id === selectedCity)?.slug
@@ -587,6 +781,83 @@ export function HomeownerHomeScreen() {
       setIsCheckingPhone(false)
     }
   }, [refetchProfile, router])
+
+  /**
+   * Handle location button press - detect current location and set nearest city
+   */
+  const handleLocationPress = useCallback(async () => {
+    if (isDetectingLocation) return
+
+    setIsDetectingLocation(true)
+    setShowCityDropdown(true)
+
+    try {
+      // Check if location services are enabled
+      const enabled = await Location.hasServicesEnabledAsync()
+      if (!enabled) {
+        toast.show('Location services are disabled. Please enable them in settings.', {
+          type: 'error',
+        })
+        return
+      }
+
+      // Request permission
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        toast.show('Location permission required to auto-detect city.', {
+          type: 'error',
+        })
+        return
+      }
+
+      // Get current location
+      const currentLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      })
+
+      const { latitude, longitude } = currentLocation.coords
+
+      // Reverse geocode to get city name
+      const result = await reverseGeocode(latitude, longitude)
+
+      if (!result) {
+        toast.show('Could not detect your location. Please select a city manually.', {
+          type: 'error',
+        })
+        return
+      }
+
+      // Try to find city by name first
+      let matchedCity: City | null = null
+      if (cities && cities.length > 0) {
+        matchedCity = findCityByName(result.city, cities)
+
+        // If no name match, find nearest by coordinates
+        if (!matchedCity) {
+          matchedCity = findNearestCity(latitude, longitude, cities)
+        }
+      }
+
+      if (matchedCity) {
+        setSelectedCity(matchedCity.public_id)
+        setShowCityDropdown(false)
+        toast.show(`Location set to ${matchedCity.name}`, {
+          type: 'success',
+        })
+      } else {
+        toast.show('No nearby cities available. Please select manually.', {
+          type: 'warning',
+        })
+      }
+    } catch (error) {
+      console.error('Error detecting location:', error)
+      toast.show('Failed to detect location. Please try again.', {
+        type: 'error',
+      })
+    } finally {
+      setIsDetectingLocation(false)
+    }
+  }, [isDetectingLocation, cities, reverseGeocode, toast])
 
   // Continuous CTA pulse animation (gentle scale + shadow)
   const ctaPulseProgress = useSharedValue(0)
@@ -1107,7 +1378,8 @@ export function HomeownerHomeScreen() {
                     borderRadius="$4"
                     pressStyle={PressPresets.listItem.pressStyle}
                     animation={PressPresets.listItem.animation}
-                    onPress={() => setShowCityDropdown(!showCityDropdown)}
+                    onPress={handleLocationPress}
+                    opacity={isDetectingLocation ? 0.7 : 1}
                   >
                     <View
                       bg="white"
@@ -1116,10 +1388,17 @@ export function HomeownerHomeScreen() {
                       shadowColor="rgba(0,0,0,0.05)"
                       shadowRadius={2}
                     >
-                      <MapPin
-                        size={14}
-                        color="$primary"
-                      />
+                      {isDetectingLocation ? (
+                        <Spinner
+                          size="small"
+                          color="$primary"
+                        />
+                      ) : (
+                        <MapPin
+                          size={14}
+                          color="$primary"
+                        />
+                      )}
                     </View>
                     <YStack flex={1}>
                       <Text
@@ -1142,11 +1421,19 @@ export function HomeownerHomeScreen() {
                         >
                           {selectedCityName || 'Select Location'}
                         </Text>
-                        <ChevronDown
-                          size={14}
-                          color="$colorSubtle"
-                          rotate={showCityDropdown ? '180deg' : '0deg'}
-                        />
+                        <Button
+                          unstyled
+                          p="$1"
+                          pressStyle={PressPresets.icon.pressStyle}
+                          animation={PressPresets.icon.animation}
+                          onPress={() => setShowCityDropdown(!showCityDropdown)}
+                        >
+                          <ChevronDown
+                            size={14}
+                            color="$colorSubtle"
+                            rotate={showCityDropdown ? '180deg' : '0deg'}
+                          />
+                        </Button>
                       </XStack>
                     </YStack>
                   </XStack>
@@ -1765,162 +2052,29 @@ export function HomeownerHomeScreen() {
                     </XStack>
                   ))}
 
-                  {/* Collapsible section for remaining handymen */}
+                  {/* Collapsible section for remaining handymen with FlatList virtualization */}
                   <CollapsibleSection expanded={expandHandymen}>
-                    <YStack>
-                      {handymen.slice(3).map((pro) => (
-                        <XStack
-                          key={pro.public_id}
-                          bg="white"
-                          borderRadius="$6"
-                          p="$3"
-                          borderColor="$borderSubtle"
-                          borderWidth={1}
-                          shadowColor="rgba(0,0,0,0.03)"
-                          shadowRadius={5}
-                          shadowOpacity={1}
-                          gap="$3"
-                          onPress={() => router.push(`/(homeowner)/handymen/${pro.public_id}`)}
-                          mb="$3"
-                          pressStyle={PressPresets.card.pressStyle}
-                          animation={PressPresets.card.animation}
-                        >
-                          <View position="relative">
-                            {/* Placeholder for now since API might not return image yet, or use Avatar if available */}
-                            <View
-                              width={56}
-                              height={56}
-                              borderRadius="$4"
-                              bg="$backgroundSubtle"
-                              alignItems="center"
-                              justifyContent="center"
-                              borderWidth={2}
-                              borderColor="white"
-                              shadowColor="rgba(0,0,0,0.1)"
-                              shadowRadius={3}
-                            >
-                              <Text
-                                fontSize="$5"
-                                fontWeight="bold"
-                                color="$colorSubtle"
-                              >
-                                {pro.display_name.charAt(0)}
-                              </Text>
-                            </View>
-                            <View
-                              position="absolute"
-                              bottom={-4}
-                              right={-4}
-                              bg="$primary"
-                              p={2}
-                              borderRadius={100}
-                              borderWidth={2}
-                              borderColor="white"
-                            >
-                              <ShieldCheck
-                                size={10}
-                                color="white"
-                              />
-                            </View>
-                          </View>
-
-                          <YStack
-                            flex={1}
-                            justifyContent="space-between"
-                          >
-                            <XStack
-                              justifyContent="space-between"
-                              alignItems="flex-start"
-                            >
-                              <YStack flex={1}>
-                                <Text
-                                  fontSize="$3"
-                                  fontWeight="bold"
-                                  color="$color"
-                                  numberOfLines={1}
-                                >
-                                  {pro.display_name}
-                                </Text>
-                                <Text
-                                  fontSize={10}
-                                  color="$colorSubtle"
-                                >
-                                  Specialist
-                                </Text>
-                              </YStack>
-                              <YStack alignItems="flex-end">
-                                <Text
-                                  fontSize="$3"
-                                  fontWeight="bold"
-                                  color="$color"
-                                >
-                                  ${pro.hourly_rate || 'N/A'}
-                                </Text>
-                                <Text
-                                  fontSize={9}
-                                  color="$colorSubtle"
-                                  fontWeight="500"
-                                >
-                                  /hr
-                                </Text>
-                              </YStack>
-                            </XStack>
-
-                            <XStack
-                              gap="$3"
-                              mt="$1"
-                              alignItems="center"
-                            >
-                              <XStack
-                                bg="$warningBackground"
-                                px="$1.5"
-                                py="$0.5"
-                                borderRadius="$2"
-                                borderColor="$warningBackground"
-                                borderWidth={1}
-                                alignItems="center"
-                                gap="$1"
-                              >
-                                <Star
-                                  size={10}
-                                  color="$accent"
-                                  fill={colors.accent}
-                                />
-                                <Text
-                                  fontSize={10}
-                                  fontWeight="bold"
-                                  color="$accent"
-                                >
-                                  {pro.rating || 0}
-                                </Text>
-                                <Text
-                                  fontSize={10}
-                                  color="$accent"
-                                  opacity={0.7}
-                                >
-                                  ({pro.review_count || 0})
-                                </Text>
-                              </XStack>
-                              <XStack
-                                alignItems="center"
-                                gap="$1"
-                              >
-                                <Briefcase
-                                  size={10}
-                                  color="$colorSubtle"
-                                />
-                                <Text
-                                  fontSize={10}
-                                  color="$colorSubtle"
-                                >
-                                  34 jobs
-                                </Text>
-                              </XStack>
-                            </XStack>
-                          </YStack>
-                        </XStack>
-                      ))}
-                    </YStack>
+                    <FlatList
+                      data={handymen.slice(3)}
+                      keyExtractor={(item) => item.public_id}
+                      renderItem={({ item }: { item: HandymanItem }) => (
+                        <HandymanListItem
+                          item={item}
+                          onPress={(id) => router.push(`/(homeowner)/handymen/${id}`)}
+                        />
+                      )}
+                      ItemSeparatorComponent={() => <View height={12} />}
+                      getItemLayout={(data, index) => ({
+                        length: 140,
+                        offset: 140 * index,
+                        index,
+                      })}
+                      initialNumToRender={4}
+                      maxToRenderPerBatch={4}
+                      windowSize={5}
+                      removeClippedSubviews={true}
+                      scrollEnabled={false}
+                    />
                   </CollapsibleSection>
                 </YStack>
               ) : (

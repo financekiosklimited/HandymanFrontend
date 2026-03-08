@@ -1,9 +1,28 @@
 'use client'
 
-import { YStack, XStack, ScrollView, Text, Button, Image, Spinner, View } from '@my/ui'
+import {
+  YStack,
+  XStack,
+  ScrollView,
+  Text,
+  Button,
+  Image,
+  Spinner,
+  View,
+  PressPresets,
+} from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { useGuestHandyman, formatErrorMessage } from '@my/api'
-import { MapPin, Star, DollarSign, Award, User, ChevronRight } from '@tamagui/lucide-icons'
+import {
+  MapPin,
+  Star,
+  DollarSign,
+  Award,
+  User,
+  ChevronRight,
+  Briefcase,
+  Zap,
+} from '@tamagui/lucide-icons'
 import { PageHeader } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { Pressable } from 'react-native'
@@ -221,6 +240,70 @@ export function HandymanDetailScreen({ handymanId }: HandymanDetailScreenProps) 
                   </XStack>
                 </Pressable>
               )}
+            </YStack>
+
+            {/* Action Buttons */}
+            <YStack
+              gap="$sm"
+              mb="$lg"
+            >
+              {/* Send Direct Offer Button */}
+              <Button
+                bg="$primary"
+                borderRadius={16}
+                py="$md"
+                onPress={() => router.push('/auth/login?role=homeowner')}
+                {...PressPresets.primary}
+                shadowColor="$primary"
+                shadowOffset={{ width: 0, height: 4 }}
+                shadowOpacity={0.3}
+                shadowRadius={8}
+              >
+                <XStack
+                  alignItems="center"
+                  justifyContent="center"
+                  gap="$sm"
+                >
+                  <Briefcase
+                    size={20}
+                    color="white"
+                  />
+                  <Text
+                    color="white"
+                    fontSize="$4"
+                    fontWeight="600"
+                  >
+                    Send Direct Offer
+                  </Text>
+                </XStack>
+              </Button>
+
+              {/* Direct Offer Helper Text */}
+              <XStack
+                alignItems="center"
+                justifyContent="center"
+                gap="$xs"
+                mb="$xs"
+                px="$6"
+              >
+                <Zap
+                  size={14}
+                  color="#FFB800"
+                  fill="#FFB800"
+                />
+                <Text
+                  fontSize="$2"
+                  color="green"
+                  textAlign="center"
+                >
+                  Skip the wait! Send a direct job offer and get a faster response.
+                </Text>
+                <Zap
+                  size={14}
+                  color="#FFB800"
+                  fill="#FFB800"
+                />
+              </XStack>
             </YStack>
 
             {/* Quick Stats */}

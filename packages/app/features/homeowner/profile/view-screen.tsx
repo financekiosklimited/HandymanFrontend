@@ -71,7 +71,7 @@ export function HomeownerProfileViewScreen() {
   const handleLogout = async () => {
     try {
       await logoutMutation.mutateAsync()
-      router.replace('/auth/login')
+      router.replace('/auth/login/?role=homeowner')
     } catch (error) {
       console.error('Failed to logout:', error)
     }

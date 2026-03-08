@@ -896,6 +896,32 @@ export function JobDetailScreen({ jobId }: JobDetailScreenProps) {
           </YStack>
         </ScrollView>
 
+        {/* Apply Button Footer */}
+        <YStack
+          bg="$backgroundStrong"
+          px="$lg"
+          py="$md"
+          pb={insets.bottom + 16}
+          borderTopWidth={1}
+          borderTopColor="$borderColor"
+        >
+          <Button
+            bg="$primary"
+            py="$md"
+            borderRadius="$lg"
+            onPress={() => router.push('/auth/login?role=handyman')}
+            {...PressPresets.primary}
+          >
+            <Text
+              color="white"
+              fontSize="$4"
+              fontWeight="600"
+            >
+              Apply to this job
+            </Text>
+          </Button>
+        </YStack>
+
         {/* Fullscreen Image Viewer */}
         {imageUrls.length > 0 && (
           <ImageViewer

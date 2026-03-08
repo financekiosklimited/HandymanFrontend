@@ -20,7 +20,21 @@ config.resolver.nodeModulesPaths = [
 ]
 config.resolver.disableHierarchicalLookup = false
 
-config.transformer = { ...config.transformer, unstable_allowRequireContext: true }
-config.transformer.minifierPath = require.resolve('metro-minify-terser')
+config.transformer = {
+  ...config.transformer,
+  unstable_allowRequireContext: true,
+  minifierPath: require.resolve('metro-minify-terser'),
+}
+
+// Performance optimizations
+config.transformer.getTransformOptions = async () => ({
+  transform: {
+    experimentalImportSupport: false,
+    inlineRequires: true, // Load modules on-demand for faster startup
+  },
+})
+
+// Enable package exports for better tree shaking
+config.resolver.unstable_enablePackageExports = true
 
 module.exports = config

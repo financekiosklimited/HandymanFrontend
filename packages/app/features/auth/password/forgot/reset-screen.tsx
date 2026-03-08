@@ -94,7 +94,7 @@ export function ForgotPasswordResetScreen() {
       showPasswordUpdatedToast(toast)
 
       // Navigate back to login
-      router.replace('/auth/login')
+      router.replace('/auth/login/?role=homeowner')
     } catch (err) {
       if (err instanceof HTTPError) {
         try {

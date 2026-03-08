@@ -19,7 +19,7 @@ import type {
 } from '../../types/auth'
 
 export function useLogin() {
-  const { setTokens, setActiveRole, setNextAction, setEmailVerified } = getAuthStore.getState()
+  const { setTokens, setNextAction, setEmailVerified } = getAuthStore.getState()
 
   return useMutation({
     mutationFn: async (data: LoginRequest) => {
@@ -35,7 +35,8 @@ export function useLogin() {
     },
     onSuccess: (data) => {
       setTokens(data.access_token, data.refresh_token)
-      setActiveRole(data.active_role)
+      // Note: Don't set activeRole here - wait for role activation to set the correct role
+      // This prevents navigation guards from redirecting to the wrong homepage
       setNextAction(data.next_action)
       setEmailVerified(data.email_verified)
     },
