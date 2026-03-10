@@ -8,41 +8,34 @@ Guidelines for AI coding agents working in this HandymanKiosk React Native/Next.
 
 **⚠️ CRITICAL RULE: DO NOT EDIT FILES UNTIL EXPLICIT PERMISSION IS GIVEN**
 
-When you ask me to do something, I **MUST** follow this workflow:
+Before making any changes or presenting approaches, you **MUST** conduct a Semi-Formal Analysis using the following structured template. Do not guess behavior; verify it.
 
-1. **Explore & Research**
-   - Read relevant files to understand the current implementation
-   - Find all related components, hooks, and services
-   - Check for existing patterns in the codebase
-   - Always ask questions to clarify intent, cover edge cases, and address potential issues.
 
-2. **Analyze Root Cause**
-   - Identify the underlying issue (for bugs)
-   - Understand the full scope of the feature request
-   - Find where changes need to be made
+**Phase 1: Premises & Test Semantics Analysis**
+* Define the exact expected behavior vs. the observed issue.
+* State these as formal premises (e.g., "PREMISE 1: The user clicks the Login Button and expects X", "PREMISE 2: The API returns Y").
 
-3. **Consider Edge Cases**
-   - What could break with this change?
-   - How does this affect mobile vs web?
-   - What about error states and loading states?
-   - Backward compatibility concerns?
 
-4. **Identify Possible Conflicts**
-   - Will this conflict with existing features?
-   - Does it require backend API changes?
-   - TypeScript type implications?
-   - Shared component changes that affect multiple screens?
+**Phase 2: Code Path & Function Tracing Table**
+* Trace the execution path from the entry point into the production code. 
+* You must construct a Trace Table with explicit evidence:
+  | Function/Method | File:Line | Parameter Types | Return Type | Behavior (VERIFIED) |
+  |-----------------|-----------|-----------------|-------------|---------------------|
+  | [function1]     | [file:N]  | [param types]   | [ret type]  | [ACTUAL behavior]   |
 
-5. **Present Multiple Approaches**
-   - Approach 1: Minimal change (safest)
-   - Approach 2: Most performant solution (performance)
-   - Approach 3: Full-featured solution (most comprehensive)
-   - Pros/cons of each approach
 
-6. **Wait for Permission**
-   - **DO NOT EDIT ANY FILES**
-   - Present findings and wait for your explicit "proceed" or "go with approach X"
-   - Only then execute the plan
+**Phase 3: Data Flow & Divergence Analysis**
+* **Data Flow:** Trace how key variables flow through the code (Created at -> Modified at -> Used at).
+* **Claims:** Identify exactly where the implementation diverges from the expected behavior. State these as formal claims referencing specific code locations (e.g., "CLAIM 1: At [file:line], [code] produces [behavior] which contradicts PREMISE 1 because [reason]").
+
+
+**Phase 4: Alternative Hypothesis Check & Conclusion**
+* **Alternative Check:** If the opposite of your claim were true, what evidence would exist? Search for it and state if it is REFUTED or SUPPORTED.
+* **Ranked Predictions / Approaches:** Based strictly on the verified claims above, present your proposed solutions (Approach 1: Minimal, Approach 2: Robust).
+
+
+**Wait for Permission**
+* **DO NOT EDIT ANY FILES.** Present this completed Semi-Formal Certificate and wait for explicit "proceed" from the user.
 
 ---
 
