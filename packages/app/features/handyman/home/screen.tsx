@@ -1140,7 +1140,6 @@ export function HandymanHomeScreen() {
                               backgroundColor: 'rgba(255,255,255,0.92)',
                               borderRadius: 16,
                               overflow: 'hidden',
-                              backdropFilter: 'blur(10px)',
                               shadowColor: 'rgba(12,154,92,0.15)',
                               shadowRadius: 15,
                               shadowOpacity: 1,
