@@ -58,7 +58,15 @@ import { useFocusEffect } from '@react-navigation/native'
 import * as VideoThumbnails from 'expo-video-thumbnails'
 import * as ImageManipulator from 'expo-image-manipulator'
 import { HTTPError } from 'ky'
-import { KeyboardAvoidingView, Platform, TextInput, ActionSheetIOS, Alert } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  type TextInput,
+  ActionSheetIOS,
+  Alert,
+  type NativeSyntheticEvent,
+  type TextInputSubmitEditingEventData,
+} from 'react-native'
 
 // Generate unique ID for local attachments
 function generateId(): string {
@@ -213,7 +221,8 @@ export function AddJobScreen() {
   // Sheet states
   const [categorySheetOpen, setCategorySheetOpen] = useState(false)
   const [citySheetOpen, setCitySheetOpen] = useState(false)
-  const [newTaskTitle, setNewTaskTitle] = useState('')
+  const taskInputRef = useRef<TextInput>(null)
+  const taskDraftRef = useRef('')
 
   // Search states for sheets
   const [categorySearch, setCategorySearch] = useState('')
@@ -257,15 +266,39 @@ export function AddJobScreen() {
   )
 
   // Add task
-  const addTask = useCallback(() => {
-    if (!newTaskTitle.trim()) return
-    const newTask: JobTask = {
-      id: Date.now().toString(),
-      title: newTaskTitle.trim(),
-    }
-    updateField('tasks', [...formData.tasks, newTask])
-    setNewTaskTitle('')
-  }, [newTaskTitle, formData.tasks, updateField])
+  const addTask = useCallback(
+    (textOverride?: string) => {
+      const taskTitle = (textOverride ?? taskDraftRef.current).trim()
+      if (!taskTitle) return
+
+      const newTask: JobTask = {
+        id: Date.now().toString(),
+        title: taskTitle,
+      }
+
+      updateField('tasks', [...formData.tasks, newTask])
+
+      taskDraftRef.current = ''
+      taskInputRef.current?.clear()
+    },
+    [formData.tasks, updateField]
+  )
+
+  const handleTaskInputChange = useCallback((text: string) => {
+    taskDraftRef.current = text
+  }, [])
+
+  const handleTaskSubmit = useCallback(
+    (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+      addTask(event.nativeEvent.text)
+    },
+    [addTask]
+  )
+
+  const handleTaskAddPress = useCallback(() => {
+    addTask()
+    taskInputRef.current?.blur()
+  }, [addTask])
 
   // Remove task
   const removeTask = useCallback(
@@ -707,9 +740,9 @@ export function AddJobScreen() {
                       : 'Add budget, category, description, tasks, and attachments.'}
                   </Text>
                   <Text
-                    fontSize="$2"
+                    fontSize="$6"
                     color="$primary"
-                    fontWeight="600"
+                    fontWeight="800"
                   >
                     {wizardStage === 'administrative' ? 'Step 1 of 2' : 'Step 2 of 2'}
                   </Text>
@@ -744,7 +777,7 @@ export function AddJobScreen() {
               )}
 
               {/* Form Fields */}
-              <YStack gap="$5">
+              <YStack gap="$4">
                 {wizardStage === 'administrative' && (
                   <>
                     {/* Job Title */}
@@ -1058,8 +1091,8 @@ export function AddJobScreen() {
                           }}
                         >
                           <Input
-                            value={newTaskTitle}
-                            onChangeText={setNewTaskTitle}
+                            ref={taskInputRef}
+                            onChangeText={handleTaskInputChange}
                             placeholder="e.g., Remove old fixture, Install new part, Clean up..."
                             bg="transparent"
                             borderWidth={0}
@@ -1068,16 +1101,15 @@ export function AddJobScreen() {
                             py={0}
                             minHeight="auto"
                             placeholderTextColor="$placeholderColor"
-                            onSubmitEditing={addTask}
+                            onSubmitEditing={handleTaskSubmit}
                             returnKeyType="done"
                           />
                           <Button
                             unstyled
-                            onPress={addTask}
-                            bg={newTaskTitle.trim() ? '$primary' : '$borderColorHover'}
+                            onPress={handleTaskAddPress}
+                            bg="$primary"
                             borderRadius="$3"
                             p="$2"
-                            disabled={!newTaskTitle.trim()}
                             pressStyle={PressPresets.primary.pressStyle}
                             animation={PressPresets.primary.animation}
                           >
@@ -1337,29 +1369,8 @@ export function AddJobScreen() {
               <XStack gap="$3">
                 <Button
                   flex={1}
-                  bg="$backgroundStrong"
-                  borderColor="$borderColorHover"
-                  borderWidth={1}
-                  borderRadius="$4"
-                  py="$3"
-                  minHeight={54}
-                  onPress={handleBackToAdministrative}
-                  pressStyle={PressPresets.secondary.pressStyle}
-                  animation={PressPresets.secondary.animation}
-                >
-                  <Text
-                    color="$color"
-                    fontSize="$4"
-                    fontWeight="600"
-                  >
-                    Back
-                  </Text>
-                </Button>
-                <Button
-                  flex={1}
                   bg="$primary"
                   borderRadius="$4"
-                  py="$3"
                   minHeight={54}
                   onPress={handleContinueToPreview}
                   pressStyle={PressPresets.primary.pressStyle}
