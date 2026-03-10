@@ -587,7 +587,7 @@ export function HomeownerHomeScreen() {
   })
 
   // Debug logging for discounts
-  useEffect(() => {}, [discountsData, discountsLoading, discountsError])
+  useEffect(() => { }, [discountsData, discountsLoading, discountsError])
 
   const offers = useMemo(() => {
     return offersData?.pages.flatMap((page) => page.results) || []
@@ -2055,7 +2055,7 @@ export function HomeownerHomeScreen() {
                   {/* Collapsible section for remaining handymen with FlatList virtualization */}
                   <CollapsibleSection expanded={expandHandymen}>
                     <FlatList
-                      data={handymen.slice(3)}
+                      data={expandHandymen ? handymen.slice(3) : []}
                       keyExtractor={(item) => item.public_id}
                       renderItem={({ item }: { item: HandymanItem }) => (
                         <HandymanListItem

@@ -1915,7 +1915,7 @@ export function GuestHomeScreen() {
                 {/* Expanded vertical list with FlatList virtualization */}
                 <CollapsibleSection expanded={expandHandymen}>
                   <FlatList
-                    data={handymen}
+                    data={expandHandymen ? handymen : []}
                     keyExtractor={(item) => item.public_id}
                     renderItem={({ item }: { item: HandymanItem }) => (
                       <HandymanListItem
@@ -2185,7 +2185,7 @@ export function GuestHomeScreen() {
                 {/* Expanded vertical list with FlatList virtualization */}
                 <CollapsibleSection expanded={expandJobs}>
                   <FlatList
-                    data={jobs}
+                    data={expandJobs ? jobs : []}
                     keyExtractor={(item) => item.public_id}
                     renderItem={({ item }: { item: JobItem }) => (
                       <JobListItem
