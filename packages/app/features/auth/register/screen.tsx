@@ -145,7 +145,9 @@ export function RegisterScreen() {
         <PageHeader
           title="Create account"
           description={PAGE_DESCRIPTIONS['register']}
-          onBack={() => router.replace(`/auth/login${preselectedRole ? `?role=${preselectedRole}` : ''}`)}
+          onBack={() =>
+            router.replace(`/auth/login${preselectedRole ? `?role=${preselectedRole}` : ''}`)
+          }
         />
 
         {/* Main content */}
@@ -383,7 +385,9 @@ export function RegisterScreen() {
             </Text>
             <Button
               unstyled
-              onPress={() => router.push(`/auth/login${preselectedRole ? `?role=${preselectedRole}` : ''}`)}
+              onPress={() =>
+                router.push(`/auth/login${preselectedRole ? `?role=${preselectedRole}` : ''}`)
+              }
               pressStyle={PressPresets.icon.pressStyle}
               animation={PressPresets.icon.animation}
             >

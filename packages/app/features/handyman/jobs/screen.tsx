@@ -416,7 +416,7 @@ const ActiveJobCard = memo(function ActiveJobCard({ job, onPress }: ActiveJobCar
                   fontSize={10}
                   color="$colorSubtle"
                 >
-                  {job.homeowner.rating.toFixed(1)} ({job.homeowner.review_count} reviews)
+                  {Number(job.homeowner.rating).toFixed(1)} ({job.homeowner.review_count} reviews)
                 </Text>
               </XStack>
             )}

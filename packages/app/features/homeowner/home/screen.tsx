@@ -460,29 +460,28 @@ const HandymanListItem = React.memo(
   (prev, next) => prev.item.public_id === next.item.public_id
 )
 
-// Collapsible Section using JS-driven Layout Animation for proper sibling reflow
+// Collapsible Section using Reanimated for native UI thread execution (iOS performance)
 function CollapsibleSection({
   children,
   expanded,
 }: { children: React.ReactNode; expanded: boolean }) {
   const [contentHeight, setContentHeight] = useState(0)
-  const animatedHeight = useRef(new AnimatedRN.Value(0)).current
 
-  useEffect(() => {
-    AnimatedRN.timing(animatedHeight, {
-      toValue: expanded ? contentHeight : 0,
-      duration: 300,
-      easing: EasingRN.bezier(0.4, 0.0, 0.2, 1), // Standard easing
-      useNativeDriver: false, // Critical: this triggers layout updates
-    }).start()
-  }, [expanded, contentHeight, animatedHeight])
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      height: withTiming(expanded ? contentHeight : 0, {
+        duration: 300,
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+      }),
+    }
+  }, [expanded, contentHeight])
 
   return (
-    <AnimatedRN.View
-      style={{
-        height: animatedHeight,
-        overflow: 'hidden',
-      }}
+    <Animated.View
+      style={[
+        { overflow: 'hidden' },
+        animatedStyle
+      ]}
     >
       <RNView
         style={{ position: 'absolute', width: '100%' }}
@@ -495,7 +494,7 @@ function CollapsibleSection({
       >
         {children}
       </RNView>
-    </AnimatedRN.View>
+    </Animated.View>
   )
 }
 
@@ -587,7 +586,7 @@ export function HomeownerHomeScreen() {
   })
 
   // Debug logging for discounts
-  useEffect(() => {}, [discountsData, discountsLoading, discountsError])
+  useEffect(() => { }, [discountsData, discountsLoading, discountsError])
 
   const offers = useMemo(() => {
     return offersData?.pages.flatMap((page) => page.results) || []
@@ -1185,7 +1184,6 @@ export function HomeownerHomeScreen() {
                               backgroundColor: 'rgba(255,255,255,0.92)',
                               borderRadius: 16,
                               overflow: 'hidden',
-                              backdropFilter: 'blur(10px)',
                               shadowColor: 'rgba(12,154,92,0.15)',
                               shadowRadius: 15,
                               shadowOpacity: 1,
@@ -2055,7 +2053,7 @@ export function HomeownerHomeScreen() {
                   {/* Collapsible section for remaining handymen with FlatList virtualization */}
                   <CollapsibleSection expanded={expandHandymen}>
                     <FlatList
-                      data={handymen.slice(3)}
+                      data={expandHandymen ? handymen.slice(3) : []}
                       keyExtractor={(item) => item.public_id}
                       renderItem={({ item }: { item: HandymanItem }) => (
                         <HandymanListItem

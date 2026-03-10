@@ -701,7 +701,8 @@ export function CreateDirectOfferScreen() {
                         fontSize="$2"
                         color="$colorSubtle"
                       >
-                        {handymanInfo.rating.toFixed(1)} ({handymanInfo.review_count} reviews)
+                        {Number(handymanInfo.rating).toFixed(1)} ({handymanInfo.review_count}{' '}
+                        reviews)
                       </Text>
                     </XStack>
                   )}

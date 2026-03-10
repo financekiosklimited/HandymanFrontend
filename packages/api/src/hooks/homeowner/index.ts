@@ -467,6 +467,7 @@ export * from './useCreateJob'
 export * from './useUpdateJob'
 export * from './useDeleteJob'
 export * from './useDirectOffers'
+export * from './usePayment'
 
 // ========== Ongoing Job Hooks ==========
 

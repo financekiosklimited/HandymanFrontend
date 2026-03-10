@@ -41,17 +41,7 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
     (value: boolean) => {
       isNavigatingRef.current = value
       if (trackLoading) {
-        if (value) {
-          // Delay turning ON the loading state slightly to let press animations start
-          setTimeout(() => {
-            if (isNavigatingRef.current) {
-              setIsNavigating(true)
-            }
-          }, 50)
-        } else {
-          // Turn OFF immediately
-          setIsNavigating(false)
-        }
+        setIsNavigating(value)
       }
     },
     [trackLoading]
@@ -85,15 +75,20 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
 
       setNavigating(true)
 
-      try {
-        console.time(`router.navigate -> ${href}`)
-        router.navigate(href)
-        console.timeEnd(`router.navigate -> ${href}`)
-        clearNavigationLock()
-      } catch (error) {
-        setNavigating(false)
-        throw error
-      }
+      // Defer the synchronous and blocking router navigation call by 50ms 
+      // (1 or 2 frames) to allow React to visually commit the `isNavigating`
+      // state changes to the Native UI thread. 
+      setTimeout(() => {
+        try {
+          console.time(`router.navigate -> ${href}`)
+          router.navigate(href)
+          console.timeEnd(`router.navigate -> ${href}`)
+          clearNavigationLock()
+        } catch (error) {
+          setNavigating(false)
+          throw error
+        }
+      }, 50)
     },
     [router, currentPathname, setNavigating, clearNavigationLock]
   )
@@ -110,15 +105,17 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
 
       setNavigating(true)
 
-      try {
-        console.time(`router.push -> ${href}`)
-        router.push(href)
-        console.timeEnd(`router.push -> ${href}`)
-        clearNavigationLock()
-      } catch (error) {
-        setNavigating(false)
-        throw error
-      }
+      setTimeout(() => {
+        try {
+          console.time(`router.push -> ${href}`)
+          router.push(href)
+          console.timeEnd(`router.push -> ${href}`)
+          clearNavigationLock()
+        } catch (error) {
+          setNavigating(false)
+          throw error
+        }
+      }, 50)
     },
     [router, setNavigating, clearNavigationLock]
   )
@@ -135,15 +132,17 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
 
       setNavigating(true)
 
-      try {
-        console.time(`router.replace -> ${href}`)
-        router.replace(href)
-        console.timeEnd(`router.replace -> ${href}`)
-        clearNavigationLock()
-      } catch (error) {
-        setNavigating(false)
-        throw error
-      }
+      setTimeout(() => {
+        try {
+          console.time(`router.replace -> ${href}`)
+          router.replace(href)
+          console.timeEnd(`router.replace -> ${href}`)
+          clearNavigationLock()
+        } catch (error) {
+          setNavigating(false)
+          throw error
+        }
+      }, 50)
     },
     [router, setNavigating, clearNavigationLock]
   )
@@ -158,13 +157,15 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
 
     setNavigating(true)
 
-    try {
-      router.back()
-      clearNavigationLock()
-    } catch (error) {
-      setNavigating(false)
-      throw error
-    }
+    setTimeout(() => {
+      try {
+        router.back()
+        clearNavigationLock()
+      } catch (error) {
+        setNavigating(false)
+        throw error
+      }
+    }, 50)
   }, [router, setNavigating, clearNavigationLock])
 
   /**
@@ -177,18 +178,20 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
 
     setNavigating(true)
 
-    try {
-      // @ts-ignore - dismiss might not be available in all router versions
-      if (router.dismiss) {
-        router.dismiss()
-      } else {
-        router.back()
+    setTimeout(() => {
+      try {
+        // @ts-ignore - dismiss might not be available in all router versions
+        if (router.dismiss) {
+          router.dismiss()
+        } else {
+          router.back()
+        }
+        clearNavigationLock()
+      } catch (error) {
+        setNavigating(false)
+        throw error
       }
-      clearNavigationLock()
-    } catch (error) {
-      setNavigating(false)
-      throw error
-    }
+    }, 50)
   }, [router, setNavigating, clearNavigationLock])
 
   return {

@@ -248,7 +248,7 @@ function HandymanReviewDisplay({ review }: { review: HandymanReview | null }) {
             fontWeight="800"
             color="#F59E0B"
           >
-            {review.rating.toFixed(1)}
+            {Number(review.rating).toFixed(1)}
           </Text>
         </XStack>
       </XStack>

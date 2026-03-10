@@ -336,7 +336,8 @@ export function HandymanDirectOfferDetailScreen({ offerId }: HandymanDirectOffer
                         fontSize="$2"
                         color="$colorSubtle"
                       >
-                        {offer.homeowner.rating.toFixed(1)} ({offer.homeowner.review_count} reviews)
+                        {Number(offer.homeowner.rating).toFixed(1)} ({offer.homeowner.review_count}{' '}
+                        reviews)
                       </Text>
                     </XStack>
                   )}

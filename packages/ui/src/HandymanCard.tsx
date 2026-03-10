@@ -72,10 +72,10 @@ export function HandymanCard({ handyman, onPress }: HandymanCardProps) {
             fontSize={10}
             color="$colorSubtle"
           >
-            {handyman.rating > 0
+            {Number(handyman.rating) > 0
               ? handyman.review_count != null
-                ? `${handyman.rating.toFixed(1)} (${handyman.review_count})`
-                : handyman.rating.toFixed(1)
+                ? `${Number(handyman.rating).toFixed(1)} (${handyman.review_count})`
+                : Number(handyman.rating).toFixed(1)
               : 'No reviews'}
           </Text>
         </XStack>

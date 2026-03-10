@@ -20,8 +20,9 @@ import {
 } from '@my/ui'
 import { GradientBackground } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
-import { useHomeownerJob, useDeleteJob } from '@my/api'
+import { useHomeownerJob, useDeleteJob, useJobPaymentStatus } from '@my/api'
 import type { HomeownerJobStatus } from '@my/api'
+import type { JobPaymentStatus } from '@my/api'
 import {
   MapPin,
   Clock,
@@ -36,6 +37,9 @@ import {
   Trash2,
   Users,
   Play,
+  CreditCard,
+  AlertCircle,
+  CheckCircle2,
 } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
@@ -54,6 +58,29 @@ const statusLabels: Record<HomeownerJobStatus, string> = {
   completed: 'Completed',
   cancelled: 'Cancelled',
 }
+
+const paymentStatusConfig: Record<JobPaymentStatus, { label: string; color: string; bg: string }> =
+  {
+    not_started: { label: 'Not Started', color: '$colorSubtle', bg: '$backgroundMuted' },
+    draft: { label: 'Draft', color: '$colorSubtle', bg: '$backgroundMuted' },
+    requires_payment_method: {
+      label: 'Awaiting Payment',
+      color: '$warning',
+      bg: '$warningBackground',
+    },
+    requires_confirmation: { label: 'Confirming', color: '$warning', bg: '$warningBackground' },
+    authorized: { label: 'Authorized', color: '$info', bg: '$infoBackground' },
+    captured: { label: 'Captured', color: '$success', bg: '$successBackground' },
+    canceled: { label: 'Canceled', color: '$colorSubtle', bg: '$backgroundMuted' },
+    failed: { label: 'Failed', color: '$error', bg: '$errorBackground' },
+    partially_refunded: {
+      label: 'Partially Refunded',
+      color: '$warning',
+      bg: '$warningBackground',
+    },
+    refunded: { label: 'Refunded', color: '$colorSubtle', bg: '$backgroundMuted' },
+    disputed: { label: 'Disputed', color: '$error', bg: '$errorBackground' },
+  }
 
 interface HomeownerJobDetailScreenProps {
   jobId: string
@@ -74,6 +101,11 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
   } | null>(null)
   const flatListRef = useRef<FlatList>(null)
   const { showConfirm, ConfirmDialogWrapper } = useConfirmDialog()
+
+  // Fetch payment status for jobs that may have a payment
+  const paymentEligibleStatuses = ['assigned', 'in_progress', 'pending_completion', 'completed']
+  const hasPayment = !!job && paymentEligibleStatuses.includes(job.status)
+  const { data: paymentStatus } = useJobPaymentStatus(jobId, hasPayment)
 
   // Type-safe attachment access - must be before any early returns to satisfy Rules of Hooks
   const attachments = useMemo(() => {
@@ -608,6 +640,168 @@ export function HomeownerJobDetailScreen({ jobId }: HomeownerJobDetailScreenProp
                   </XStack>
                 </YStack>
               </Button>
+            )}
+
+            {/* Payment Status Card */}
+            {!!paymentStatus && paymentStatus.status !== 'not_started' && (
+              <YStack
+                bg={paymentStatusConfig[paymentStatus.status]?.bg || '$backgroundMuted'}
+                borderRadius={20}
+                p="$lg"
+                mb="$lg"
+                borderWidth={1}
+                borderColor="$borderColor"
+              >
+                <XStack
+                  alignItems="center"
+                  gap="$2"
+                  mb="$md"
+                >
+                  <CreditCard
+                    size={18}
+                    color="$primary"
+                  />
+                  <Text
+                    fontSize="$3"
+                    fontWeight="600"
+                    color="$colorSubtle"
+                  >
+                    PAYMENT STATUS
+                  </Text>
+                </XStack>
+
+                {/* Status Badge */}
+                <XStack
+                  alignItems="center"
+                  gap="$md"
+                  mb="$md"
+                >
+                  <YStack
+                    width={40}
+                    height={40}
+                    borderRadius="$full"
+                    bg={paymentStatusConfig[paymentStatus.status]?.bg || '$backgroundMuted'}
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    {paymentStatus.status === 'failed' || paymentStatus.status === 'disputed' ? (
+                      <AlertCircle
+                        size={18}
+                        color="$error"
+                      />
+                    ) : paymentStatus.status === 'captured' ? (
+                      <CheckCircle2
+                        size={18}
+                        color="$success"
+                      />
+                    ) : (
+                      <CreditCard
+                        size={18}
+                        color={paymentStatusConfig[paymentStatus.status]?.color || '$primary'}
+                      />
+                    )}
+                  </YStack>
+                  <YStack flex={1}>
+                    <Text
+                      fontSize="$3"
+                      color="$colorSubtle"
+                    >
+                      Status
+                    </Text>
+                    <Text
+                      fontSize="$4"
+                      fontWeight="600"
+                      color={paymentStatusConfig[paymentStatus.status]?.color || '$color'}
+                    >
+                      {paymentStatusConfig[paymentStatus.status]?.label || paymentStatus.status}
+                    </Text>
+                  </YStack>
+                </XStack>
+
+                {/* Amount Details */}
+                <YStack
+                  gap="$sm"
+                  bg="$borderColor"
+                  borderRadius={12}
+                  p="$md"
+                >
+                  {paymentStatus.authorized_amount &&
+                    paymentStatus.authorized_amount !== '0.00' && (
+                      <XStack justifyContent="space-between">
+                        <Text
+                          fontSize="$3"
+                          color="$colorSubtle"
+                        >
+                          Authorized
+                        </Text>
+                        <Text
+                          fontSize="$3"
+                          fontWeight="600"
+                          color="$color"
+                        >
+                          ${paymentStatus.authorized_amount} {paymentStatus.currency?.toUpperCase()}
+                        </Text>
+                      </XStack>
+                    )}
+
+                  {paymentStatus.captured_amount && paymentStatus.captured_amount !== '0.00' && (
+                    <XStack justifyContent="space-between">
+                      <Text
+                        fontSize="$3"
+                        color="$colorSubtle"
+                      >
+                        Captured
+                      </Text>
+                      <Text
+                        fontSize="$3"
+                        fontWeight="600"
+                        color="$success"
+                      >
+                        ${paymentStatus.captured_amount} {paymentStatus.currency?.toUpperCase()}
+                      </Text>
+                    </XStack>
+                  )}
+
+                  {paymentStatus.platform_fee && paymentStatus.platform_fee !== '0.00' && (
+                    <XStack justifyContent="space-between">
+                      <Text
+                        fontSize="$3"
+                        color="$colorSubtle"
+                      >
+                        Platform Fee
+                      </Text>
+                      <Text
+                        fontSize="$3"
+                        fontWeight="500"
+                        color="$colorSubtle"
+                      >
+                        ${paymentStatus.platform_fee} {paymentStatus.currency?.toUpperCase()}
+                      </Text>
+                    </XStack>
+                  )}
+                </YStack>
+
+                {/* Failure message */}
+                {!!paymentStatus.last_failure_message && (
+                  <XStack
+                    mt="$md"
+                    gap="$sm"
+                    alignItems="center"
+                  >
+                    <AlertCircle
+                      size={14}
+                      color="$error"
+                    />
+                    <Text
+                      fontSize="$2"
+                      color="$error"
+                      flex={1}
+                    >
+                      {paymentStatus.last_failure_message}
+                    </Text>
+                  </XStack>
+                )}
+              </YStack>
             )}
 
             {/* Description Card */}

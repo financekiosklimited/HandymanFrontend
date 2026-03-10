@@ -113,17 +113,13 @@ function BottomNavComponent({
       }
 
       // Defer navigation to allow the Native ripple/press animation to start
-      // before Expo Router synchronous routing heavily blocks the JS thread
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // If guest tries to access protected route, redirect to login
-          if (variant === 'guest' && item.requiresAuth) {
-            onNavigate('/auth/login?role=homeowner')
-          } else {
-            onNavigate(item.route)
-          }
-        })
-      })
+      // Navigation implementation (useNavigationGuard) now handles the necessary thread release
+      // If guest tries to access protected route, redirect to login
+      if (variant === 'guest' && item.requiresAuth) {
+        onNavigate('/auth/login?role=homeowner')
+      } else {
+        onNavigate(item.route)
+      }
     },
     [variant, onAddPress, onNavigate, isRouteActive]
   )
