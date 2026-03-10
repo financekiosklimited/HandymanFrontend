@@ -61,7 +61,6 @@ import { HTTPError } from 'ky'
 import {
   KeyboardAvoidingView,
   Platform,
-  type TextInput,
   ActionSheetIOS,
   Alert,
   type NativeSyntheticEvent,
@@ -221,7 +220,7 @@ export function AddJobScreen() {
   // Sheet states
   const [categorySheetOpen, setCategorySheetOpen] = useState(false)
   const [citySheetOpen, setCitySheetOpen] = useState(false)
-  const taskInputRef = useRef<TextInput>(null)
+  const taskInputRef = useRef<any>(null)
   const taskDraftRef = useRef('')
 
   // Search states for sheets

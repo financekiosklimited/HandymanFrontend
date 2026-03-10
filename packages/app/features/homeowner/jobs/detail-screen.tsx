@@ -59,28 +59,27 @@ const statusLabels: Record<HomeownerJobStatus, string> = {
   cancelled: 'Cancelled',
 }
 
-const paymentStatusConfig: Record<JobPaymentStatus, { label: string; color: string; bg: string }> =
-  {
-    not_started: { label: 'Not Started', color: '$colorSubtle', bg: '$backgroundMuted' },
-    draft: { label: 'Draft', color: '$colorSubtle', bg: '$backgroundMuted' },
-    requires_payment_method: {
-      label: 'Awaiting Payment',
-      color: '$warning',
-      bg: '$warningBackground',
-    },
-    requires_confirmation: { label: 'Confirming', color: '$warning', bg: '$warningBackground' },
-    authorized: { label: 'Authorized', color: '$info', bg: '$infoBackground' },
-    captured: { label: 'Captured', color: '$success', bg: '$successBackground' },
-    canceled: { label: 'Canceled', color: '$colorSubtle', bg: '$backgroundMuted' },
-    failed: { label: 'Failed', color: '$error', bg: '$errorBackground' },
-    partially_refunded: {
-      label: 'Partially Refunded',
-      color: '$warning',
-      bg: '$warningBackground',
-    },
-    refunded: { label: 'Refunded', color: '$colorSubtle', bg: '$backgroundMuted' },
-    disputed: { label: 'Disputed', color: '$error', bg: '$errorBackground' },
-  }
+const paymentStatusConfig = {
+  not_started: { label: 'Not Started', color: '$colorSubtle', bg: '$backgroundMuted' },
+  draft: { label: 'Draft', color: '$colorSubtle', bg: '$backgroundMuted' },
+  requires_payment_method: {
+    label: 'Awaiting Payment',
+    color: '$warning',
+    bg: '$warningBackground',
+  },
+  requires_confirmation: { label: 'Confirming', color: '$warning', bg: '$warningBackground' },
+  authorized: { label: 'Authorized', color: '$info', bg: '$infoBackground' },
+  captured: { label: 'Captured', color: '$success', bg: '$successBackground' },
+  canceled: { label: 'Canceled', color: '$colorSubtle', bg: '$backgroundMuted' },
+  failed: { label: 'Failed', color: '$error', bg: '$errorBackground' },
+  partially_refunded: {
+    label: 'Partially Refunded',
+    color: '$warning',
+    bg: '$warningBackground',
+  },
+  refunded: { label: 'Refunded', color: '$colorSubtle', bg: '$backgroundMuted' },
+  disputed: { label: 'Disputed', color: '$error', bg: '$errorBackground' },
+} as const
 
 interface HomeownerJobDetailScreenProps {
   jobId: string
