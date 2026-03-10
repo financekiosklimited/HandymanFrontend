@@ -106,6 +106,99 @@ function getConnectStatusConfig(kycData: {
   }
 }
 
+// ── Stripe Requirement Labels ──
+
+const REQUIREMENT_LABELS: Record<string, string> = {
+  // Business / Company profile
+  'business.profile.mcc': 'Business Category (MCC)',
+  'business.profile.url': 'Business Website',
+  'business.profile.name': 'Business Name',
+  'business.profile.support_phone': 'Support Phone Number',
+  'business.profile.support_email': 'Support Email',
+  'business.profile.product_description': 'Business Description',
+  'company.name': 'Company Legal Name',
+  'company.tax_id': 'Company Tax ID (EIN)',
+  'company.phone': 'Company Phone Number',
+  'company.address.line1': 'Company Street Address',
+  'company.address.line2': 'Company Address Line 2',
+  'company.address.city': 'Company City',
+  'company.address.state': 'Company State',
+  'company.address.postal_code': 'Company ZIP / Postal Code',
+  'company.address.country': 'Company Country',
+
+  // Individual / Representative
+  'individual.first_name': 'Legal First Name',
+  'individual.last_name': 'Legal Last Name',
+  'individual.email': 'Email Address',
+  'individual.phone': 'Phone Number',
+  'individual.dob.day': 'Date of Birth',
+  'individual.dob.month': 'Date of Birth',
+  'individual.dob.year': 'Date of Birth',
+  'individual.address.line1': 'Street Address',
+  'individual.address.line2': 'Address Line 2',
+  'individual.address.city': 'City',
+  'individual.address.state': 'State',
+  'individual.address.postal_code': 'ZIP / Postal Code',
+  'individual.address.country': 'Country',
+  'individual.ssn_last_4': 'Last 4 Digits of SSN',
+  'individual.id_number': 'Full SSN or Tax ID',
+  'individual.verification.document': 'Identity Document',
+  'individual.verification.additional_document': 'Additional Identity Document',
+
+  // External account
+  external_account: 'Bank Account or Debit Card',
+
+  // Terms of service
+  'tos_acceptance.date': 'Terms of Service Acceptance',
+  'tos_acceptance.ip': 'Terms of Service Acceptance',
+
+  // Representative
+  'representative.first_name': 'Representative First Name',
+  'representative.last_name': 'Representative Last Name',
+  'representative.email': 'Representative Email',
+  'representative.dob.day': 'Representative Date of Birth',
+  'representative.dob.month': 'Representative Date of Birth',
+  'representative.dob.year': 'Representative Date of Birth',
+
+  // Owners
+  'owners.first_name': 'Business Owner Information',
+  'owners.last_name': 'Business Owner Information',
+  'relationship.owner': 'Business Ownership Details',
+  'relationship.executive': 'Executive Details',
+}
+
+/** Known abbreviations for the fallback formatter */
+const ABBREVIATIONS: Record<string, string> = {
+  mcc: 'Business Category',
+  dob: 'Date of Birth',
+  tos: 'Terms of Service',
+  ssn: 'SSN',
+  ein: 'EIN',
+  url: 'Website URL',
+  id: 'ID',
+  ip: 'IP Address',
+}
+
+/**
+ * Convert a Stripe requirement key to a human-readable label.
+ * Uses the static map first, then falls back to smart formatting.
+ */
+function formatRequirement(key: string): string {
+  // Direct lookup
+  const mapped = REQUIREMENT_LABELS[key]
+  if (mapped) return mapped
+
+  // Fallback: take the last meaningful segment(s) and humanize
+  const segments = key.split('.')
+  const last = segments[segments.length - 1] ?? key
+
+  // Check abbreviations
+  if (ABBREVIATIONS[last]) return ABBREVIATIONS[last]
+
+  // Title-case: replace underscores, capitalize each word
+  return last.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 // ── Main Screen ──
 
 export function KycStatusScreen() {
@@ -122,7 +215,7 @@ export function KycStatusScreen() {
     try {
       const session = await identitySessionMutation.mutateAsync()
       if (session.url) {
-        await WebBrowser.openBrowserAsync(session.url)
+        await WebBrowser.openAuthSessionAsync(session.url, 'handymankiosk://kyc/identity/return')
         // Refetch status after returning from browser
         refetch()
       } else {
@@ -143,7 +236,7 @@ export function KycStatusScreen() {
     try {
       const link = await connectOnboardingMutation.mutateAsync()
       if (link.url) {
-        await WebBrowser.openBrowserAsync(link.url)
+        await WebBrowser.openAuthSessionAsync(link.url, 'handymankiosk://kyc/connect/return')
         // Refetch status after returning from browser
         refetch()
       }
@@ -626,7 +719,7 @@ export function KycStatusScreen() {
                           color="$warning"
                           opacity={0.8}
                         >
-                          {'\u2022'} {req.replace(/_/g, ' ')}
+                          {'\u2022'} {formatRequirement(req)}
                         </Text>
                       ))}
                     </YStack>

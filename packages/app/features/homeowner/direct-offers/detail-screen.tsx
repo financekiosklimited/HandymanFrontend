@@ -46,9 +46,14 @@ import {
 import { PageHeader } from '@my/ui'
 import { PAGE_DESCRIPTIONS } from 'app/constants/page-descriptions'
 import { useRouter } from 'expo-router'
+import {
+  initializeStripePaymentSheet,
+  isStripeAvailable,
+  presentStripePaymentSheet,
+  STRIPE_UNAVAILABLE_MESSAGE,
+} from 'app/provider/stripe-sdk'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { useToastController } from '@tamagui/toast'
-import { useStripe } from '@stripe/stripe-react-native'
 import { showOfferAcceptedToast, showOfferDeclinedToast } from 'app/utils/toast-messages'
 import {
   hasNotificationToastBeenShown,
@@ -73,7 +78,6 @@ export function HomeownerDirectOfferDetailScreen({
   const cancelMutation = useCancelDirectOffer()
   const convertMutation = useConvertToPublicJob()
   const authorizePayment = useAuthorizeDirectOfferPayment()
-  const { initPaymentSheet, presentPaymentSheet } = useStripe()
   const [isAuthorizing, setIsAuthorizing] = useState(false)
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -229,18 +233,29 @@ export function HomeownerDirectOfferDetailScreen({
 
     showConfirm({
       title: 'Authorize Payment',
-      description: `Authorize a payment hold of $${offer.offered_price || '0'} for this job? The payment will only be captured when the job is completed.`,
+      description: `Authorize a payment hold of $${offer.estimated_budget || '0'} for this job? The payment will only be captured when the job is completed.`,
       type: 'success',
       confirmText: 'Authorize Payment',
       cancelText: 'Cancel',
       onConfirm: async () => {
         setIsAuthorizing(true)
         try {
+          if (!isStripeAvailable()) {
+            showConfirm({
+              title: 'Payments Unavailable',
+              description: STRIPE_UNAVAILABLE_MESSAGE,
+              type: 'confirm',
+              confirmText: 'OK',
+              onConfirm: () => {},
+            })
+            return
+          }
+
           // Step 1: Get payment authorization (client_secret) from backend
           const paymentAuth = await authorizePayment.mutateAsync(offer.public_id)
 
           // Step 2: Initialize PaymentSheet with the client_secret
-          const { error: initError } = await initPaymentSheet({
+          const { error: initError } = await initializeStripePaymentSheet({
             paymentIntentClientSecret: paymentAuth.client_secret,
             merchantDisplayName: 'HandymanKiosk',
           })
@@ -257,7 +272,7 @@ export function HomeownerDirectOfferDetailScreen({
           }
 
           // Step 3: Present PaymentSheet to the user
-          const { error: presentError } = await presentPaymentSheet()
+          const { error: presentError } = await presentStripePaymentSheet()
 
           if (presentError) {
             if (presentError.code !== 'Canceled') {
@@ -290,7 +305,7 @@ export function HomeownerDirectOfferDetailScreen({
         }
       },
     })
-  }, [offer, authorizePayment, initPaymentSheet, presentPaymentSheet, router])
+  }, [offer, authorizePayment, router, showConfirm])
 
   if (isLoading) {
     return (

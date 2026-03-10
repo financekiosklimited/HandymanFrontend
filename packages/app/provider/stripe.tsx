@@ -1,22 +1,21 @@
 'use client'
 
-import type { ReactNode } from 'react'
-import { StripeProvider as NativeStripeProvider } from '@stripe/stripe-react-native'
+import { useEffect, type ReactNode } from 'react'
+import { initializeStripe } from './stripe-sdk'
 
 const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
 
 export function StripeProvider({ children }: { children: ReactNode }) {
-  if (!publishableKey) {
-    // Stripe not configured — render children without Stripe wrapper
-    return <>{children}</>
-  }
+  useEffect(() => {
+    if (!publishableKey) {
+      return
+    }
 
-  return (
-    <NativeStripeProvider
-      publishableKey={publishableKey}
-      merchantIdentifier="merchant.com.handymankiosk.app"
-    >
-      {children}
-    </NativeStripeProvider>
-  )
+    void initializeStripe({
+      publishableKey,
+      merchantIdentifier: 'merchant.com.handymankiosk.app',
+    })
+  }, [])
+
+  return <>{children}</>
 }

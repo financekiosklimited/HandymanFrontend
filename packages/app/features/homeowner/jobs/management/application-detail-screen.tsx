@@ -39,10 +39,15 @@ import {
   ChevronRight,
 } from '@tamagui/lucide-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
+import {
+  initializeStripePaymentSheet,
+  isStripeAvailable,
+  presentStripePaymentSheet,
+  STRIPE_UNAVAILABLE_MESSAGE,
+} from 'app/provider/stripe-sdk'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
 import { applicationStatusColors, type ApplicationStatus, colors } from '@my/config'
 import { useToastController } from '@tamagui/toast'
-import { useStripe } from '@stripe/stripe-react-native'
 import {
   showApplicationApprovedHomeownerToast,
   showApplicationRejectedHomeownerToast,
@@ -76,7 +81,6 @@ export function ApplicationDetailScreen() {
   const approveApplication = useApproveApplication()
   const rejectApplication = useRejectApplication()
   const authorizePayment = useAuthorizeApplicationPayment()
-  const { initPaymentSheet, presentPaymentSheet } = useStripe()
 
   const handleApprove = () => {
     showConfirm({
@@ -88,11 +92,16 @@ export function ApplicationDetailScreen() {
       onConfirm: async () => {
         setIsApproving(true)
         try {
+          if (!isStripeAvailable()) {
+            showSubmissionErrorToast(toast, STRIPE_UNAVAILABLE_MESSAGE)
+            return
+          }
+
           // Step 1: Get payment authorization (client_secret) from backend
           const paymentAuth = await authorizePayment.mutateAsync(applicationId)
 
           // Step 2: Initialize PaymentSheet with the client_secret
-          const { error: initError } = await initPaymentSheet({
+          const { error: initError } = await initializeStripePaymentSheet({
             paymentIntentClientSecret: paymentAuth.client_secret,
             merchantDisplayName: 'HandymanKiosk',
           })
@@ -103,7 +112,7 @@ export function ApplicationDetailScreen() {
           }
 
           // Step 3: Present PaymentSheet to the user
-          const { error: presentError } = await presentPaymentSheet()
+          const { error: presentError } = await presentStripePaymentSheet()
 
           if (presentError) {
             // User cancelled or payment failed
