@@ -46,50 +46,50 @@ function getWithdrawalStatusConfig(status: WithdrawalStatus) {
     case 'paid':
       return {
         label: 'Paid',
-        color: '$success',
-        bgColor: '$successBackground',
+        color: '$success' as const,
+        bgColor: '$successBackground' as const,
         icon: CheckCircle,
         iconColor: colors.success,
       }
     case 'processing':
       return {
         label: 'Processing',
-        color: '$accent',
-        bgColor: '$accentBackground',
+        color: '$accent' as const,
+        bgColor: '$accentBackground' as const,
         icon: Clock,
         iconColor: colors.accent,
       }
     case 'requested':
       return {
         label: 'Requested',
-        color: '$info',
-        bgColor: '$infoBackground',
+        color: '$info' as const,
+        bgColor: '$infoBackground' as const,
         icon: Clock,
         iconColor: colors.info,
       }
     case 'failed':
       return {
         label: 'Failed',
-        color: '$error',
-        bgColor: '$errorBackground',
+        color: '$error' as const,
+        bgColor: '$errorBackground' as const,
         icon: XCircle,
         iconColor: colors.error,
       }
     case 'canceled':
       return {
         label: 'Canceled',
-        color: '$placeholderColor',
-        bgColor: '$backgroundMuted',
+        color: '$placeholderColor' as const,
+        bgColor: '$backgroundMuted' as const,
         icon: XCircle,
-        iconColor: colors.placeholderColor,
+        iconColor: colors.textMuted,
       }
     default:
       return {
         label: status,
-        color: '$placeholderColor',
-        bgColor: '$backgroundMuted',
+        color: '$placeholderColor' as const,
+        bgColor: '$backgroundMuted' as const,
         icon: AlertCircle,
-        iconColor: colors.placeholderColor,
+        iconColor: colors.textMuted,
       }
   }
 }

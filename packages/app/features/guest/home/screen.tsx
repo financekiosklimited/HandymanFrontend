@@ -224,12 +224,7 @@ function CollapsibleSection({
   }, [expanded, contentHeight])
 
   return (
-    <Animated.View
-      style={[
-        { overflow: 'hidden' },
-        animatedStyle
-      ]}
-    >
+    <Animated.View style={[{ overflow: 'hidden' }, animatedStyle]}>
       <RNView
         style={{ position: 'absolute', width: '100%' }}
         onLayout={(event) => {

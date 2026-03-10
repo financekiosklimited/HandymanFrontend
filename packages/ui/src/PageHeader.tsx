@@ -9,7 +9,7 @@ import { ICON_BUTTON_PRESS, PRIMARY_BUTTON_PRESS } from './pressAnimations'
 
 interface PageHeaderProps {
   title: string
-  description: string
+  description?: string
   showBack?: boolean
   onBack?: () => void
   rightElement?: React.ReactNode
@@ -17,7 +17,7 @@ interface PageHeaderProps {
 
 export function PageHeader({
   title,
-  description,
+  description = '',
   showBack = true,
   onBack,
   rightElement,

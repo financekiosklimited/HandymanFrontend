@@ -31,6 +31,9 @@ export const colors = {
   // Neutrals
   white: '#FFFFFF',
   black: '#000000',
+
+  // Placeholder
+  placeholderColor: '#8E8E93',
 }
 
 // Opacity values for programmatic use

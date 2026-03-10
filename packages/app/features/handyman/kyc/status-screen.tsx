@@ -34,42 +34,42 @@ function getIdentityStatusConfig(status: IdentityVerificationStatus) {
     case 'verified':
       return {
         label: 'Verified',
-        color: '$success',
-        bgColor: '$successBackground',
+        color: '$success' as const,
+        bgColor: '$successBackground' as const,
         icon: CheckCircle,
-        iconColor: colors.success,
+        iconColor: '$success' as const,
       }
     case 'pending':
       return {
         label: 'Pending Review',
-        color: '$accent',
-        bgColor: '$accentBackground',
+        color: '$accent' as const,
+        bgColor: '$accentBackground' as const,
         icon: Clock,
-        iconColor: colors.accent,
+        iconColor: '$accent' as const,
       }
     case 'requires_input':
       return {
         label: 'Action Required',
-        color: '$warning',
-        bgColor: '$warningBackground',
+        color: '$warning' as const,
+        bgColor: '$warningBackground' as const,
         icon: AlertCircle,
-        iconColor: colors.warning,
+        iconColor: '$warning' as const,
       }
     case 'failed':
       return {
         label: 'Failed',
-        color: '$error',
-        bgColor: '$errorBackground',
+        color: '$error' as const,
+        bgColor: '$errorBackground' as const,
         icon: XCircle,
-        iconColor: colors.error,
+        iconColor: '$error' as const,
       }
     default:
       return {
         label: 'Not Started',
-        color: '$placeholderColor',
-        bgColor: '$backgroundMuted',
+        color: '$placeholderColor' as const,
+        bgColor: '$backgroundMuted' as const,
         icon: Clock,
-        iconColor: colors.placeholderColor,
+        iconColor: '$placeholderColor' as const,
       }
   }
 }
@@ -82,27 +82,27 @@ function getConnectStatusConfig(kycData: {
   if (kycData.charges_enabled && kycData.payouts_enabled) {
     return {
       label: 'Active',
-      color: '$success',
-      bgColor: '$successBackground',
+      color: '$success' as const,
+      bgColor: '$successBackground' as const,
       icon: CheckCircle,
-      iconColor: colors.success,
+      iconColor: '$success' as const,
     }
   }
   if (kycData.details_submitted) {
     return {
       label: 'Under Review',
-      color: '$accent',
-      bgColor: '$accentBackground',
+      color: '$accent' as const,
+      bgColor: '$accentBackground' as const,
       icon: Clock,
-      iconColor: colors.accent,
+      iconColor: '$accent' as const,
     }
   }
   return {
     label: 'Not Set Up',
-    color: '$placeholderColor',
-    bgColor: '$backgroundMuted',
+    color: '$placeholderColor' as const,
+    bgColor: '$backgroundMuted' as const,
     icon: AlertCircle,
-    iconColor: colors.placeholderColor,
+    iconColor: '$placeholderColor' as const,
   }
 }
 
@@ -607,12 +607,12 @@ export function KycStatusScreen() {
                         {kycStatus.details_submitted ? (
                           <CheckCircle
                             size={14}
-                            color={colors.success}
+                            color="$success"
                           />
                         ) : (
                           <XCircle
                             size={14}
-                            color={colors.error}
+                            color="$error"
                           />
                         )}
                         <Text
@@ -642,12 +642,12 @@ export function KycStatusScreen() {
                         {kycStatus.charges_enabled ? (
                           <CheckCircle
                             size={14}
-                            color={colors.success}
+                            color="$success"
                           />
                         ) : (
                           <XCircle
                             size={14}
-                            color={colors.error}
+                            color="$error"
                           />
                         )}
                         <Text
@@ -677,12 +677,12 @@ export function KycStatusScreen() {
                         {kycStatus.payouts_enabled ? (
                           <CheckCircle
                             size={14}
-                            color={colors.success}
+                            color="$success"
                           />
                         ) : (
                           <XCircle
                             size={14}
-                            color={colors.error}
+                            color="$error"
                           />
                         )}
                         <Text

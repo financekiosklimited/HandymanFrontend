@@ -75,9 +75,9 @@ export function useNavigationGuard(options: NavigationOptions = {}) {
 
       setNavigating(true)
 
-      // Defer the synchronous and blocking router navigation call by 50ms 
+      // Defer the synchronous and blocking router navigation call by 50ms
       // (1 or 2 frames) to allow React to visually commit the `isNavigating`
-      // state changes to the Native UI thread. 
+      // state changes to the Native UI thread.
       setTimeout(() => {
         try {
           console.time(`router.navigate -> ${href}`)

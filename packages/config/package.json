@@ -16,7 +16,7 @@
     "watch": "tamagui-build --skip-types --watch"
   },
   "dependencies": {
-    "@tamagui/animations-reanimated": "2.0.0-rc.22",
+    "@tamagui/animations-react-native": "^1.143.1",
     "@tamagui/font-inter": "^1.143.1",
     "@tamagui/shorthands": "^1.143.1",
     "@tamagui/themes": "^1.143.1",
