@@ -1,4 +1,4 @@
-import { createAnimations } from '@tamagui/animations-react-native'
+import { createAnimations } from '@tamagui/animations-reanimated'
 
 export const animations = createAnimations({
   '100ms': {
