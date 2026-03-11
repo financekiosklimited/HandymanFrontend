@@ -620,31 +620,35 @@ export function GuestHomeScreen() {
     [router]
   )
 
-  // Reanimated-based typewriter effect for search bar
+  // Reanimated-based typewriter effect for search bar (battery-optimized)
   const {
     text: displayText,
     showCursor,
     pause,
     resume,
+    markActivity,
   } = useTypewriter({
     strings: SEARCH_SUGGESTIONS,
-    typeSpeed: 5,
-    backSpeed: 20,
-    backDelay: 1000,
-    startDelay: 2000,
+    typeSpeed: 120, // Slower typing = less CPU wake-ups
+    backSpeed: 80, // Slower deleting
+    backDelay: 2500, // Longer pause before deleting
+    startDelay: 1000,
     loop: true,
     showCursor: true,
+    cursorBlinkSpeed: 600, // Slower blink = less re-renders
+    inactivityTimeout: 45000, // Pause after 45s of no interaction
   })
 
   // Handle search press - redirect to login and pause for 5 seconds
   const handleSearchPress = useCallback(() => {
     pause()
+    markActivity()
     redirectToLogin()
     // Resume after 5 seconds
     setTimeout(() => {
       resume()
     }, 5000)
-  }, [pause, resume, redirectToLogin])
+  }, [pause, resume, redirectToLogin, markActivity])
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [locationError, setLocationError] = useState<string | null>(null)
@@ -683,6 +687,8 @@ export function GuestHomeScreen() {
   const welcomeTranslateY = useSharedValue(30)
   const ctaOpacity = useSharedValue(0)
   const ctaTranslateY = useSharedValue(30)
+  const handymanBannerOpacity = useSharedValue(0)
+  const handymanBannerTranslateY = useSharedValue(30)
   const filtersOpacity = useSharedValue(0)
   const filtersTranslateY = useSharedValue(30)
   const handymenOpacity = useSharedValue(0)
@@ -707,6 +713,9 @@ export function GuestHomeScreen() {
     ctaOpacity.value = withDelay(150, withTiming(1, { duration: 500 }))
     ctaTranslateY.value = withDelay(150, withTiming(0, { duration: 500 }))
 
+    handymanBannerOpacity.value = withDelay(225, withTiming(1, { duration: 500 }))
+    handymanBannerTranslateY.value = withDelay(225, withTiming(0, { duration: 500 }))
+
     filtersOpacity.value = withDelay(300, withTiming(1, { duration: 500 }))
     filtersTranslateY.value = withDelay(300, withTiming(0, { duration: 500 }))
 
@@ -720,6 +729,8 @@ export function GuestHomeScreen() {
     welcomeTranslateY,
     ctaOpacity,
     ctaTranslateY,
+    handymanBannerOpacity,
+    handymanBannerTranslateY,
     filtersOpacity,
     filtersTranslateY,
     handymenOpacity,
@@ -738,6 +749,11 @@ export function GuestHomeScreen() {
     transform: [{ translateY: ctaTranslateY.value }],
   }))
 
+  const handymanBannerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: handymanBannerOpacity.value,
+    transform: [{ translateY: handymanBannerTranslateY.value }],
+  }))
+
   const filtersAnimatedStyle = useAnimatedStyle(() => ({
     opacity: filtersOpacity.value,
     transform: [{ translateY: filtersTranslateY.value }],
@@ -753,19 +769,31 @@ export function GuestHomeScreen() {
     transform: [{ translateY: jobsTranslateY.value }],
   }))
 
-  // Continuous CTA pulse animation (gentle scale + shadow)
+  // CTA pulse animation - runs for 12 seconds then stops (battery optimization)
   const ctaPulseProgress = useSharedValue(0)
+  const ctaAnimationActive = useSharedValue(true)
 
   useEffect(() => {
-    // Gentle continuous pulse: 4 second loop
+    // Run pulse animation for 3 cycles (12 seconds) then stop
     ctaPulseProgress.value = withRepeat(
       withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
-      -1, // Infinite
-      true // Reverse
+      3, // Only 3 cycles
+      true, // Reverse
+      (finished) => {
+        if (finished) {
+          ctaAnimationActive.value = false
+        }
+      }
     )
-  }, [ctaPulseProgress])
+  }, [ctaPulseProgress, ctaAnimationActive])
 
   const ctaPulseAnimatedStyle = useAnimatedStyle(() => {
+    if (!ctaAnimationActive.value) {
+      return {
+        transform: [{ scale: 1 }],
+        shadowOpacity: 0.1,
+      }
+    }
     const scale = interpolate(ctaPulseProgress.value, [0, 0.5, 1], [1, 1.1, 1])
     const shadowOpacity = interpolate(ctaPulseProgress.value, [0, 0.5, 1], [0.1, 0.25, 0.1])
 
@@ -1156,9 +1184,10 @@ export function GuestHomeScreen() {
           </AnimatedYStack>
 
           {/* Become a Handyman Banner - New Design */}
-          <YStack
+          <AnimatedYStack
             px="$4"
             pb="$4"
+            style={handymanBannerAnimatedStyle}
           >
             <YStack
               borderRadius="$6"
@@ -1196,7 +1225,7 @@ export function GuestHomeScreen() {
                       fontWeight="bold"
                       color="white"
                       letterSpacing={-0.5}
-                    // lineHeight="$8"
+                      // lineHeight="$8"
                     >
                       Turn your skills{'\n'}into income
                     </Text>
@@ -1242,7 +1271,7 @@ export function GuestHomeScreen() {
                 contentFit="contain"
               />
             </YStack>
-          </YStack>
+          </AnimatedYStack>
 
           {/* Promo Codes Section */}
           <AnimatedYStack
