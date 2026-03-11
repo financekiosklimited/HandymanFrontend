@@ -155,7 +155,7 @@ export function LoginScreen() {
       >
         {/* Header with back button */}
         <PageHeader
-          title="Login"
+          title={selectedRole === 'homeowner' ? 'Login as Homeowner' : 'Login as Handyman'}
           description={PAGE_DESCRIPTIONS['login']}
           onBack={() => router.replace('/(guest)')}
         />
@@ -173,14 +173,14 @@ export function LoginScreen() {
               fontWeight="bold"
               color="$color"
             >
-              Login
+              {selectedRole === 'homeowner' ? 'Login as Homeowner' : 'Login as Handyman'}
             </Text>
             <Text
               fontSize="$4"
               color="$colorSubtle"
               mt="$1"
             >
-              Welcome back! Sign in to continue
+              {selectedRole === 'homeowner' ? 'Welcome Back! Sign in to continue improving your house' : 'Welcome Back! Sign in to continue earning while making homes better'}
             </Text>
           </YStack>
 

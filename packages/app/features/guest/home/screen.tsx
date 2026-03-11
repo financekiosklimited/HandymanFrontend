@@ -69,8 +69,9 @@ import {
   Clock,
 } from '@tamagui/lucide-icons'
 
-// CTA Banner Background Image
+// CTA Banner Background Images
 const CTA_BACKGROUND_IMAGE = require('../../../../../apps/expo/assets/cta-construction-bg.jpg')
+const HANDYMAN_CTA_IMAGE = require('../../../../../apps/expo/assets/cta-handyman-bg.jpg')
 
 // Create animated components
 const AnimatedYStack = Animated.createAnimatedComponent(YStack)
@@ -1063,7 +1064,8 @@ export function GuestHomeScreen() {
                   right: 0,
                   bottom: 0,
                   width: '100%',
-                  height: '100%',
+                  height: '105%',
+                  scaleX: -1
                 }}
                 contentFit="cover"
               />
@@ -1225,6 +1227,95 @@ export function GuestHomeScreen() {
             </YStack>
           </AnimatedYStack>
 
+          {/* Become a Handyman Banner - New Design */}
+          <YStack
+            px="$4"
+            pb="$4"
+          >
+            <YStack
+              borderRadius="$6"
+              overflow="visible"
+              onPress={() => redirectToLogin('handyman')}
+              {...PressPresets.card}
+              shadowColor="rgba(0,0,0,0.15)"
+              shadowRadius={20}
+              shadowOpacity={1}
+              shadowOffset={{ width: 0, height: 8 }}
+            >
+              {/* Gold/Yellow Gradient Background */}
+              <LinearGradient
+                colors={['#FFB800', '#FFA000', '#E69500']}
+                start={[0, 0]}
+                end={[1, 0]}
+                style={{
+                  borderRadius: 16,
+                }}
+              >
+                <XStack
+                  p="$4"
+                  minHeight={140}
+                  alignItems="flex-end"
+                >
+                  {/* Text Content */}
+                  <YStack
+                    flex={1}
+                    gap="$2"
+                    pb="$1"
+                    pr="$12"
+                  >
+                    <Text
+                      fontSize="$8"
+                      fontWeight="bold"
+                      color="white"
+                      letterSpacing={-0.5}
+                    // lineHeight="$8"
+                    >
+                      Turn your skills{'\n'}into income
+                    </Text>
+                    <Text
+                      fontSize="$2"
+                      color="rgba(255,255,255,0.95)"
+                    >
+                      Set your own schedule and rates. Earn money as a handyman.
+                    </Text>
+
+                    {/* CTA Button with Continuous Pulse Animation */}
+                    <AnimatedButton
+                      width="80%"
+                      size="$4"
+                      bg="white"
+                      color="#FEB800"
+                      borderRadius="$6"
+                      fontWeight="900"
+                      fontSize="$3"
+                      px="$1"
+                      style={ctaPulseAnimatedStyle}
+                      onPress={() => redirectToLogin('homeowner')}
+                      shadowColor="rgba(0,0,0,0.25)"
+                      shadowRadius={12}
+                      shadowOffset={{ width: 0, height: 4 }}
+                    >
+                      Login as Handyman
+                    </AnimatedButton>
+                  </YStack>
+                </XStack>
+              </LinearGradient>
+
+              {/* Handyman Image - Pops out from top */}
+              <Image
+                source={require('../../../../../apps/expo/assets/handyman-homepage.webp')}
+                style={{
+                  position: 'absolute',
+                  top: -30,
+                  right: -20,
+                  width: 160,
+                  height: 230,
+                }}
+                contentFit="contain"
+              />
+            </YStack>
+          </YStack>
+
           {/* Promo Codes Section */}
           <AnimatedYStack
             px="$4"
@@ -1243,12 +1334,6 @@ export function GuestHomeScreen() {
                   color="$color"
                 >
                   Special Offers
-                </Text>
-                <Text
-                  fontSize="$2"
-                  color="$colorSubtle"
-                >
-                  Save on your first job
                 </Text>
               </XStack>
 
@@ -1303,7 +1388,7 @@ export function GuestHomeScreen() {
                               style={{
                                 paddingHorizontal: 12,
                                 paddingVertical: 10,
-                                minHeight: 70,
+                                minHeight: 40,
                               }}
                             >
                               <XStack
@@ -2067,57 +2152,6 @@ export function GuestHomeScreen() {
               </YStack>
             )}
           </AnimatedYStack>
-
-          {/* Become a Handyman Banner */}
-          <YStack
-            px="$4"
-            pb="$4"
-          >
-            <XStack
-              borderRadius="$6"
-              p="$4"
-              alignItems="center"
-              gap="$3"
-              onPress={() => redirectToLogin('handyman')}
-              {...PressPresets.card}
-              bg="#FFB800"
-              shadowColor="rgba(0,0,0,0.1)"
-              shadowRadius={15}
-              shadowOpacity={1}
-              shadowOffset={{ width: 0, height: 4 }}
-            >
-              <View
-                bg="rgba(0,0,0,0.15)"
-                p="$2.5"
-                borderRadius="$4"
-              >
-                <DollarSign
-                  size={24}
-                  color="white"
-                  strokeWidth={2.5}
-                />
-              </View>
-              <YStack flex={1}>
-                <Text
-                  fontSize="$4"
-                  fontWeight="bold"
-                  color="#1A1A1A"
-                >
-                  Earn Money as a Handyman
-                </Text>
-                <Text
-                  fontSize="$2"
-                  color="#4A4A4A"
-                >
-                  Set your own schedule and rates
-                </Text>
-              </YStack>
-              <ArrowRight
-                size={20}
-                color="$accent"
-              />
-            </XStack>
-          </YStack>
 
           {/* Available Jobs - Horizontal Scroll with Toggle */}
           <AnimatedYStack
