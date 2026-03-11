@@ -23,7 +23,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import { useDebounce, useReverseGeocode } from 'app/hooks'
+import { useDebounce, useReverseGeocode, useTypewriter } from 'app/hooks'
 import { findNearestCity, findCityByName } from 'app/utils/location'
 import { useToastController } from '@tamagui/toast'
 import Animated, {
@@ -620,103 +620,31 @@ export function GuestHomeScreen() {
     [router]
   )
 
-  //TODO : move typerwriter animation to reanimated-based
-  // Typewriter animation state
-  const [displayText, setDisplayText] = useState('Search handyman or jobs here!')
-  const [showCursor, setShowCursor] = useState(false)
-  const animationStateRef = useRef({
-    currentSuggestionIndex: 0,
-    isTyping: false,
-    isPaused: true,
-    currentText: 'Search handyman or jobs here!',
+  // Reanimated-based typewriter effect for search bar
+  const {
+    text: displayText,
+    showCursor,
+    pause,
+    resume,
+  } = useTypewriter({
+    strings: SEARCH_SUGGESTIONS,
+    typeSpeed: 5,
+    backSpeed: 20,
+    backDelay: 1000,
+    startDelay: 2000,
+    loop: true,
+    showCursor: true,
   })
-
-  // Blinking cursor effect
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setShowCursor((prev) => !prev)
-  //   }, 530)
-  //   return () => clearInterval(interval)
-  // }, [])
-
-  // Typewriter animation - batched updates for performance
-  // useEffect(() => {
-  //   let animationFrameId: number
-  //   let timeoutId: ReturnType<typeof setTimeout> | null = null
-  //   let isActive = true
-
-  //   const animate = () => {
-  //     if (!isActive || animationStateRef.current.isPaused) {
-  //       timeoutId = setTimeout(animate, 100)
-  //       return
-  //     }
-
-  //     const { currentSuggestionIndex, isTyping, currentText } = animationStateRef.current
-  //     const currentSuggestion = SEARCH_SUGGESTIONS[currentSuggestionIndex]
-
-  //     if (!currentSuggestion) {
-  //       timeoutId = setTimeout(animate, 100)
-  //       return
-  //     }
-
-  //     if (isTyping) {
-  //       // Typing phase
-  //       if (currentText.length < currentSuggestion.length) {
-  //         // Type next 2-3 characters at once for performance
-  //         const charsToType = Math.min(3, currentSuggestion.length - currentText.length)
-  //         const newText = currentSuggestion.slice(0, currentText.length + charsToType)
-  //         animationStateRef.current.currentText = newText
-  //         setDisplayText(newText)
-
-  //         // Quick delay (batching characters reduces updates)
-  //         timeoutId = setTimeout(animate, 30)
-  //       } else {
-  //         // Finished typing, pause before deleting
-  //         animationStateRef.current.isTyping = false
-  //         timeoutId = setTimeout(animate, 800)
-  //       }
-  //     } else {
-  //       // Deleting phase
-  //       if (currentText.length > 0) {
-  //         // Delete 2-3 characters at once
-  //         const charsToDelete = Math.min(3, currentText.length)
-  //         const newText = currentText.slice(0, -charsToDelete)
-  //         animationStateRef.current.currentText = newText
-  //         setDisplayText(newText)
-
-  //         timeoutId = setTimeout(animate, 20)
-  //       } else {
-  //         // Finished deleting, pick next suggestion with random delay
-  //         const nextIndex = Math.floor(Math.random() * SEARCH_SUGGESTIONS.length)
-  //         animationStateRef.current.currentSuggestionIndex = nextIndex
-  //         animationStateRef.current.isTyping = true
-
-  //         // Random delay: 1-2 seconds
-  //         timeoutId = setTimeout(animate, 1000 + Math.random() * 1000)
-  //       }
-  //     }
-  //   }
-
-  //   // Start animation
-  //   animate()
-
-  //   return () => {
-  //     isActive = false
-  //     if (timeoutId) {
-  //       clearTimeout(timeoutId)
-  //     }
-  //   }
-  // }, [])
 
   // Handle search press - redirect to login and pause for 5 seconds
   const handleSearchPress = useCallback(() => {
-    animationStateRef.current.isPaused = true
+    pause()
     redirectToLogin()
     // Resume after 5 seconds
     setTimeout(() => {
-      animationStateRef.current.isPaused = false
+      resume()
     }, 5000)
-  }, [redirectToLogin])
+  }, [pause, resume, redirectToLogin])
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [locationError, setLocationError] = useState<string | null>(null)
@@ -1065,7 +993,7 @@ export function GuestHomeScreen() {
                   bottom: 0,
                   width: '100%',
                   height: '105%',
-                  scaleX: -1
+                  scaleX: -1,
                 }}
                 contentFit="cover"
               />
