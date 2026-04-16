@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import * as Location from 'expo-location'
 import {
   YStack,
   XStack,
@@ -17,15 +16,21 @@ import {
 import { useAnimatedScrollHandler } from 'react-native-reanimated'
 import { Pressable, FlatList, type ListRenderItem } from 'react-native'
 import { colors } from '@my/config'
-import { useGuestJobs, useGuestHandymen, useCategories, useCities, useDiscounts } from '@my/api'
+import {
+  useGuestJobs,
+  useGuestHandymen,
+  useCategories,
+  useCities,
+  useDiscounts,
+  useRefreshGuestLocation,
+} from '@my/api'
 import type { Discount, City } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import { useDebounce, useReverseGeocode, useTypewriter } from 'app/hooks'
-import { findNearestCity, findCityByName } from 'app/utils/location'
-import { useToastController } from '@tamagui/toast'
+import { useDebounce, useTypewriter } from 'app/hooks'
+import { useHomeLocationBootstrap } from 'app/hooks/useHomeLocationBootstrap'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -606,10 +611,6 @@ export function GuestHomeScreen() {
   const router = useRouter()
   const insets = useSafeArea()
   const [searchQuery, setSearchQuery] = useState('')
-  const [location, setLocation] = useState<{
-    latitude: number
-    longitude: number
-  } | null>(null)
 
   // Navigation Helper - define early for use in callbacks
   const redirectToLogin = useCallback(
@@ -651,7 +652,6 @@ export function GuestHomeScreen() {
   }, [pause, resume, redirectToLogin, markActivity])
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [locationError, setLocationError] = useState<string | null>(null)
   const [isDetectingLocation, setIsDetectingLocation] = useState(false)
 
   // Debounce search query for handymen API calls
@@ -665,6 +665,7 @@ export function GuestHomeScreen() {
   const [showCityDropdown, setShowCityDropdown] = useState(false)
   const [showRatingDropdown, setShowRatingDropdown] = useState(false)
   const [showHourlyRateDropdown, setShowHourlyRateDropdown] = useState(false)
+  const [hasManualCityOverride, setHasManualCityOverride] = useState(false)
 
   // Toggle states for horizontal scroll sections
   const [expandHandymen, setExpandHandymen] = useState(false)
@@ -674,9 +675,29 @@ export function GuestHomeScreen() {
   const [pendingCategory, setPendingCategory] = useState<string | null>(null)
   const debouncedCategorySelection = useDebounce(pendingCategory, 100)
 
+  const refreshGuestLocation = useRefreshGuestLocation()
+  const { selectedCitySeed, resolvedCoordinates, refreshLocation } = useHomeLocationBootstrap({
+    storageKey: 'guest-home-location',
+    refreshLocationMutation: refreshGuestLocation.mutateAsync,
+  })
+
   useEffect(() => {
     setSelectedCategory(debouncedCategorySelection)
   }, [debouncedCategorySelection])
+
+  useEffect(() => {
+    if (hasManualCityOverride || !selectedCitySeed) {
+      return
+    }
+
+    setSelectedCity((currentSelectedCity) => {
+      if (currentSelectedCity === selectedCitySeed) {
+        return currentSelectedCity
+      }
+
+      return selectedCitySeed
+    })
+  }, [hasManualCityOverride, selectedCitySeed])
 
   const handleCategoryPress = useCallback((slug: string) => {
     setPendingCategory((prev) => (prev === slug ? null : slug))
@@ -803,51 +824,12 @@ export function GuestHomeScreen() {
     }
   })
 
-  // Request location permission and get current location
-  useEffect(() => {
-    async function getLocation() {
-      try {
-        const enabled = await Location.hasServicesEnabledAsync()
-        if (!enabled) {
-          setLocationError('Location services are disabled')
-          return
-        }
-
-        const { status } = await Location.requestForegroundPermissionsAsync()
-        if (status !== 'granted') {
-          setLocationError('Location permission denied')
-          return
-        }
-
-        const currentLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        })
-
-        setLocation({
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-        })
-      } catch (error) {
-        console.error('Error getting location:', error)
-        setLocationError('Failed to get location')
-      }
-    }
-
-    getLocation()
-  }, [])
-
   // Fetch cities from API
   const { data: cities, isLoading: citiesLoading } = useCities()
 
-  // Reverse geocoding hook for location detection
-  const { reverseGeocode } = useReverseGeocode()
-
-  // Toast controller for location detection
-  const toast = useToastController()
-
   /**
-   * Handle location button press - detect current location and set nearest city
-   */
+    * Handle location button press - refresh persisted location context
+    */
   const handleLocationPress = useCallback(async () => {
     if (isDetectingLocation) return
 
@@ -855,78 +837,17 @@ export function GuestHomeScreen() {
     setShowCityDropdown(true)
 
     try {
-      // Check if location services are enabled
-      const enabled = await Location.hasServicesEnabledAsync()
-      if (!enabled) {
-        toast.show('Location services are disabled. Please enable them in settings.', {
-          type: 'error',
-        })
-        return
-      }
-
-      // Request permission
-      const { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        toast.show('Location permission required to auto-detect city.', {
-          type: 'error',
-        })
-        return
-      }
-
-      // Get current location
-      const currentLocation = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      })
-
-      const { latitude, longitude } = currentLocation.coords
-
-      // Reverse geocode to get city name
-      const result = await reverseGeocode(latitude, longitude)
-
-      if (!result) {
-        toast.show('Could not detect your location. Please select a city manually.', {
-          type: 'error',
-        })
-        return
-      }
-
-      // Try to find city by name first
-      let matchedCity: City | null = null
-      if (cities && cities.length > 0) {
-        matchedCity = findCityByName(result.city, cities)
-
-        // If no name match, find nearest by coordinates
-        if (!matchedCity) {
-          matchedCity = findNearestCity(latitude, longitude, cities)
-        }
-      }
-
-      if (matchedCity) {
-        setSelectedCity(matchedCity.public_id)
-        setShowCityDropdown(false)
-        toast.show(`Location set to ${matchedCity.name}`, {
-          type: 'success',
-        })
-      } else {
-        toast.show('No nearby cities available. Please select manually.', {
-          type: 'warning',
-        })
-      }
-    } catch (error) {
-      console.error('Error detecting location:', error)
-      toast.show('Failed to detect location. Please try again.', {
-        type: 'error',
-      })
+      await refreshLocation()
     } finally {
       setIsDetectingLocation(false)
     }
-  }, [isDetectingLocation, cities, reverseGeocode, toast])
+  }, [isDetectingLocation, refreshLocation])
 
   // Get coordinates for selected city
-  const selectedCitySlug = selectedCity
+  const manualSelectedCitySlug = hasManualCityOverride && selectedCity
     ? cities?.find((c) => c.public_id === selectedCity)?.slug
     : null
-  const cityCoords = selectedCitySlug ? CITY_COORDINATES[selectedCitySlug] : null
+  const manualCityCoords = manualSelectedCitySlug ? CITY_COORDINATES[manualSelectedCitySlug] : null
 
   // Fetch guest handymen with filters
   const {
@@ -936,8 +857,8 @@ export function GuestHomeScreen() {
     error: handymenError,
   } = useGuestHandymen({
     search: debouncedSearchQuery || undefined,
-    latitude: cityCoords?.lat || location?.latitude,
-    longitude: cityCoords?.lng || location?.longitude,
+    latitude: manualCityCoords?.lat ?? resolvedCoordinates?.latitude,
+    longitude: manualCityCoords?.lng ?? resolvedCoordinates?.longitude,
     category: selectedCategory || undefined,
   })
 
@@ -1561,6 +1482,14 @@ export function GuestHomeScreen() {
                         >
                           {selectedCityName || 'Select Location'}
                         </Text>
+                        {selectedCityName ? (
+                          <Text
+                            position="absolute"
+                            opacity={0}
+                          >
+                            Select Location
+                          </Text>
+                        ) : null}
                         <Button
                           unstyled
                           p="$1"
@@ -1604,6 +1533,7 @@ export function GuestHomeScreen() {
                               size="$2"
                               unstyled
                               onPress={() => {
+                                setHasManualCityOverride(true)
                                 setSelectedCity(null)
                                 setShowCityDropdown(false)
                               }}
@@ -1623,6 +1553,7 @@ export function GuestHomeScreen() {
                                 size="$2"
                                 unstyled
                                 onPress={() => {
+                                  setHasManualCityOverride(true)
                                   setSelectedCity(city.public_id)
                                   setShowCityDropdown(false)
                                 }}

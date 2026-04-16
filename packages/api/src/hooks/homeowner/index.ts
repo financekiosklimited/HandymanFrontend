@@ -468,6 +468,7 @@ export * from './useUpdateJob'
 export * from './useDeleteJob'
 export * from './useDirectOffers'
 export * from './usePayment'
+export { useRefreshHomeownerLocation } from './useRefreshLocation'
 
 // ========== Ongoing Job Hooks ==========
 

@@ -1,4 +1,4 @@
-import type { PaginatedArrayResponse, ApiResponse } from './common'
+import type { PaginatedArrayResponse, ApiResponse, CitySummary, LocationSnapshot } from './common'
 import type { Attachment } from './attachment'
 
 // Guest endpoints types
@@ -49,11 +49,24 @@ export interface GuestHandyman {
   bio: string | null
   distance_km: number | null
   hourly_rate?: number | null
+  city: CitySummary | null
   categories: Array<{
     public_id: string
     name: string
   }>
 }
+
+export interface GuestLocationRefreshRequest {
+  latitude: number
+  longitude: number
+  device_token?: string
+}
+
+export interface GuestLocationRefreshResponse extends LocationSnapshot {
+  device_token: string
+}
+
+export type GuestLocationRefreshEnvelope = ApiResponse<GuestLocationRefreshResponse>
 
 // Review item from reviews list endpoint (with censored reviewer info)
 // Same structure as homeowner for consistency

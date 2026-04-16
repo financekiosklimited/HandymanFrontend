@@ -1,4 +1,4 @@
-import type { PaginatedArrayResponse, ApiResponse } from './common'
+import type { PaginatedArrayResponse, ApiResponse, LocationSnapshot } from './common'
 import type { Attachment, AttachmentUpload } from './attachment'
 
 // Job status for handyman view
@@ -181,6 +181,15 @@ export interface HandymanProfileUpdateRequest {
   is_available?: boolean
   address?: string
 }
+
+export interface HandymanLocationRefreshRequest {
+  latitude: number
+  longitude: number
+}
+
+export interface HandymanLocationRefreshResponse extends LocationSnapshot {}
+
+export type HandymanLocationRefreshEnvelope = ApiResponse<HandymanLocationRefreshResponse>
 
 // Application status
 export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn'

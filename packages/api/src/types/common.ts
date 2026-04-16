@@ -47,6 +47,21 @@ export interface City {
   slug: string
 }
 
+export interface CitySummary {
+  public_id: string
+  name: string
+  province: string
+  province_code: string
+  slug: string
+}
+
+export interface LocationSnapshot {
+  latitude: string | null
+  longitude: string | null
+  current_city: CitySummary | null
+  last_location_updated_at: string | null
+}
+
 export interface Category {
   public_id: string
   name: string

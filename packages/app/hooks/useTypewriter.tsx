@@ -128,6 +128,10 @@ export function useTypewriter(options: TypewriterOptions): TypewriterState {
 
     const currentString = strings[currentStringIndexRef.current]
 
+    if (currentString == null) {
+      return
+    }
+
     if (isDeletingRef.current) {
       // Deleting phase - batch deletes for performance
       if (currentCharIndexRef.current > 0) {

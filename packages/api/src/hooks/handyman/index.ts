@@ -27,6 +27,7 @@ import type {
   HandymanAssignedJob,
   HandymanAssignedJobStatus,
 } from '../../types/handyman'
+export { useRefreshHandymanLocation } from './useRefreshLocation'
 
 // Re-export direct offer hooks
 export {

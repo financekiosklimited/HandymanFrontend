@@ -1,4 +1,4 @@
-import type { PaginatedArrayResponse, ApiResponse } from './common'
+import type { PaginatedArrayResponse, ApiResponse, CitySummary, LocationSnapshot } from './common'
 import type { Attachment } from './attachment'
 
 // Job status for homeowner view
@@ -61,6 +61,7 @@ export interface HomeownerHandyman {
   review_count: number
   hourly_rate?: number | null
   distance_km: number | null
+  city: CitySummary | null
   categories: Array<{
     public_id: string
     name: string
@@ -82,6 +83,15 @@ export interface HomeownerProfileUpdateRequest {
   address?: string
   date_of_birth?: string | null
 }
+
+export interface HomeownerLocationRefreshRequest {
+  latitude: number
+  longitude: number
+}
+
+export interface HomeownerLocationRefreshResponse extends LocationSnapshot {}
+
+export type HomeownerLocationRefreshEnvelope = ApiResponse<HomeownerLocationRefreshResponse>
 
 // Application status type
 export type HomeownerApplicationStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn'

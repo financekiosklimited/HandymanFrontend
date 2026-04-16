@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import * as Location from 'expo-location'
 import {
   YStack,
   XStack,
@@ -19,6 +18,7 @@ import {
   useHandymanJobsForYou,
   useAuthStore,
   useHandymanProfile,
+  useRefreshHandymanLocation,
   useTotalUnreadCount,
   useCategories,
   useCities,
@@ -27,14 +27,14 @@ import {
   useHandymanAssignedJobs,
   useDiscounts,
 } from '@my/api'
-import type { Discount, HandymanJobForYou, City } from '@my/api'
+import type { Discount, HandymanJobForYou } from '@my/api'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
 import { JobCard } from '@my/ui'
 import { useRouter } from 'expo-router'
 import { useSafeArea } from 'app/provider/safe-area/use-safe-area'
-import { useDebounce, useReverseGeocode } from 'app/hooks'
-import { findNearestCity, findCityByName } from 'app/utils/location'
+import { useDebounce } from 'app/hooks'
+import { useHomeLocationBootstrap } from 'app/hooks/useHomeLocationBootstrap'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -313,11 +313,6 @@ export function HandymanHomeScreen() {
   const insets = useSafeArea()
   const user = useAuthStore((state) => state.user)
   const [searchQuery, setSearchQuery] = useState('')
-  const [location, setLocation] = useState<{
-    latitude: number
-    longitude: number
-  } | null>(null)
-  const [locationError, setLocationError] = useState<string | null>(null)
   const [isDetectingLocation, setIsDetectingLocation] = useState(false)
 
   // Filter states
@@ -330,6 +325,7 @@ export function HandymanHomeScreen() {
   const [customMinInput, setCustomMinInput] = useState('')
   const [customMaxInput, setCustomMaxInput] = useState('')
   const [budgetError, setBudgetError] = useState<string | null>(null)
+  const [hasManualCityOverride, setHasManualCityOverride] = useState(false)
 
   // Debounced category selection to prevent rapid-fire animations
   const [pendingCategory, setPendingCategory] = useState<string | null>(null)
@@ -343,50 +339,8 @@ export function HandymanHomeScreen() {
     setPendingCategory((prev) => (prev === publicId ? null : publicId))
   }, [])
 
-  // Request location permission and get current location
-  useEffect(() => {
-    async function getLocation() {
-      try {
-        const enabled = await Location.hasServicesEnabledAsync()
-        if (!enabled) {
-          setLocationError('Location services are disabled')
-          return
-        }
-
-        const { status } = await Location.requestForegroundPermissionsAsync()
-        if (status !== 'granted') {
-          setLocationError('Location permission denied')
-          return
-        }
-
-        const currentLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        })
-
-        setLocation({
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-        })
-      } catch (error) {
-        console.error('Error getting location:', error)
-        setLocationError('Failed to get location')
-      }
-    }
-
-    getLocation()
-  }, [])
-
   // Fetch cities from API (needed before jobs hook)
   const { data: cities, isLoading: citiesLoading } = useCities()
-
-  // Reverse geocoding hook for location detection
-  const { reverseGeocode } = useReverseGeocode()
-
-  // Get coordinates for selected city
-  const selectedCitySlug = selectedCity
-    ? cities?.find((c) => c.public_id === selectedCity)?.slug
-    : null
-  const cityCoords = selectedCitySlug ? CITY_COORDINATES[selectedCitySlug] : null
 
   // Fetch categories from API
   const { data: categories, isLoading: categoriesLoading } = useCategories()
@@ -399,9 +353,28 @@ export function HandymanHomeScreen() {
   // Fetch handyman's profile
   const { data: profile } = useHandymanProfile()
   const toast = useToastController()
+  const refreshHandymanLocation = useRefreshHandymanLocation()
+  const { selectedCitySeed, resolvedCoordinates, refreshLocation } = useHomeLocationBootstrap({
+    storageKey: 'handyman-home-location',
+    refreshLocationMutation: refreshHandymanLocation.mutateAsync,
+  })
+
+  useEffect(() => {
+    if (hasManualCityOverride || !selectedCitySeed) {
+      return
+    }
+
+    setSelectedCity((currentSelectedCity) => {
+      if (currentSelectedCity === selectedCitySeed) {
+        return currentSelectedCity
+      }
+
+      return selectedCitySeed
+    })
+  }, [hasManualCityOverride, selectedCitySeed])
 
   /**
-   * Handle location button press - detect current location and set nearest city
+   * Handle location button press - refresh persisted location context
    */
   const handleLocationPress = useCallback(async () => {
     if (isDetectingLocation) return
@@ -410,72 +383,16 @@ export function HandymanHomeScreen() {
     setShowCityDropdown(true)
 
     try {
-      // Check if location services are enabled
-      const enabled = await Location.hasServicesEnabledAsync()
-      if (!enabled) {
-        toast.show('Location services are disabled. Please enable them in settings.', {
-          type: 'error',
-        })
-        return
-      }
-
-      // Request permission
-      const { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        toast.show('Location permission required to auto-detect city.', {
-          type: 'error',
-        })
-        return
-      }
-
-      // Get current location
-      const currentLocation = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      })
-
-      const { latitude, longitude } = currentLocation.coords
-
-      // Reverse geocode to get city name
-      const result = await reverseGeocode(latitude, longitude)
-
-      if (!result) {
-        toast.show('Could not detect your location. Please select a city manually.', {
-          type: 'error',
-        })
-        return
-      }
-
-      // Try to find city by name first
-      let matchedCity: City | null = null
-      if (cities && cities.length > 0) {
-        matchedCity = findCityByName(result.city, cities)
-
-        // If no name match, find nearest by coordinates
-        if (!matchedCity) {
-          matchedCity = findNearestCity(latitude, longitude, cities)
-        }
-      }
-
-      if (matchedCity) {
-        setSelectedCity(matchedCity.public_id)
-        setShowCityDropdown(false)
-        toast.show(`Location set to ${matchedCity.name}`, {
-          type: 'success',
-        })
-      } else {
-        toast.show('No nearby cities available. Please select manually.', {
-          type: 'warning',
-        })
-      }
+      await refreshLocation()
     } catch (error) {
-      console.error('Error detecting location:', error)
+      console.error('Error refreshing location:', error)
       toast.show('Failed to detect location. Please try again.', {
         type: 'error',
       })
     } finally {
       setIsDetectingLocation(false)
     }
-  }, [isDetectingLocation, cities, reverseGeocode, toast])
+  }, [isDetectingLocation, refreshLocation, toast])
 
   // Fetch action required data
   const { data: pendingOffersCount = 0 } = useHandymanPendingOffersCount()
@@ -517,6 +434,10 @@ export function HandymanHomeScreen() {
   // Infinite scroll state with debouncing
   const isFetchingRef = useRef(false)
   const fetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const manualSelectedCitySlug = hasManualCityOverride && selectedCity
+    ? cities?.find((c) => c.public_id === selectedCity)?.slug
+    : null
+  const manualCityCoords = manualSelectedCitySlug ? CITY_COORDINATES[manualSelectedCitySlug] : null
 
   // Fetch jobs for you with filters - initial 5, then 20 per page
   const {
@@ -528,8 +449,8 @@ export function HandymanHomeScreen() {
     isFetchingNextPage: isFetchingMoreJobs,
   } = useHandymanJobsForYou({
     search: searchQuery || undefined,
-    latitude: cityCoords?.lat || location?.latitude,
-    longitude: cityCoords?.lng || location?.longitude,
+    latitude: manualCityCoords?.lat ?? resolvedCoordinates?.latitude,
+    longitude: manualCityCoords?.lng ?? resolvedCoordinates?.longitude,
     category: selectedCategory || undefined,
     city: selectedCity || undefined,
     initialPageSize: 5,
@@ -1418,6 +1339,7 @@ export function HandymanHomeScreen() {
                               size="$2"
                               unstyled
                               onPress={() => {
+                                setHasManualCityOverride(true)
                                 setSelectedCity(null)
                                 setShowCityDropdown(false)
                               }}
@@ -1437,6 +1359,7 @@ export function HandymanHomeScreen() {
                                 size="$2"
                                 unstyled
                                 onPress={() => {
+                                  setHasManualCityOverride(true)
                                   setSelectedCity(city.public_id)
                                   setShowCityDropdown(false)
                                 }}
